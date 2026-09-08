@@ -1,0 +1,11 @@
+import { Router } from "express";
+import { JournalController } from "../controllers/journal.controller";
+import { authenticate } from "../middleware/auth";
+const router = Router();
+router.get("/", authenticate, JournalController.getAll);
+router.get("/stats", authenticate, JournalController.getStats);
+router.get("/:id", authenticate, JournalController.getById);
+router.post("/", authenticate, JournalController.create);
+router.patch("/:id", authenticate, JournalController.update);
+router.delete("/:id", authenticate, JournalController.delete);
+export default router;
