@@ -15,6 +15,16 @@ Experience MindSync AI live in your browser:
 
 ---
 
+## 🎬 Video Walkthrough & Tutorial
+
+Watch the complete walkthrough of MindSync AI in action covering Authentication, Habit Tracking, Productivity Pomodoro Timer, Clinical Psychological Assessments, Analytics & Reports, and AI Coaching:
+
+https://github.com/pranav2020-pixel/mindsync-ai/raw/main/docs/demo.mp4
+
+> **Direct Link:** [▶️ Watch / Download Walkthrough Video (MP4)](docs/demo.mp4)
+
+---
+
 ## 🛠️ Technology Stack & Where Each is Used
 
 ### 1. Frontend Client (`/frontend`)
