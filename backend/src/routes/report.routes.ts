@@ -4,4 +4,5 @@ import { authenticate } from "../middleware/auth";
 const router = Router();
 router.get("/", authenticate, ReportController.getAll);
 router.post("/", authenticate, ReportController.generate);
+router.post("/generate", authenticate, ReportController.generate);
 export default router;
