@@ -2,6 +2,8 @@
 
 import { useEffect, useState } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import { motion } from "framer-motion";
 import {
   LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
@@ -25,12 +27,19 @@ const item = {
 };
 
 export default function Dashboard() {
+  const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [moodData, setMoodData] = useState<any[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    const token = Cookies.get("accessToken");
+    if (!token) {
+      router.push("/login");
+      return;
+    }
+
     const fetchData = async () => {
       try {
         const [moodRes, journalRes, insightRes] = await Promise.all([
@@ -48,7 +57,7 @@ export default function Dashboard() {
       }
     };
     fetchData();
-  }, []);
+  }, [router]);
 
   const radarData = [
     { subject: "Mood", A: stats?.mood?.avgMood ? parseFloat(stats.mood.avgMood) * 10 : 70, fullMark: 100 },

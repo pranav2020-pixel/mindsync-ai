@@ -5,11 +5,17 @@ import { useTheme } from "./theme-provider";
 import { Sun, Moon, Bell, LogOut, User } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
+import { usePathname } from "next/navigation";
 
 export function Navbar() {
+  const pathname = usePathname();
   const { user, logout } = useAuth();
   const { theme, toggleTheme } = useTheme();
   const [showProfile, setShowProfile] = useState(false);
+
+  if (pathname === "/login" || pathname === "/register") {
+    return null;
+  }
 
   return (
     <header className="h-16 glass border-b border-white/10 flex items-center justify-between px-6 sticky top-0 z-30">

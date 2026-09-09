@@ -30,6 +30,10 @@ export function Sidebar() {
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
 
+  if (pathname === "/login" || pathname === "/register") {
+    return null;
+  }
+
   return (
     <>
       <button

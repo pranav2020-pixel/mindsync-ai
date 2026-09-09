@@ -66,7 +66,7 @@ services:
       - ./frontend:/app
       - /app/node_modules
       - /app/.next
-    command: npm run dev
+    command: sh -c "npm run build && npm start"
 
   tunnel:
     image: cloudflare/cloudflared:latest
