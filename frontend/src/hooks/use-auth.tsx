@@ -47,8 +47,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const res = await api.post("/auth/login", { email, password });
     const { accessToken, refreshToken, user } = res.data.data;
-    Cookies.set("accessToken", accessToken);
-    Cookies.set("refreshToken", refreshToken);
+    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
+    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
     setUser(user);
     router.push("/");
   };
@@ -56,15 +56,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const register = async (data: any) => {
     const res = await api.post("/auth/register", data);
     const { accessToken, refreshToken, user } = res.data.data;
-    Cookies.set("accessToken", accessToken);
-    Cookies.set("refreshToken", refreshToken);
+    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
+    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
     setUser(user);
     router.push("/");
   };
 
   const logout = () => {
-    Cookies.remove("accessToken");
-    Cookies.remove("refreshToken");
+    Cookies.remove("accessToken", { path: "/" });
+    Cookies.remove("refreshToken", { path: "/" });
     setUser(null);
     router.push("/login");
   };
