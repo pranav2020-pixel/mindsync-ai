@@ -15,13 +15,15 @@ Experience MindSync AI live in your browser:
 
 ---
 
-## 🎬 Video Walkthrough & Tutorial
+## 🎬 Live Product Walkthrough
 
-Watch the complete walkthrough of MindSync AI in action covering Authentication, Habit Tracking, Productivity Pomodoro Timer, Clinical Psychological Assessments, Analytics & Reports, and AI Coaching:
+<p align="center">
+  <img src="docs/demo.gif" alt="MindSync AI Live Walkthrough" width="100%" />
+</p>
 
-https://github.com/pranav2020-pixel/mindsync-ai/raw/main/docs/demo.mp4
+*Live walkthrough showcasing Authentication, Habit Tracking with XP gamification, Pomodoro Productivity Hub, Clinical Psychological Assessments, Analytics & Reports, and AI Coaching.*
 
-> **Direct Link:** [▶️ Watch / Download Walkthrough Video (MP4)](docs/demo.mp4)
+> **High-Res Video:** [▶️ Download High-Definition Video (MP4)](docs/demo.mp4)
 
 ---
 
