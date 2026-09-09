@@ -18,17 +18,18 @@ export const redis = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : 
 const app = express();
 const PORT = process.env.PORT || 4000;
 
+app.set("trust proxy", 1);
 app.use(helmet());
 app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
 
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, standardHeaders: true, legacyHeaders: false });
-app.use(limiter);
-
-const authLimiter = rateLimit({
-  windowMs: 15 * 60 * 1000, max: 10,
-  message: { error: "Too many authentication attempts. Please try again later." },
+const isDev = process.env.NODE_ENV === "development";
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: isDev ? 5000 : 1000,
+  standardHeaders: true,
+  legacyHeaders: false,
 });
-app.use("/api/v1/auth/", authLimiter);
+app.use(limiter);
 
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
