@@ -1,6 +1,6 @@
 # MindSync AI
 
-> AI-Powered Mental Wellness & Productivity Platform
+> A thoughtful mental wellness and productivity companion designed to help you reflect deeply, build sustainable habits, and sustain focus through empathetic AI.
 
 [![Tech Stack](https://img.shields.io/badge/stack-Next.js%20%7C%20Express%20%7C%20PostgreSQL%20%7C%20Prisma%20%7C%20OpenAI-blue)]()
 [![License](https://img.shields.io/badge/license-MIT-green)]()
