@@ -20,8 +20,8 @@ const journalSchema = z.object({
   mood: z.number().min(1).max(10),
   energy: z.number().min(1).max(10),
   stress: z.number().min(1).max(10),
-  sleepHours: z.number().min(0).max(24).optional(),
-  productivityRating: z.number().min(1).max(10).optional(),
+  sleepHours: z.preprocess((val) => (val === "" || (typeof val === "number" && Number.isNaN(val)) ? undefined : Number(val)), z.number().min(0).max(24).optional()),
+  productivityRating: z.preprocess((val) => (val === "" || (typeof val === "number" && Number.isNaN(val)) ? undefined : Number(val)), z.number().min(1).max(10).optional()),
 });
 
 type JournalForm = z.infer<typeof journalSchema>;
@@ -42,7 +42,7 @@ export default function JournalPage() {
   const fetchEntries = async () => {
     try {
       const res = await api.get("/journals?limit=10");
-      setEntries(res.data.data);
+      setEntries(res.data.data || []);
     } catch (err) { toast.error("Failed to load entries"); }
   };
 
@@ -54,13 +54,14 @@ export default function JournalPage() {
       toast.success("Journal saved & analyzed!");
       setSelectedEntry(res.data.data);
       setShowAnalysis(true);
-      reset();
+      reset({ mood: 7, energy: 6, stress: 4 });
       fetchEntries();
     } catch (err) { toast.error("Failed to save journal"); }
     finally { setLoading(false); }
   };
 
   const mood = watch("mood");
+  const energy = watch("energy");
   const stress = watch("stress");
 
   return (
@@ -91,7 +92,7 @@ export default function JournalPage() {
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-white/10">
               <SliderField label="Mood" value={mood} onChange={(v: number) => setValue("mood", v)} icon={Heart} color="text-wellness-calm" />
-              <SliderField label="Energy" register={register("energy")} icon={Zap} color="text-wellness-energy" />
+              <SliderField label="Energy" value={energy} onChange={(v: number) => setValue("energy", v)} icon={Zap} color="text-wellness-energy" />
               <SliderField label="Stress" value={stress} onChange={(v: number) => setValue("stress", v)} icon={Frown} color="text-wellness-stress" />
               <div>
                 <label className="text-xs text-muted-foreground mb-1 block">Sleep (hrs)</label>
@@ -148,7 +149,7 @@ export default function JournalPage() {
                 <div className="p-4 rounded-xl bg-primary-500/5 border border-primary-500/10">
                   <p className="text-sm italic leading-relaxed">&ldquo;{selectedEntry.aiAnalysis.aiReflection}&rdquo;</p>
                 </div>
-                {selectedEntry.aiAnalysis.suggestedActivities.length > 0 && (
+                {selectedEntry.aiAnalysis.suggestedActivities?.length > 0 && (
                   <div>
                     <h4 className="text-sm font-medium mb-2 flex items-center gap-2"><Lightbulb size={14} /> Suggested Activities</h4>
                     <div className="flex flex-wrap gap-2">
@@ -158,7 +159,7 @@ export default function JournalPage() {
                     </div>
                   </div>
                 )}
-                {selectedEntry.aiAnalysis.anxietyIndicators.length > 0 && (
+                {selectedEntry.aiAnalysis.anxietyIndicators?.length > 0 && (
                   <div className="p-3 rounded-lg bg-wellness-stress/10 border border-wellness-stress/20 flex items-start gap-2">
                     <AlertTriangle size={16} className="text-wellness-stress shrink-0 mt-0.5" />
                     <p className="text-xs text-wellness-stress">Anxiety indicators detected. Consider speaking with a trusted person or professional.</p>
