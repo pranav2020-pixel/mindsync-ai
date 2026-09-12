@@ -88,18 +88,21 @@ export function Sidebar() {
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
-            onClick={() => setMobileOpen(false)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMobileOpen(false);
+            }}
             className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
           />
         )}
       </AnimatePresence>
 
-      <motion.aside
-        initial={{ x: -100, opacity: 0 }}
-        animate={{ x: 0, opacity: 1 }}
+      <aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-screen w-72 lg:w-64 glass border-r border-white/10 flex flex-col transition-transform duration-300 ease-in-out",
-          mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-72 lg:w-64 glass border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out",
+          mobileOpen
+            ? "translate-x-0 shadow-2xl pointer-events-auto visible"
+            : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto invisible lg:visible"
         )}
       >
         {/* Header Branding with Mobile Close Button */}
@@ -115,8 +118,12 @@ export function Sidebar() {
           </Link>
 
           <button
-            onClick={() => setMobileOpen(false)}
-            className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
+            type="button"
+            onClick={(e) => {
+              e.stopPropagation();
+              setMobileOpen(false);
+            }}
+            className="lg:hidden p-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all shadow-md"
             aria-label="Close menu"
           >
             <X size={20} />
@@ -170,7 +177,7 @@ export function Sidebar() {
             </p>
           </div>
         </div>
-      </motion.aside>
+      </aside>
     </>
   );
 }
