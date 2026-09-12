@@ -101,55 +101,59 @@ export default function Dashboard() {
 
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-3xl font-bold">Welcome back</h1>
-          <p className="text-muted-foreground mt-1">Here is your wellness overview for today</p>
+          <h1 className="text-2xl sm:text-3xl font-bold">Welcome back</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">Here is your wellness overview for today</p>
         </div>
-        <button className="glass-card px-4 py-2 rounded-xl text-sm font-medium flex items-center gap-2 hover-lift">
+        <button className="glass-card px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 hover-lift self-start sm:self-auto">
           <Sparkles size={16} className="text-wellness-energy" />
           Generate Insights
         </button>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
         <StatCard title="Today's Mood" value={stats?.mood?.avgMood || "7.2"} subtitle="/ 10" icon={Heart} trend="+0.3" trendUp={true} color="text-wellness-calm" bgColor="bg-wellness-calm/10" />
         <StatCard title="Stress Level" value={stats?.mood?.avgStress || "4.1"} subtitle="/ 10" icon={Activity} trend="-0.5" trendUp={true} color="text-wellness-stress" bgColor="bg-wellness-stress/10" />
         <StatCard title="Energy" value={stats?.mood?.avgEnergy || "6.8"} subtitle="/ 10" icon={Zap} trend="+1.2" trendUp={true} color="text-wellness-energy" bgColor="bg-wellness-energy/10" />
         <StatCard title="Journal Streak" value={stats?.journal?.currentStreak?.toString() || "5"} subtitle="days" icon={BookOpen} trend="Keep it up!" trendUp={true} color="text-primary-400" bgColor="bg-primary-500/10" />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <h3 className="font-semibold text-lg">Weekly Mood Timeline</h3>
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-4 sm:p-6 min-w-0">
+          <div className="flex items-center justify-between mb-4 sm:mb-6">
+            <h3 className="font-semibold text-base sm:text-lg">Weekly Mood Timeline</h3>
             <div className="flex gap-2">
-              <span className="flex items-center gap-1 text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-wellness-calm" /> Mood</span>
-              <span className="flex items-center gap-1 text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-wellness-stress" /> Stress</span>
+              <span className="flex items-center gap-1 text-[11px] sm:text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-wellness-calm" /> Mood</span>
+              <span className="flex items-center gap-1 text-[11px] sm:text-xs text-muted-foreground"><span className="w-2 h-2 rounded-full bg-wellness-stress" /> Stress</span>
             </div>
           </div>
-          <ResponsiveContainer width="100%" height={300}>
-            <LineChart data={moodData}>
-              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
-              <XAxis dataKey="day" stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
-              <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
-              <Tooltip contentStyle={chartTheme.tooltipStyle} />
-              <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={3} connectNulls dot={{ fill: "#10b981", r: 4 }} activeDot={{ r: 6 }} />
-              <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={3} connectNulls dot={{ fill: "#ef4444", r: 4 }} activeDot={{ r: 6 }} />
-            </LineChart>
-          </ResponsiveContainer>
+          <div className="w-full h-64 sm:h-72 min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart data={moodData} margin={{ top: 5, right: 10, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                <XAxis dataKey="day" stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                <Tooltip contentStyle={chartTheme.tooltipStyle} />
+                <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={3} connectNulls dot={{ fill: "#10b981", r: 3 }} activeDot={{ r: 5 }} />
+                <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={3} connectNulls dot={{ fill: "#ef4444", r: 3 }} activeDot={{ r: 5 }} />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </motion.div>
 
-        <motion.div variants={item} className="glass-card rounded-2xl p-6">
-          <h3 className="font-semibold text-lg mb-6">Wellness Balance</h3>
-          <ResponsiveContainer width="100%" height={300}>
-            <RadarChart data={radarData}>
-              <PolarGrid stroke={chartTheme.radarGrid} />
-              <PolarAngleAxis dataKey="subject" tick={chartTheme.radarAngleTick} />
-              <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar name="You" dataKey="A" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={chartTheme.isDark ? 0.35 : 0.25} strokeWidth={2.5} />
-            </RadarChart>
-          </ResponsiveContainer>
+        <motion.div variants={item} className="glass-card rounded-2xl p-4 sm:p-6 min-w-0">
+          <h3 className="font-semibold text-base sm:text-lg mb-4 sm:mb-6">Wellness Balance</h3>
+          <div className="w-full h-64 sm:h-72 min-w-0">
+            <ResponsiveContainer width="100%" height="100%">
+              <RadarChart data={radarData} margin={{ top: 10, right: 20, left: 20, bottom: 10 }}>
+                <PolarGrid stroke={chartTheme.radarGrid} />
+                <PolarAngleAxis dataKey="subject" tick={chartTheme.radarAngleTick} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                <Radar name="You" dataKey="A" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={chartTheme.isDark ? 0.35 : 0.25} strokeWidth={2.5} />
+              </RadarChart>
+            </ResponsiveContainer>
+          </div>
         </motion.div>
       </div>
 

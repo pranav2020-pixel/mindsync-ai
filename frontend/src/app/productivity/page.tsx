@@ -180,103 +180,103 @@ export default function ProductivityPage() {
       </div>
 
       {/* Quick Metrics Bar */}
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-        <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-400 shrink-0">
-            <Clock size={22} />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <div className="glass-card rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-400 shrink-0">
+            <Clock size={20} />
           </div>
           <div>
-            <div className="text-2xl font-bold">{totalHours} hrs</div>
-            <div className="text-xs text-muted-foreground">30-Day Focus Time</div>
+            <div className="text-xl sm:text-2xl font-bold">{totalHours} hrs</div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">30-Day Focus</div>
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-wellness-energy/10 border border-wellness-energy/20 flex items-center justify-center text-wellness-energy shrink-0">
-            <Flame size={22} />
+        <div className="glass-card rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-wellness-energy/10 border border-wellness-energy/20 flex items-center justify-center text-wellness-energy shrink-0">
+            <Flame size={20} />
           </div>
           <div>
-            <div className="text-2xl font-bold">{stats?.totalPomodoro || 0}</div>
-            <div className="text-xs text-muted-foreground">Focus Blocks Completed</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats?.totalPomodoro || 0}</div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">Focus Blocks</div>
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-wellness-calm/10 border border-wellness-calm/20 flex items-center justify-center text-wellness-calm shrink-0">
-            <CheckSquare size={22} />
+        <div className="glass-card rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-wellness-calm/10 border border-wellness-calm/20 flex items-center justify-center text-wellness-calm shrink-0">
+            <CheckSquare size={20} />
           </div>
           <div>
-            <div className="text-2xl font-bold">{stats?.totalTasks || 0}</div>
-            <div className="text-xs text-muted-foreground">Tasks Finished</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats?.totalTasks || 0}</div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">Tasks Finished</div>
           </div>
         </div>
 
-        <div className="glass-card rounded-2xl p-5 flex items-center gap-4">
-          <div className="w-12 h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
-            <Brain size={22} />
+        <div className="glass-card rounded-2xl p-4 sm:p-5 flex items-center gap-3 sm:gap-4">
+          <div className="w-10 h-10 sm:w-12 sm:h-12 rounded-xl bg-purple-500/10 border border-purple-500/20 flex items-center justify-center text-purple-400 shrink-0">
+            <Brain size={20} />
           </div>
           <div>
-            <div className="text-2xl font-bold">{stats?.avgDeepWork || "7.5"} / 10</div>
-            <div className="text-xs text-muted-foreground">Avg Deep Work Score</div>
+            <div className="text-xl sm:text-2xl font-bold">{stats?.avgDeepWork || "7.5"} / 10</div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">Deep Work Score</div>
           </div>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         {/* Left 2 Cols: Focus Timer & Quick Logging */}
-        <div className="lg:col-span-2 space-y-6">
+        <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Pomodoro Timer Card */}
-          <div className="glass-card rounded-2xl p-8 text-center space-y-6 relative overflow-hidden border border-white/10">
+          <div className="glass-card rounded-2xl p-5 sm:p-8 text-center space-y-4 sm:space-y-6 relative overflow-hidden border border-white/10">
             {/* Mode Switch Tabs */}
             <div className="flex justify-center">
-              <div className="glass-card inline-flex p-1 rounded-xl gap-1 border border-white/10">
+              <div className="glass-card flex flex-wrap justify-center p-1 rounded-xl gap-1 border border-white/10 max-w-full">
                 <button
                   onClick={() => switchMode("pomodoro")}
                   className={cn(
-                    "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
+                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
                     mode === "pomodoro"
                       ? "bg-primary-500 text-white shadow-lg"
                       : "text-muted-foreground hover:text-white"
                   )}
                 >
-                  <Zap size={14} /> Focus (25m)
+                  <Zap size={13} /> Focus (25m)
                 </button>
                 <button
                   onClick={() => switchMode("shortBreak")}
                   className={cn(
-                    "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
+                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
                     mode === "shortBreak"
                       ? "bg-wellness-calm text-black shadow-lg"
                       : "text-muted-foreground hover:text-white"
                   )}
                 >
-                  <Coffee size={14} /> Short Break (5m)
+                  <Coffee size={13} /> Break (5m)
                 </button>
                 <button
                   onClick={() => switchMode("longBreak")}
                   className={cn(
-                    "px-4 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
+                    "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
                     mode === "longBreak"
                       ? "bg-wellness-sleep text-white shadow-lg"
                       : "text-muted-foreground hover:text-white"
                   )}
                 >
-                  <Coffee size={14} /> Long Break (15m)
+                  <Coffee size={13} /> Long (15m)
                 </button>
               </div>
             </div>
 
             {/* Countdown Display */}
-            <div className="py-4">
+            <div className="py-2 sm:py-4">
               <motion.div
                 key={mode}
                 initial={{ scale: 0.95, opacity: 0 }}
                 animate={{ scale: 1, opacity: 1 }}
-                className="text-7xl md:text-8xl font-black tracking-tight font-mono select-none"
+                className="text-6xl sm:text-7xl md:text-8xl font-black tracking-tight font-mono select-none"
               >
                 {formatTime(timeLeft)}
               </motion.div>
-              <p className={cn("text-sm font-medium mt-2", TIMER_CONFIGS[mode].color)}>
+              <p className={cn("text-xs sm:text-sm font-medium mt-1.5 sm:mt-2", TIMER_CONFIGS[mode].color)}>
                 {TIMER_CONFIGS[mode].label}
               </p>
             </div>

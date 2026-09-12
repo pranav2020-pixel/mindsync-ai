@@ -2,10 +2,10 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { motion } from "framer-motion";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
-  ClipboardList, MessageCircle, BarChart3, Brain, Menu, X, Flame, Settings
+  ClipboardList, MessageCircle, BarChart3, Brain, X, Flame, Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -42,6 +42,22 @@ export function Sidebar() {
   }, [user?.streak]);
 
   useEffect(() => {
+    const handleOpen = () => setMobileOpen(true);
+    const handleClose = () => setMobileOpen(false);
+    const handleToggle = () => setMobileOpen((prev) => !prev);
+
+    window.addEventListener("open-mobile-sidebar", handleOpen);
+    window.addEventListener("close-mobile-sidebar", handleClose);
+    window.addEventListener("toggle-mobile-sidebar", handleToggle);
+
+    return () => {
+      window.removeEventListener("open-mobile-sidebar", handleOpen);
+      window.removeEventListener("close-mobile-sidebar", handleClose);
+      window.removeEventListener("toggle-mobile-sidebar", handleToggle);
+    };
+  }, []);
+
+  useEffect(() => {
     if (!user) {
       setStreak(0);
       return;
@@ -52,8 +68,8 @@ export function Sidebar() {
         if (res.data?.data?.streak !== undefined) {
           setStreak(res.data.data.streak);
         }
-      } catch (err) {
-        // Ignore fetch errors silently
+      } catch {
+        // Ignore fetch errors
       }
     };
     fetchStreak();
@@ -65,35 +81,50 @@ export function Sidebar() {
 
   return (
     <>
-      <button
-        onClick={() => setMobileOpen(!mobileOpen)}
-        className="lg:hidden fixed top-4 left-4 z-50 p-2 glass rounded-lg"
-      >
-        {mobileOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
+      {/* Mobile Backdrop Overlay */}
+      <AnimatePresence>
+        {mobileOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            onClick={() => setMobileOpen(false)}
+            className="fixed inset-0 bg-black/70 backdrop-blur-sm z-40 lg:hidden"
+          />
+        )}
+      </AnimatePresence>
 
       <motion.aside
         initial={{ x: -100, opacity: 0 }}
         animate={{ x: 0, opacity: 1 }}
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-40 h-screen w-64 glass border-r border-white/10 flex flex-col",
-          mobileOpen ? "translate-x-0" : "-translate-x-full lg:translate-x-0",
-          "transition-transform duration-300"
+          "fixed lg:sticky top-0 left-0 z-50 h-screen w-72 lg:w-64 glass border-r border-white/10 flex flex-col transition-transform duration-300 ease-in-out",
+          mobileOpen ? "translate-x-0 shadow-2xl" : "-translate-x-full lg:translate-x-0"
         )}
       >
-        <div className="p-6">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center">
+        {/* Header Branding with Mobile Close Button */}
+        <div className="p-5 flex items-center justify-between border-b border-white/5 lg:border-none">
+          <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center shadow-md">
               <Brain className="text-white w-6 h-6" />
             </div>
             <div>
-              <h1 className="font-bold text-xl text-gradient">MindSync</h1>
+              <h1 className="font-bold text-xl text-gradient leading-tight">MindSync</h1>
               <p className="text-xs text-muted-foreground">AI Wellness</p>
             </div>
           </Link>
+
+          <button
+            onClick={() => setMobileOpen(false)}
+            className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
+            aria-label="Close menu"
+          >
+            <X size={20} />
+          </button>
         </div>
 
-        <nav className="flex-1 px-4 space-y-1">
+        {/* Navigation Items */}
+        <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = icons[item.icon];
             const isActive = pathname === item.href;
@@ -103,20 +134,21 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition-all",
+                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all",
                   isActive
-                    ? "bg-primary-500/10 text-primary-400 border border-primary-500/20"
+                    ? "bg-primary-500/15 text-primary-400 border border-primary-500/30 shadow-sm"
                     : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
                 )}
               >
-                <Icon size={18} />
+                <Icon size={18} className={isActive ? "text-primary-400" : "text-muted-foreground"} />
                 {item.name}
               </Link>
             );
           })}
         </nav>
 
-        <div className="p-4">
+        {/* Streak Widget Card */}
+        <div className="p-4 pb-safe border-t border-white/5 lg:border-none">
           <div className="glass-card rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
@@ -127,7 +159,7 @@ export function Sidebar() {
                 {streak} {streak === 1 ? "day" : "days"}
               </span>
             </div>
-            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
               <div
                 className="h-full bg-gradient-to-r from-primary-500 via-amber-400 to-wellness-calm rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, Math.max(streak > 0 ? 8 : 0, (streak / 30) * 100))}%` }}

@@ -50,8 +50,25 @@
 }
 
 @layer base {
-  * { @apply border-border; }
-  body { @apply bg-background text-foreground font-sans antialiased; }
+  * {
+    @apply border-border;
+    -webkit-tap-highlight-color: transparent;
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-text-size-adjust: 100%;
+  }
+  body {
+    @apply bg-background text-foreground font-sans antialiased min-h-screen;
+    overscroll-behavior-y: none;
+  }
+
+  /* Prevent auto-zooming on iOS Safari when focusing form inputs */
+  @media screen and (max-width: 768px) {
+    input, select, textarea {
+      font-size: 16px !important;
+    }
+  }
 }
 
 @layer utilities {
@@ -59,4 +76,15 @@
   .glass-card { @apply bg-white/80 dark:bg-slate-800/80 backdrop-blur-lg border border-white/30 dark:border-slate-700/40 shadow-lg; }
   .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-wellness-focus; }
   .hover-lift { @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl; }
+
+  /* iOS and Android Safe Area Insets */
+  .pb-safe {
+    padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
+  .pt-safe {
+    padding-top: max(0.5rem, env(safe-area-inset-top));
+  }
+  .mb-safe {
+    margin-bottom: max(0.5rem, env(safe-area-inset-bottom));
+  }
 }
