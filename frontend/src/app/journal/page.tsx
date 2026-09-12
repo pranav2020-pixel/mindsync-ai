@@ -14,12 +14,12 @@ import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
 const journalSchema = z.object({
-  title: z.string().min(1, "Title is required"),
-  content: z.string().min(10, "Write at least 10 characters"),
-  tags: z.string().optional(),
-  mood: z.number().min(1).max(10),
-  energy: z.number().min(1).max(10),
-  stress: z.number().min(1).max(10),
+  title: z.string().optional().or(z.literal("")),
+  content: z.string().min(1, "Please write a few words about how you are feeling."),
+  tags: z.string().optional().or(z.literal("")),
+  mood: z.number().min(1).max(10).default(7),
+  energy: z.number().min(1).max(10).default(6),
+  stress: z.number().min(1).max(10).default(4),
   sleepHours: z.preprocess((val) => (val === "" || (typeof val === "number" && Number.isNaN(val)) ? undefined : Number(val)), z.number().min(0).max(24).optional()),
   productivityRating: z.preprocess((val) => (val === "" || (typeof val === "number" && Number.isNaN(val)) ? undefined : Number(val)), z.number().min(1).max(10).optional()),
 });
@@ -49,7 +49,23 @@ export default function JournalPage() {
   const onSubmit = async (data: JournalForm) => {
     setLoading(true);
     try {
-      const payload = { ...data, tags: data.tags ? data.tags.split(",").map((t) => t.trim()) : [] };
+      const cleanContent = (data.content || data.title || "").trim();
+      if (!cleanContent) {
+        toast.error("Please write a reflection before saving.");
+        return;
+      }
+      const cleanTitle = (data.title || "").trim() || cleanContent.slice(0, 35).replace(/[\r\n]+/g, " ") + (cleanContent.length > 35 ? "..." : "");
+      const payload = {
+        title: cleanTitle,
+        content: cleanContent,
+        mood: data.mood,
+        energy: data.energy,
+        stress: data.stress,
+        sleepHours: data.sleepHours,
+        productivityRating: data.productivityRating,
+        tags: data.tags ? data.tags.split(",").map((t) => t.trim()).filter(Boolean) : [],
+      };
+
       const res = await api.post("/journals", payload);
       toast.success("Journal saved & analyzed!");
       const newEntry = res.data.data;
@@ -65,6 +81,12 @@ export default function JournalPage() {
       toast.error(err.response?.data?.error || "Failed to save journal");
     } finally {
       setLoading(false);
+    }
+  };
+
+  const onInvalid = (validationErrors: any) => {
+    if (validationErrors.content) {
+      toast.error(validationErrors.content.message || "Please write your reflection.");
     }
   };
 
@@ -86,16 +108,37 @@ export default function JournalPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <form onSubmit={handleSubmit(onSubmit)} className="glass-card rounded-2xl p-6 space-y-4">
-            <input {...register("title")} placeholder="What is on your mind today?" className="w-full bg-transparent text-xl font-semibold placeholder:text-muted-foreground outline-none" />
-            {errors.title && <p className="text-sm text-wellness-stress">{errors.title.message}</p>}
+          <form onSubmit={handleSubmit(onSubmit, onInvalid)} className="glass-card rounded-2xl p-6 space-y-4">
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Title (Optional)</label>
+              <input
+                {...register("title")}
+                placeholder="E.g., Morning Thoughts, Overcoming a hurdle..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-base font-semibold placeholder:text-muted-foreground/50 outline-none focus:border-primary-500 transition-colors"
+              />
+            </div>
 
-            <textarea {...register("content")} rows={8} placeholder="Write your thoughts, feelings, gratitude, goals, or reflections..." className="w-full bg-transparent resize-none placeholder:text-muted-foreground/50 outline-none leading-relaxed" />
-            {errors.content && <p className="text-sm text-wellness-stress">{errors.content.message}</p>}
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Your Reflection <span className="text-wellness-stress">*</span></label>
+              <textarea
+                {...register("content")}
+                rows={7}
+                placeholder="Write your thoughts, feelings, gratitude, goals, or reflections..."
+                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground/50 outline-none focus:border-primary-500 leading-relaxed resize-none transition-colors"
+              />
+              {errors.content && <p className="text-sm text-wellness-stress mt-1">{errors.content.message}</p>}
+            </div>
 
-            <div className="flex items-center gap-2">
-              <Tag size={16} className="text-muted-foreground" />
-              <input {...register("tags")} placeholder="Add tags (comma separated)" className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground/50 outline-none" />
+            <div>
+              <label className="text-xs font-medium text-muted-foreground mb-1 block">Tags (Optional)</label>
+              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
+                <Tag size={16} className="text-muted-foreground shrink-0" />
+                <input
+                  {...register("tags")}
+                  placeholder="mindfulness, work, gratitude (comma separated)"
+                  className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground/50 outline-none"
+                />
+              </div>
             </div>
 
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-white/10">

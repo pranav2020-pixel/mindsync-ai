@@ -32,11 +32,27 @@ export const JournalController = {
 
   create: asyncHandler(async (req: any, res: Response) => {
     const { title, content, tags, mood, energy, stress, sleepHours, productivityRating } = req.body;
-    const { encrypted, iv } = encrypt(content);
+    const cleanContent = (content || title || "").trim();
+    if (!cleanContent) {
+      throw new AppError("Journal content cannot be empty", 400);
+    }
+    const cleanTitle = (title || "").trim() || cleanContent.slice(0, 40).replace(/[\r\n]+/g, " ") + (cleanContent.length > 40 ? "..." : "");
+    const { encrypted, iv } = encrypt(cleanContent);
     const entry = await prisma.journalEntry.create({
-      data: { userId: req.user.id, title, content: encrypted, contentIv: iv, tags: tags || [], mood, energy, stress, sleepHours, productivityRating },
+      data: {
+        userId: req.user.id,
+        title: cleanTitle,
+        content: encrypted,
+        contentIv: iv,
+        tags: Array.isArray(tags) ? tags : [],
+        mood: Number(mood) || 7,
+        energy: Number(energy) || 6,
+        stress: Number(stress) || 4,
+        sleepHours: sleepHours !== undefined && sleepHours !== null ? Number(sleepHours) : null,
+        productivityRating: productivityRating ? Number(productivityRating) : null,
+      },
     });
-    const aiAnalysis = await AIService.analyzeJournal(content);
+    const aiAnalysis = await AIService.analyzeJournal(cleanContent);
     await prisma.journalAIAnalysis.create({
       data: {
         journalId: entry.id, sentiment: aiAnalysis.sentiment, sentimentScore: aiAnalysis.sentimentScore,
