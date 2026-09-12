@@ -19,11 +19,12 @@ const generateTokens = (userId: string) => {
 export const AuthController = {
   register: asyncHandler(async (req: Request, res: Response) => {
     const { email, password, name, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;
-    const existingUser = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (existingUser) throw new AppError("Email already registered", 409);
     const hashedPassword = await bcrypt.hash(password, 12);
     const user = await prisma.user.create({
-      data: { email, password: hashedPassword, name, age, gender, occupation, timezone: timezone || "UTC", wellnessGoals: wellnessGoals || [], productivityGoals: productivityGoals || [] },
+      data: { email: normalizedEmail, password: hashedPassword, name, age, gender, occupation, timezone: timezone || "UTC", wellnessGoals: wellnessGoals || [], productivityGoals: productivityGoals || [] },
       select: { id: true, email: true, name: true, avatar: true, age: true, gender: true, occupation: true, timezone: true, wellnessGoals: true, productivityGoals: true, createdAt: true },
     });
     const tokens = generateTokens(user.id);
@@ -32,7 +33,8 @@ export const AuthController = {
 
   login: asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
-    const user = await prisma.user.findUnique({ where: { email } });
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) throw new AppError("Invalid credentials", 401);
     const isValid = await bcrypt.compare(password, user.password);
     if (!isValid) throw new AppError("Invalid credentials", 401);

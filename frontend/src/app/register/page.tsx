@@ -9,12 +9,17 @@ import { useAuth } from "@/hooks/use-auth";
 export default function RegisterPage() {
   const { register } = useAuth();
   const [form, setForm] = useState({ name: "", email: "", password: "" });
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setError("");
-    try { await register(form); }
+    try {
+      await register({
+        ...form,
+        name: form.name.trim(),
+        email: form.email.trim().toLowerCase(),
+      });
+    }
     catch (err: any) { setError(err.response?.data?.error || "Registration failed"); }
     finally { setLoading(false); }
   };
@@ -48,7 +53,10 @@ export default function RegisterPage() {
             <label className="text-sm font-medium mb-1.5 block">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-              <input type="password" value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-primary-500" placeholder="Min 6 characters" required minLength={6} />
+              <input type={showPassword ? "text" : "password"} value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-12 py-3 text-sm outline-none focus:border-primary-500" placeholder="Min 6 characters" required minLength={6} />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-white px-1 py-0.5 rounded">
+                {showPassword ? "Hide" : "Show"}
+              </button>
             </div>
           </div>
           {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-wellness-stress text-center">{error}</motion.p>}

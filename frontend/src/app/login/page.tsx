@@ -13,9 +13,11 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [showPassword, setShowPassword] = useState(false);
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault(); setLoading(true); setError("");
-    try { await login(email, password); }
+    try { await login(email.trim().toLowerCase(), password); }
     catch (err: any) { setError(err.response?.data?.error || "Login failed"); }
     finally { setLoading(false); }
   };
@@ -42,7 +44,10 @@ export default function LoginPage() {
             <label className="text-sm font-medium mb-1.5 block">Password</label>
             <div className="relative">
               <Lock className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" size={18} />
-              <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-primary-500" placeholder="••••••••" required />
+              <input type={showPassword ? "text" : "password"} value={password} onChange={(e) => setPassword(e.target.value)} className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-12 py-3 text-sm outline-none focus:border-primary-500" placeholder="••••••••" required />
+              <button type="button" onClick={() => setShowPassword(!showPassword)} className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-white px-1 py-0.5 rounded">
+                {showPassword ? "Hide" : "Show"}
+              </button>
             </div>
           </div>
           {error && <motion.p initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="text-sm text-wellness-stress text-center">{error}</motion.p>}
