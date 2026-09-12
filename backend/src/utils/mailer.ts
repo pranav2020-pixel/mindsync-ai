@@ -7,7 +7,7 @@ interface SendEmailOptions {
   text?: string;
 }
 
-let transporter: nodemailer.Transporter | null = null;
+let transporter: any = null;
 
 const getTransporter = () => {
   if (transporter) return transporter;
