@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Download, X, Share2, PlusSquare, Smartphone, Monitor, Sparkles, CheckCircle2, Brain } from "lucide-react";
+import { Download, X, Share2, PlusSquare, Smartphone, Monitor, Sparkles, CheckCircle2 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 interface BeforeInstallPromptEvent extends Event {
@@ -155,8 +155,8 @@ export function PwaInstaller() {
           >
             <div className="glass-card bg-slate-900/95 backdrop-blur-xl border border-primary-500/30 p-4 rounded-2xl shadow-2xl shadow-primary-500/10 flex items-center justify-between gap-3.5">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-11 h-11 rounded-xl bg-gradient-to-br from-primary-500 to-wellness-focus flex-shrink-0 flex items-center justify-center shadow-md shadow-primary-500/20">
-                  <Brain className="text-white w-6 h-6" />
+                <div className="w-11 h-11 rounded-xl overflow-hidden flex-shrink-0 flex items-center justify-center shadow-md shadow-primary-500/20">
+                  <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
                 </div>
                 <div className="min-w-0">
                   <h4 className="text-sm font-semibold text-white tracking-tight flex items-center gap-1.5 truncate">
@@ -210,8 +210,8 @@ export function PwaInstaller() {
               </button>
 
               <div className="flex flex-col items-center text-center">
-                <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center shadow-lg shadow-primary-500/25 mb-4">
-                  <Brain className="text-white w-8 h-8" />
+                <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center shadow-lg shadow-primary-500/25 mb-4">
+                  <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
                 </div>
 
                 <h3 className="text-lg font-bold text-white mb-1">

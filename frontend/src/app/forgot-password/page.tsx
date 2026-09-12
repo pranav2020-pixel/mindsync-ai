@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Brain, Mail, KeyRound, Lock, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
+import { Mail, KeyRound, Lock, ArrowLeft, Loader2, CheckCircle2 } from "lucide-react";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 
@@ -82,8 +82,8 @@ export default function ForgotPasswordPage() {
         className="w-full max-w-md glass-card rounded-2xl p-8"
       >
         <div className="text-center mb-6">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center mx-auto mb-4">
-            <Brain className="text-white w-8 h-8" />
+          <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary-500/25">
+            <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-bold">Reset Password</h1>
           <p className="text-muted-foreground mt-1 text-sm">

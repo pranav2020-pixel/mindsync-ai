@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { motion } from "framer-motion";
-import { Brain, Mail, Lock, User, Loader2 } from "lucide-react";
+import { Mail, Lock, User, Loader2 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 
 export default function RegisterPage() {
@@ -30,8 +30,8 @@ export default function RegisterPage() {
     <div className="min-h-screen flex items-center justify-center p-4 bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900">
       <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-md glass-card rounded-2xl p-8">
         <div className="text-center mb-8">
-          <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center mx-auto mb-4">
-            <Brain className="text-white w-8 h-8" />
+          <div className="w-16 h-16 rounded-2xl overflow-hidden flex items-center justify-center mx-auto mb-4 shadow-xl shadow-primary-500/25">
+            <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
           </div>
           <h1 className="text-2xl font-bold">Create account</h1>
           <p className="text-muted-foreground mt-1">Start your AI-powered wellness journey</p>

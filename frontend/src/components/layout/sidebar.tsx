@@ -108,8 +108,8 @@ export function Sidebar() {
         {/* Header Branding with Mobile Close Button */}
         <div className="p-5 flex items-center justify-between border-b border-white/5 lg:border-none">
           <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center shadow-md">
-              <Brain className="text-white w-6 h-6" />
+            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md">
+              <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
             </div>
             <div>
               <h1 className="font-bold text-xl text-gradient leading-tight">MindSync</h1>

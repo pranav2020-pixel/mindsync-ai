@@ -8,7 +8,7 @@ import api from "@/lib/api";
 import { Notification } from "@/types";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "./theme-provider";
-import { Sun, Moon, Bell, LogOut, User, Settings, Check, Trash2, Shield, FileText, Sparkles, Inbox, Menu, Brain } from "lucide-react";
+import { Sun, Moon, Bell, LogOut, User, Settings, Check, Trash2, Shield, FileText, Sparkles, Inbox, Menu } from "lucide-react";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -76,8 +76,8 @@ export function Navbar() {
         </button>
 
         <Link href="/" className="flex lg:hidden items-center gap-2">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center shadow-sm">
-            <Brain className="text-white w-4 h-4" />
+          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-sm">
+            <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
           </div>
           <span className="font-bold text-base text-gradient tracking-tight">MindSync</span>
         </Link>
