@@ -8,7 +8,7 @@
 ## 🌐 Live Demo & Access
 
 Experience MindSync AI live in your browser:
-- **Public URL**: [https://nashville-eagle-confirmed-humans.trycloudflare.com](https://nashville-eagle-confirmed-humans.trycloudflare.com)
+- **Public URL**: [https://mindsync-ai-six.vercel.app](https://mindsync-ai-six.vercel.app)
 - **Demo Account**: `demo@mindsync.ai`
 - **Password**: `password123`
 *(Or click **Register** to create your own account)*
