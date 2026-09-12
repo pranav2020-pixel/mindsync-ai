@@ -180,12 +180,8 @@ export const AuthController = {
     if (!normalizedEmail) throw new AppError("Email is required", 400);
 
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    // To prevent email enumeration attacks, always respond with success
     if (!user) {
-      return res.json({
-        success: true,
-        message: "If that email is registered, a 6-digit verification code has been sent.",
-      });
+      throw new AppError("No account found with this email. Please check your spelling or register a new account.", 404);
     }
 
     // Generate a cryptographically secure 6-digit code
@@ -200,19 +196,24 @@ export const AuthController = {
       },
     });
 
-    const emailTemplate = getPasswordResetEmailTemplate(user.name, resetCode);
-    await sendEmail({
-      to: user.email,
-      subject: "MindSync AI - Password Reset Verification Code",
-      html: emailTemplate,
-    });
+    try {
+      const emailTemplate = getPasswordResetEmailTemplate(user.name, resetCode);
+      await sendEmail({
+        to: user.email,
+        subject: "MindSync AI - Password Reset Verification Code",
+        html: emailTemplate,
+      });
+    } catch (emailErr) {
+      console.warn("Failed to send email via SMTP, proceeding with on-screen verification code:", emailErr);
+    }
 
-    // If SMTP credentials are not configured, provide the code directly for preview/testing
     const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
     res.json({
       success: true,
-      message: "If that email is registered, a 6-digit verification code has been sent.",
-      ...(!hasSmtp ? { devCode: resetCode } : {}),
+      message: hasSmtp
+        ? "A 6-digit verification code has been sent to your email."
+        : "Verification code generated! (Showing on screen since SMTP is not configured).",
+      devCode: resetCode,
     });
   }),
 

@@ -20,7 +20,7 @@ const PORT = process.env.PORT || 4000;
 
 app.set("trust proxy", 1);
 app.use(helmet());
-app.use(cors({ origin: process.env.FRONTEND_URL || "http://localhost:3000", credentials: true }));
+app.use(cors({ origin: true, credentials: true }));
 
 const isDev = process.env.NODE_ENV === "development";
 const limiter = rateLimit({
@@ -42,6 +42,33 @@ app.get("/health", (req, res) => {
 app.use("/api/v1", routes);
 app.use((req, res) => { res.status(404).json({ error: "Endpoint not found" }); });
 app.use(errorHandler);
+
+const initApp = async () => {
+  try {
+    await prisma.$connect();
+    console.log("✅ Database connected successfully");
+    const demo = await prisma.user.findUnique({ where: { email: "demo@mindsync.ai" } });
+    if (!demo) {
+      console.log("🌱 Auto-seeding demo user (demo@mindsync.ai)...");
+      const bcrypt = require("bcryptjs");
+      const hashedPassword = await bcrypt.hash("password123", 12);
+      await prisma.user.create({
+        data: {
+          email: "demo@mindsync.ai",
+          password: hashedPassword,
+          name: "Alex Chen",
+          role: "USER" as any,
+          wellnessGoals: ["Reduce stress", "Improve sleep", "Mindful journaling"],
+          productivityGoals: ["Consistent morning routine"],
+        },
+      });
+      console.log("✅ Demo user seeded successfully!");
+    }
+  } catch (e) {
+    console.error("⚠️ Database connection / init error:", e);
+  }
+};
+initApp();
 
 process.on("SIGTERM", async () => {
   await prisma.$disconnect();

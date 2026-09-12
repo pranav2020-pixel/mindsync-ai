@@ -10,7 +10,29 @@ import insightRoutes from "./insight.routes";
 import reportRoutes from "./report.routes";
 import notificationRoutes from "./notification.routes";
 
+import { prisma } from "../server";
+
 const router = Router();
+
+router.get("/health", async (req, res) => {
+  try {
+    const userCount = await prisma.user.count();
+    res.json({
+      status: "ok",
+      database: "connected",
+      userCount,
+      timestamp: new Date().toISOString(),
+    });
+  } catch (err: any) {
+    res.status(500).json({
+      status: "error",
+      database: "disconnected",
+      error: err.message,
+      stack: err.stack,
+    });
+  }
+});
+
 router.use("/auth", authRoutes);
 router.use("/journals", journalRoutes);
 router.use("/moods", moodRoutes);

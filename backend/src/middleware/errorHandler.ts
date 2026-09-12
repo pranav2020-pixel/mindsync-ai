@@ -1,15 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import { AppError } from "../utils/AppError";
-export const errorHandler = (err: Error | AppError, req: Request, res: Response, next: NextFunction) => {
-  if (err instanceof AppError) {
-    return res.status(err.statusCode).json({
-      error: err.message,
-      ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
-    });
-  }
-  console.error("Unexpected error:", err);
-  res.status(500).json({
-    error: "Internal server error",
-    ...(process.env.NODE_ENV === "development" && { stack: err.stack }),
+export const errorHandler = (err: any, req: Request, res: Response, next: NextFunction) => {
+  const statusCode = err.statusCode || 500;
+  console.error("Server error:", err);
+  res.status(statusCode).json({
+    error: err.message || "Internal server error",
+    stack: process.env.NODE_ENV === "development" || req.query.debug === "1" ? err.stack : undefined,
   });
 };

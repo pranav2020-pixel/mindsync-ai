@@ -1,5 +1,3 @@
-import nodemailer from "nodemailer";
-
 interface SendEmailOptions {
   to: string;
   subject: string;
@@ -12,25 +10,30 @@ let transporter: any = null;
 const getTransporter = () => {
   if (transporter) return transporter;
 
-  const host = process.env.SMTP_HOST;
-  const port = parseInt(process.env.SMTP_PORT || "587", 10);
-  const user = process.env.SMTP_USER;
-  const pass = process.env.SMTP_PASS;
+  try {
+    const nodemailer = require("nodemailer");
+    const host = process.env.SMTP_HOST;
+    const port = parseInt(process.env.SMTP_PORT || "587", 10);
+    const user = process.env.SMTP_USER;
+    const pass = process.env.SMTP_PASS;
 
-  if (host && user && pass) {
-    transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure: port === 465,
-      auth: { user, pass },
-    });
-  } else {
-    // Development fallback transporter or console mock
-    transporter = nodemailer.createTransport({
-      streamTransport: true,
-      newline: "unix",
-      buffer: true,
-    });
+    if (host && user && pass) {
+      transporter = nodemailer.createTransport({
+        host,
+        port,
+        secure: port === 465,
+        auth: { user, pass },
+      });
+    } else {
+      transporter = nodemailer.createTransport({
+        streamTransport: true,
+        newline: "unix",
+        buffer: true,
+      });
+    }
+  } catch (err) {
+    console.warn("[MindSync Email] Nodemailer not available or failed to initialize:", err);
+    transporter = null;
   }
 
   return transporter;
@@ -39,6 +42,10 @@ const getTransporter = () => {
 export const sendEmail = async (options: SendEmailOptions): Promise<{ success: boolean; previewCode?: string }> => {
   try {
     const transport = getTransporter();
+    if (!transport) {
+      console.log(`[MindSync Email Simulation] Recipient: ${options.to} | Subject: "${options.subject}"`);
+      return { success: true };
+    }
     await transport.sendMail({
       from: process.env.SMTP_FROM || '"MindSync AI" <support@mindsync.ai>',
       to: options.to,
