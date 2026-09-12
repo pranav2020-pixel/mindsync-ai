@@ -31,14 +31,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
           Cookies.remove("accessToken");
           Cookies.remove("refreshToken");
           setUser(null);
-          if (pathname !== "/login" && pathname !== "/register") {
+          if (pathname !== "/login" && pathname !== "/register" && pathname !== "/forgot-password") {
             router.push("/login");
           }
         })
         .finally(() => setLoading(false));
     } else {
       setLoading(false);
-      if (pathname !== "/login" && pathname !== "/register") {
+      if (pathname !== "/login" && pathname !== "/register" && pathname !== "/forgot-password") {
         router.push("/login");
       }
     }

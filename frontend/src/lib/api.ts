@@ -31,7 +31,7 @@ api.interceptors.response.use(
       if (!refreshToken) {
         Cookies.remove("accessToken", { path: "/" });
         Cookies.remove("refreshToken", { path: "/" });
-        if (typeof window !== "undefined" && window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+        if (typeof window !== "undefined" && window.location.pathname !== "/login" && window.location.pathname !== "/register" && window.location.pathname !== "/forgot-password") {
           window.location.href = "/login";
         }
         return Promise.reject(error);

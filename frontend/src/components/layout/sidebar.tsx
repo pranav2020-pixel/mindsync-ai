@@ -59,7 +59,7 @@ export function Sidebar() {
     fetchStreak();
   }, [user, pathname]);
 
-  if (pathname === "/login" || pathname === "/register") {
+  if (pathname === "/login" || pathname === "/register" || pathname === "/forgot-password") {
     return null;
   }
 
