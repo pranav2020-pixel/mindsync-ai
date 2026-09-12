@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
-  ClipboardList, MessageCircle, BarChart3, Brain, X, Flame, Settings
+  ClipboardList, MessageCircle, BarChart3, Brain, X, Flame, Settings, Download
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -154,8 +154,21 @@ export function Sidebar() {
           })}
         </nav>
 
-        {/* Streak Widget Card */}
-        <div className="p-4 pb-safe border-t border-white/5 lg:border-none">
+        {/* Install App Button & Streak Widget Card */}
+        <div className="p-4 pb-safe border-t border-white/5 lg:border-none space-y-3">
+          <button
+            onClick={() => {
+              setMobileOpen(false);
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("trigger-pwa-install"));
+              }
+            }}
+            className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-primary-400 bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/25 transition-all shadow-sm active:scale-95"
+          >
+            <Download size={15} />
+            <span>Install MindSync App</span>
+          </button>
+
           <div className="glass-card rounded-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
