@@ -1,0 +1,687 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MindSync AI - Advertising Video Experience</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap');
+
+    * {
+      box-sizing: border-box;
+      user-select: none;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+      background-color: #050811;
+      color: #ffffff;
+      overflow-x: hidden;
+    }
+
+    /* 3D Perspective Stage */
+    .stage-3d {
+      perspective: 1200px;
+      perspective-origin: 50% 45%;
+      transform-style: preserve-3d;
+    }
+
+    .device-3d {
+      transform-style: preserve-3d;
+      transition: all 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    /* Floating Keyframes */
+    @keyframes floatSlow {
+      0%, 100% { transform: translateY(0px) rotateY(-8deg) rotateX(4deg); }
+      50% { transform: translateY(-12px) rotateY(-5deg) rotateX(2deg); }
+    }
+
+    @keyframes floatPhoneLeft {
+      0%, 100% { transform: translateY(0px) rotateY(14deg) rotateX(-2deg) translateZ(40px); }
+      50% { transform: translateY(-16px) rotateY(18deg) rotateX(1deg) translateZ(55px); }
+    }
+
+    @keyframes floatPhoneRight {
+      0%, 100% { transform: translateY(0px) rotateY(-16deg) rotateX(3deg) translateZ(50px); }
+      50% { transform: translateY(-14px) rotateY(-12deg) rotateX(5deg) translateZ(65px); }
+    }
+
+    @keyframes pulseGlow {
+      0%, 100% { opacity: 0.4; transform: scale(1); }
+      50% { opacity: 0.8; transform: scale(1.08); }
+    }
+
+    @keyframes shimmer {
+      0% { background-position: -200% 0; }
+      100% { background-position: 200% 0; }
+    }
+
+    .animate-float-desktop {
+      animation: floatSlow 6s ease-in-out infinite;
+    }
+    .animate-float-ios {
+      animation: floatPhoneLeft 5s ease-in-out infinite;
+    }
+    .animate-float-android {
+      animation: floatPhoneRight 5.5s ease-in-out infinite;
+    }
+    .animate-pulse-glow {
+      animation: pulseGlow 4s ease-in-out infinite;
+    }
+
+    .glass-panel {
+      background: rgba(15, 23, 42, 0.75);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+    }
+
+    .glass-badge {
+      background: rgba(14, 165, 233, 0.12);
+      backdrop-filter: blur(12px);
+      border: 1px solid rgba(14, 165, 233, 0.35);
+    }
+
+    /* Video Frame 16:9 Aspect Ratio */
+    .video-viewport {
+      aspect-ratio: 16 / 9;
+      background: radial-gradient(circle at 50% 35%, #0f1c3f 0%, #080d1e 50%, #030610 100%);
+    }
+
+    /* Glowing custom shadows */
+    .glow-cyan {
+      box-shadow: 0 0 50px -10px rgba(14, 165, 233, 0.45);
+    }
+    .glow-purple {
+      box-shadow: 0 0 50px -10px rgba(168, 85, 247, 0.4);
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col items-center justify-center p-3 sm:p-6 bg-[#040711]">
+
+  <!-- Main Container -->
+  <div class="w-full max-w-5xl flex flex-col gap-4">
+
+    <!-- Top Header Bar -->
+    <div class="flex flex-wrap items-center justify-between gap-3 px-2">
+      <div class="flex items-center gap-3">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center shadow-lg shadow-cyan-500/20 border border-white/20">
+          <svg class="w-6 h-6 text-white" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M9.53 16.122a3 3 0 00-5.78 1.128 2.25 2.25 0 01-2.4 2.245 4.5 4.5 0 008.4-2.245c0-.399-.078-.78-.22-1.128zm0 0a15.998 15.998 0 003.388-1.62m-5.043-.025a15.994 15.994 0 011.622-3.395m3.42 3.42a15.995 15.995 0 004.764-4.648l3.876-5.814a1.151 1.151 0 00-1.597-1.597L14.14 6.344a15.996 15.996 0 00-4.649 4.763m3.42 3.42a6.776 6.776 0 00-3.42-3.42" />
+          </svg>
+        </div>
+        <div>
+          <h1 class="text-lg sm:text-xl font-extrabold tracking-tight text-white flex items-center gap-2">
+            MindSync AI <span class="text-xs px-2 py-0.5 rounded-full bg-cyan-500/20 text-cyan-400 border border-cyan-500/30 font-semibold">Promo Studio</span>
+          </h1>
+          <p class="text-xs text-slate-400">Interactive 3D Advertising Video &amp; Live Soundtrack Generator</p>
+        </div>
+      </div>
+
+      <!-- Live Action Buttons -->
+      <div class="flex items-center gap-2">
+        <button id="audioToggleBtn" onclick="toggleAudio()" class="px-3.5 py-2 rounded-xl text-xs font-semibold glass-panel text-slate-300 hover:text-white hover:bg-slate-800/80 transition-all flex items-center gap-2 border border-white/10 shadow-sm">
+          <span id="audioIcon">🎵</span>
+          <span id="audioLabel">Play Soundtrack</span>
+        </button>
+        <button id="recordBtn" onclick="startExportRecording()" class="px-4 py-2 rounded-xl text-xs font-bold bg-gradient-to-r from-cyan-500 to-indigo-600 hover:from-cyan-400 hover:to-indigo-500 text-white transition-all shadow-lg shadow-cyan-500/25 flex items-center gap-2 active:scale-95">
+          <span id="recordDot" class="w-2 h-2 rounded-full bg-white"></span>
+          <span id="recordText">Export Video (.webm)</span>
+        </button>
+      </div>
+    </div>
+
+    <!-- 16:9 Video Canvas / 3D Stage -->
+    <div id="videoContainer" class="video-viewport relative w-full rounded-2xl sm:rounded-3xl border border-white/10 overflow-hidden shadow-2xl flex items-center justify-center">
+
+      <!-- Ambient Background Glows -->
+      <div class="absolute -top-24 -left-24 w-96 h-96 bg-cyan-500/20 rounded-full blur-[100px] pointer-events-none animate-pulse-glow"></div>
+      <div class="absolute -bottom-24 -right-24 w-96 h-96 bg-purple-600/20 rounded-full blur-[100px] pointer-events-none animate-pulse-glow"></div>
+      <div class="absolute inset-0 bg-[radial-gradient(#ffffff0a_1px,transparent_1px)] [background-size:24px_24px] pointer-events-none"></div>
+
+      <!-- 3D Devices Perspective Wrapper -->
+      <div id="stage3D" class="stage-3d w-full h-full relative flex items-center justify-center">
+
+        <!-- ================= 1. WINDOWS DESKTOP LAPTOP (CENTER BACK) ================= -->
+        <div id="desktopDevice" class="device-3d absolute z-10 w-[68%] max-w-[560px] animate-float-desktop transition-all duration-700">
+          <!-- Laptop Bezel -->
+          <div class="bg-slate-900/90 rounded-t-2xl p-2.5 sm:p-3 border border-slate-700/80 shadow-2xl glow-cyan">
+            <!-- Screen Header -->
+            <div class="flex items-center justify-between pb-2 border-b border-white/10 px-1">
+              <div class="flex items-center gap-1.5">
+                <div class="w-2.5 h-2.5 rounded-full bg-rose-500/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-amber-500/80"></div>
+                <div class="w-2.5 h-2.5 rounded-full bg-emerald-500/80"></div>
+              </div>
+              <div class="px-3 py-0.5 rounded-md bg-white/5 text-[9px] sm:text-[10px] text-slate-400 font-mono tracking-wider flex items-center gap-1">
+                <span class="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse"></span> mindsync-ai.vercel.app
+              </div>
+              <div class="text-[9px] text-slate-400 font-medium">Windows App</div>
+            </div>
+
+            <!-- Laptop Screen Contents -->
+            <div class="bg-[#0b1222] rounded-lg p-3 sm:p-4 mt-1.5 border border-white/5 flex flex-col gap-2.5">
+              <div class="flex items-center justify-between">
+                <div>
+                  <h3 class="text-xs sm:text-sm font-bold text-white tracking-tight">Good morning, Alex ✨</h3>
+                  <p class="text-[9px] sm:text-[10px] text-slate-400">Mental Clarity Score: <span class="text-cyan-400 font-semibold">94% Optimum</span></p>
+                </div>
+                <div class="px-2.5 py-1 rounded-lg bg-emerald-500/15 border border-emerald-500/30 text-[9px] font-bold text-emerald-400 flex items-center gap-1">
+                  🔥 14-Day Streak
+                </div>
+              </div>
+
+              <!-- Animated Chart Simulation -->
+              <div class="h-16 sm:h-20 w-full bg-slate-900/60 rounded-xl p-2 border border-white/5 flex flex-col justify-between relative overflow-hidden">
+                <div class="flex items-center justify-between text-[8px] text-slate-400 font-mono">
+                  <span>WEEKLY MOOD &amp; FOCUS VECTOR</span>
+                  <span class="text-cyan-400 font-bold">+28% Resilience</span>
+                </div>
+                <!-- SVG Line Chart with Gradient Glow -->
+                <svg class="w-full h-10 sm:h-12 overflow-visible" viewBox="0 0 300 60">
+                  <defs>
+                    <linearGradient id="chartGrad" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="0%" stop-color="#0ea5e9" stop-opacity="0.5"/>
+                      <stop offset="100%" stop-color="#0ea5e9" stop-opacity="0"/>
+                    </linearGradient>
+                  </defs>
+                  <path d="M 0 45 Q 40 30, 80 38 T 150 20 T 220 28 T 300 8 L 300 60 L 0 60 Z" fill="url(#chartGrad)"/>
+                  <path id="animLine" d="M 0 45 Q 40 30, 80 38 T 150 20 T 220 28 T 300 8" fill="none" stroke="#38bdf8" stroke-width="2.5" stroke-linecap="round"/>
+                  <circle cx="300" cy="8" r="4" fill="#ffffff" stroke="#0ea5e9" stroke-width="2" class="animate-ping"/>
+                  <circle cx="300" cy="8" r="3.5" fill="#38bdf8"/>
+                </svg>
+              </div>
+
+              <!-- 3 Feature Widgets Row -->
+              <div class="grid grid-cols-3 gap-1.5 sm:gap-2">
+                <div class="p-2 rounded-lg bg-white/5 border border-white/5">
+                  <div class="text-[8px] text-slate-400">Reflection</div>
+                  <div class="text-[10px] font-bold text-white">AI Analyzed</div>
+                </div>
+                <div class="p-2 rounded-lg bg-white/5 border border-white/5">
+                  <div class="text-[8px] text-slate-400">Clinical Test</div>
+                  <div class="text-[10px] font-bold text-cyan-400">GAD-7 Normal</div>
+                </div>
+                <div class="p-2 rounded-lg bg-white/5 border border-white/5">
+                  <div class="text-[8px] text-slate-400">Security</div>
+                  <div class="text-[10px] font-bold text-indigo-400">AES-256</div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Laptop Base / Keyboard Deck -->
+          <div class="h-3 sm:h-4 bg-slate-800 rounded-b-xl border-t border-slate-600 shadow-xl flex items-center justify-center px-12">
+            <div class="w-16 h-1 bg-slate-700 rounded-full"></div>
+          </div>
+        </div>
+
+        <!-- ================= 2. IPHONE (LEFT FRONT - iOS) ================= -->
+        <div id="iosDevice" class="device-3d absolute -left-2 sm:left-4 sm:top-14 z-20 w-[30%] max-w-[190px] animate-float-ios transition-all duration-700">
+          <div class="bg-black rounded-[36px] p-2 border-[3px] border-slate-700 shadow-2xl glow-cyan">
+            <!-- Dynamic Island -->
+            <div class="w-16 h-3 bg-black mx-auto rounded-full mb-1 flex items-center justify-end px-1.5">
+              <div class="w-1.5 h-1.5 rounded-full bg-cyan-400/80"></div>
+            </div>
+
+            <!-- iOS Screen Content -->
+            <div class="bg-[#0b101e] rounded-[28px] p-2.5 border border-white/10 flex flex-col justify-between h-[280px] sm:h-[320px] text-left">
+              <div>
+                <div class="flex items-center justify-between text-[8px] text-slate-400 font-semibold mb-2">
+                  <span>MindSync iOS</span>
+                  <span class="text-cyan-400">● Live PWA</span>
+                </div>
+
+                <div class="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20 mb-2">
+                  <p class="text-[8px] text-cyan-300 font-bold">✨ Today's Journal</p>
+                  <p class="text-[9px] text-white font-medium line-clamp-2 mt-0.5">"Feeling focused and energized for the product release today..."</p>
+                  <span class="text-[7px] text-cyan-400/80 font-mono">Encrypted &bull; Positive Sentiment 92%</span>
+                </div>
+
+                <!-- Interactive Habits Toggle List -->
+                <div class="space-y-1 mt-2">
+                  <div class="flex items-center justify-between p-1.5 rounded-lg bg-white/5 text-[8px]">
+                    <span class="text-slate-300 flex items-center gap-1">🧘 Morning Mindfulness</span>
+                    <span class="text-emerald-400 font-bold">✓</span>
+                  </div>
+                  <div class="flex items-center justify-between p-1.5 rounded-lg bg-white/5 text-[8px]">
+                    <span class="text-slate-300 flex items-center gap-1">💧 Hydration (2L)</span>
+                    <span class="text-emerald-400 font-bold">✓</span>
+                  </div>
+                  <div class="flex items-center justify-between p-1.5 rounded-lg bg-white/5 text-[8px]">
+                    <span class="text-slate-300 flex items-center gap-1">📖 Evening Reflection</span>
+                    <span class="text-cyan-400 font-bold">Pending</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- iOS Mobile Bottom Nav Mock -->
+              <div class="pt-2 border-t border-white/10 flex items-center justify-around text-[9px] text-slate-400">
+                <span class="text-cyan-400 font-bold">🏠 Home</span>
+                <span>📓 Journal</span>
+                <span>🩺 Tests</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= 3. ANDROID (RIGHT FRONT) ================= -->
+        <div id="androidDevice" class="device-3d absolute -right-2 sm:right-4 sm:top-14 z-20 w-[30%] max-w-[190px] animate-float-android transition-all duration-700">
+          <div class="bg-black rounded-[32px] p-2 border-[3px] border-slate-700 shadow-2xl glow-purple">
+            <!-- Camera Punchhole -->
+            <div class="w-2.5 h-2.5 bg-black rounded-full mx-auto mb-1 border border-white/20"></div>
+
+            <!-- Android Screen Content -->
+            <div class="bg-[#0a0f1d] rounded-[24px] p-2.5 border border-white/10 flex flex-col justify-between h-[280px] sm:h-[320px] text-left">
+              <div>
+                <div class="flex items-center justify-between text-[8px] text-slate-400 font-semibold mb-2">
+                  <span>Android App</span>
+                  <span class="text-purple-400">Standalone</span>
+                </div>
+
+                <!-- Clinical Assessment Result Card -->
+                <div class="p-2 rounded-xl bg-purple-500/15 border border-purple-500/30 mb-2">
+                  <div class="flex items-center justify-between">
+                    <span class="text-[8px] font-bold text-purple-300">GAD-7 Clinical</span>
+                    <span class="text-[7px] px-1.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 font-bold">Mild 4/21</span>
+                  </div>
+                  <p class="text-[9px] text-white font-medium mt-1">Anxiety screening within safe clinical threshold.</p>
+                </div>
+
+                <div class="p-2 rounded-xl bg-cyan-500/10 border border-cyan-500/20">
+                  <p class="text-[8px] text-cyan-300 font-bold">🤖 MindSync AI Coach</p>
+                  <p class="text-[8px] text-slate-300 italic mt-0.5">"Take a deep breath. You're maintaining excellent focus."</p>
+                </div>
+              </div>
+
+              <!-- Quick Action Button -->
+              <div class="w-full py-1.5 rounded-xl bg-gradient-to-r from-purple-500 to-indigo-600 text-center text-[9px] font-bold text-white shadow-md">
+                1-Tap Install on Android
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ================= 4. FLOATING MODERN VIDEO EFFECT POPUPS ================= -->
+
+        <!-- Popup 1: Left Top -->
+        <div id="popup1" class="absolute top-4 left-6 sm:left-14 z-30 glass-panel rounded-2xl p-2.5 sm:p-3 shadow-2xl border border-cyan-400/30 max-w-[210px] transform -rotate-3 transition-all duration-500">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-cyan-500/20 text-cyan-400 flex items-center justify-center font-bold text-sm">
+              ✨
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-white leading-tight">AI Emotional State</p>
+              <p class="text-[8px] text-cyan-400 font-mono">Calm &bull; High Clarity 94%</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popup 2: Right Top -->
+        <div id="popup2" class="absolute top-6 right-6 sm:right-14 z-30 glass-panel rounded-2xl p-2.5 sm:p-3 shadow-2xl border border-purple-400/30 max-w-[210px] transform rotate-3 transition-all duration-500">
+          <div class="flex items-center gap-2">
+            <div class="w-7 h-7 rounded-lg bg-purple-500/20 text-purple-400 flex items-center justify-center font-bold text-sm">
+              🩺
+            </div>
+            <div>
+              <p class="text-[10px] font-bold text-white leading-tight">Clinical Assessments</p>
+              <p class="text-[8px] text-purple-400 font-mono">PHQ-9 &bull; GAD-7 &bull; PSS</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Popup 3: Bottom Center (Dynamic Scene Banner) -->
+        <div id="sceneBanner" class="absolute bottom-4 sm:bottom-6 z-30 glass-panel bg-slate-900/90 px-5 py-2.5 rounded-full border border-cyan-500/40 shadow-2xl flex items-center gap-3 transition-all duration-500">
+          <span class="w-2.5 h-2.5 rounded-full bg-cyan-400 animate-ping"></span>
+          <span id="sceneTitle" class="text-xs sm:text-sm font-extrabold text-transparent bg-clip-text bg-gradient-to-r from-cyan-400 via-indigo-200 to-purple-400">
+            Next-Gen Mental Wellness &amp; Cognitive Resilience
+          </span>
+        </div>
+
+      </div>
+
+      <!-- Video Timeline & Scene Scrubber Overlay (Bottom of Frame) -->
+      <div class="absolute bottom-0 left-0 right-0 h-1 bg-white/10 z-40">
+        <div id="progressBar" class="h-full bg-gradient-to-r from-cyan-400 via-indigo-400 to-purple-500 w-[0%] transition-all duration-200"></div>
+      </div>
+    </div>
+
+    <!-- Video Controls & Scene Director Navigation -->
+    <div class="glass-panel p-3.5 sm:p-4 rounded-2xl flex flex-wrap items-center justify-between gap-3 text-xs">
+      <!-- Play/Pause & Reset -->
+      <div class="flex items-center gap-2">
+        <button id="playPauseBtn" onclick="togglePlayPause()" class="px-4 py-2 rounded-xl bg-cyan-500/20 hover:bg-cyan-500/30 text-cyan-300 font-bold border border-cyan-500/30 transition-all flex items-center gap-2">
+          <span id="playIcon">⏸️</span>
+          <span id="playLabel">Pause Video</span>
+        </button>
+        <button onclick="restartVideo()" class="p-2 rounded-xl hover:bg-white/10 text-slate-300 transition-colors" title="Restart Video">
+          🔄
+        </button>
+        <span id="timecode" class="font-mono text-slate-400 text-xs px-2">00:00 / 00:24</span>
+      </div>
+
+      <!-- Scene Jump Pills -->
+      <div class="flex items-center gap-1.5 flex-wrap">
+        <span class="text-[11px] text-slate-400 font-medium mr-1">Scenes:</span>
+        <button onclick="jumpToScene(0)" class="scene-btn px-2.5 py-1 rounded-lg bg-cyan-500 text-black font-bold text-[11px]">1. The Hook</button>
+        <button onclick="jumpToScene(6)" class="scene-btn px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-[11px]">2. Platform</button>
+        <button onclick="jumpToScene(12)" class="scene-btn px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-[11px]">3. Clinical AI</button>
+        <button onclick="jumpToScene(18)" class="scene-btn px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-[11px]">4. Multi-OS CTA</button>
+      </div>
+    </div>
+
+    <!-- Advertising Script & Production Notes -->
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-xs text-slate-300">
+      <div class="glass-panel p-4 rounded-2xl space-y-2">
+        <h4 class="font-bold text-white flex items-center gap-2 text-sm">
+          🎬 Video Storyboard &amp; Script
+        </h4>
+        <ul class="space-y-1.5 text-slate-400">
+          <li><strong class="text-cyan-400">0:00–0:06 (The Hook):</strong> Floating devices emerge from darkness. Headline: <em>"Stop letting scattered thoughts drain your focus."</em></li>
+          <li><strong class="text-cyan-400">0:06–0:12 (The Platform):</strong> Zoom in on Windows Desktop + iPhone. AI analyzes real-time emotion and sentiment.</li>
+          <li><strong class="text-cyan-400">0:12–0:18 (Clinical Tests):</strong> Android showcases GAD-7 / PHQ-9 validated screening scores.</li>
+          <li><strong class="text-cyan-400">0:18–0:24 (Call to Action):</strong> Multi-OS lineup with 1-tap PWA download badge. <em>"mindsync-ai-six.vercel.app"</em></li>
+        </ul>
+      </div>
+
+      <div class="glass-panel p-4 rounded-2xl space-y-2">
+        <h4 class="font-bold text-white flex items-center gap-2 text-sm">
+          🎧 Audio &amp; Video Export Specs
+        </h4>
+        <p class="text-slate-400 leading-relaxed">
+          • <strong>Built-in Synth Engine:</strong> Procedural chill synthwave chords, 808 sub bass, sidechain hi-hats, and UI shimmer cues generated live with Web Audio API.<br>
+          • <strong>1-Click Export:</strong> Tap <strong>"Export Video (.webm)"</strong> above to record the canvas and download a clean video clip for LinkedIn, Twitter/X, Instagram Reels, or YouTube Shorts!
+        </p>
+      </div>
+    </div>
+
+  </div>
+
+  <!-- Audio Synthesis Engine & Video Timeline Logic -->
+  <script>
+    let isPlaying = true;
+    let currentTime = 0;
+    const totalDuration = 24; // 24 seconds loop
+    let timerInterval = null;
+    let audioCtx = null;
+    let isAudioPlaying = false;
+    let audioNodes = [];
+
+    // Scene Definitions
+    const scenes = [
+      {
+        start: 0,
+        end: 6,
+        title: "Tired of scattered thoughts and digital burnout?",
+        transformDesktop: "translateY(0px) rotateY(-8deg) rotateX(4deg) scale(0.95)",
+        transformIOS: "translateY(15px) rotateY(18deg) rotateX(-2deg) translateZ(40px)",
+        transformAndroid: "translateY(15px) rotateY(-18deg) rotateX(2deg) translateZ(40px)",
+        popup1Text: "✨ Emotional Turbulence?",
+        popup2Text: "🔥 Overcoming Fatigue"
+      },
+      {
+        start: 6,
+        end: 12,
+        title: "Meet MindSync AI — Your Cognitive Sanctuary",
+        transformDesktop: "translateY(-10px) rotateY(0deg) rotateX(0deg) scale(1.06)",
+        transformIOS: "translateY(-20px) rotateY(12deg) rotateX(4deg) translateZ(70px) scale(1.05)",
+        transformAndroid: "translateY(-20px) rotateY(-12deg) rotateX(4deg) translateZ(70px) scale(1.05)",
+        popup1Text: "✨ Real-time Sentiment",
+        popup2Text: "🔒 AES-256 Encrypted"
+      },
+      {
+        start: 12,
+        end: 18,
+        title: "Validated Clinical Screening: PHQ-9 &bull; GAD-7 &bull; PSS",
+        transformDesktop: "translateY(5px) rotateY(12deg) rotateX(6deg) scale(0.98)",
+        transformIOS: "translateY(10px) rotateY(24deg) rotateX(-5deg) translateZ(30px)",
+        transformAndroid: "translateY(-25px) rotateY(-6deg) rotateX(2deg) translateZ(100px) scale(1.12)",
+        popup1Text: "🩺 Instant Scoring",
+        popup2Text: "📈 Trend Analysis"
+      },
+      {
+        start: 18,
+        end: 24,
+        title: "Install On Any Device: iOS &bull; Android &bull; Windows &bull; macOS",
+        transformDesktop: "translateY(0px) rotateY(0deg) rotateX(0deg) scale(1)",
+        transformIOS: "translateY(0px) rotateY(6deg) rotateX(0deg) translateZ(60px) scale(1.02)",
+        transformAndroid: "translateY(0px) rotateY(-6deg) rotateX(0deg) translateZ(60px) scale(1.02)",
+        popup1Text: "⚡ 1-Tap PWA Install",
+        popup2Text: "🚀 mindsync-ai-six.vercel.app"
+      }
+    ];
+
+    // Timeline Animation Loop
+    function startTimeline() {
+      if (timerInterval) clearInterval(timerInterval);
+      timerInterval = setInterval(() => {
+        if (!isPlaying) return;
+        currentTime += 0.2;
+        if (currentTime >= totalDuration) {
+          currentTime = 0;
+        }
+        updateScene(currentTime);
+      }, 200);
+    }
+
+    function updateScene(time) {
+      const progress = (time / totalDuration) * 100;
+      document.getElementById('progressBar').style.width = progress + '%';
+      
+      const mins = Math.floor(time / 60).toString().padStart(2, '0');
+      const secs = Math.floor(time % 60).toString().padStart(2, '0');
+      document.getElementById('timecode').innerText = `${mins}:${secs} / 00:${totalDuration}`;
+
+      const activeScene = scenes.find(s => time >= s.start && time < s.end) || scenes[0];
+      
+      document.getElementById('sceneTitle').innerHTML = activeScene.title;
+      document.getElementById('desktopDevice').style.transform = activeScene.transformDesktop;
+      document.getElementById('iosDevice').style.transform = activeScene.transformIOS;
+      document.getElementById('androidDevice').style.transform = activeScene.transformAndroid;
+
+      // Update Scene Buttons
+      const buttons = document.querySelectorAll('.scene-btn');
+      buttons.forEach((btn, idx) => {
+        if (time >= scenes[idx].start && time < scenes[idx].end) {
+          btn.className = "scene-btn px-2.5 py-1 rounded-lg bg-cyan-500 text-black font-bold text-[11px]";
+        } else {
+          btn.className = "scene-btn px-2.5 py-1 rounded-lg bg-white/5 hover:bg-white/10 text-slate-300 text-[11px]";
+        }
+      });
+    }
+
+    function jumpToScene(time) {
+      currentTime = time;
+      updateScene(time);
+      playSfx('whoosh');
+    }
+
+    function togglePlayPause() {
+      isPlaying = !isPlaying;
+      document.getElementById('playIcon').innerText = isPlaying ? '⏸️' : '▶️';
+      document.getElementById('playLabel').innerText = isPlaying ? 'Pause Video' : 'Play Video';
+    }
+
+    function restartVideo() {
+      currentTime = 0;
+      updateScene(0);
+      playSfx('chime');
+    }
+
+    // ================= WEB AUDIO API SYNTHESIZER =================
+    function initAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === 'suspended') {
+        audioCtx.resume();
+      }
+    }
+
+    function playSfx(type) {
+      if (!isAudioPlaying) return;
+      initAudioContext();
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+
+      if (type === 'whoosh') {
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(220, audioCtx.currentTime);
+        osc.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.3);
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'chime') {
+        osc.type = 'triangle';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.2, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.6);
+      }
+    }
+
+    let synthInterval = null;
+    function startSoundtrack() {
+      initAudioContext();
+      isAudioPlaying = true;
+      document.getElementById('audioIcon').innerText = '🔊';
+      document.getElementById('audioLabel').innerText = 'Soundtrack Playing';
+      document.getElementById('audioToggleBtn').classList.add('border-cyan-500/60', 'bg-cyan-500/10');
+
+      // Play Ambient Chords Loop
+      const chordFrequencies = [
+        [220, 261.63, 329.63], // Am
+        [174.61, 220, 261.63], // F
+        [196, 246.94, 293.66], // G
+        [164.81, 196, 246.94]  // Em
+      ];
+      let chordIndex = 0;
+
+      synthInterval = setInterval(() => {
+        if (!isAudioPlaying) return;
+        const freqs = chordFrequencies[chordIndex % chordFrequencies.length];
+        chordIndex++;
+
+        freqs.forEach(freq => {
+          const osc = audioCtx.createOscillator();
+          const gain = audioCtx.createGain();
+          osc.type = 'sine';
+          osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+          gain.gain.setValueAtTime(0.01, audioCtx.currentTime);
+          gain.gain.linearRampToValueAtTime(0.05, audioCtx.currentTime + 0.4);
+          gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 1.8);
+
+          osc.connect(gain);
+          gain.connect(audioCtx.destination);
+
+          osc.start();
+          osc.stop(audioCtx.currentTime + 1.9);
+        });
+
+        // Add electronic percussion pulse
+        const kickOsc = audioCtx.createOscillator();
+        const kickGain = audioCtx.createGain();
+        kickOsc.frequency.setValueAtTime(110, audioCtx.currentTime);
+        kickOsc.frequency.exponentialRampToValueAtTime(40, audioCtx.currentTime + 0.15);
+        kickGain.gain.setValueAtTime(0.18, audioCtx.currentTime);
+        kickGain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.2);
+        kickOsc.connect(kickGain);
+        kickGain.connect(audioCtx.destination);
+        kickOsc.start();
+        kickOsc.stop(audioCtx.currentTime + 0.2);
+
+      }, 1200);
+    }
+
+    function stopSoundtrack() {
+      isAudioPlaying = false;
+      if (synthInterval) clearInterval(synthInterval);
+      document.getElementById('audioIcon').innerText = '🎵';
+      document.getElementById('audioLabel').innerText = 'Play Soundtrack';
+      document.getElementById('audioToggleBtn').classList.remove('border-cyan-500/60', 'bg-cyan-500/10');
+    }
+
+    function toggleAudio() {
+      if (isAudioPlaying) {
+        stopSoundtrack();
+      } else {
+        startSoundtrack();
+      }
+    }
+
+    // ================= SCREEN RECORDER VIDEO EXPORT =================
+    let mediaRecorder = null;
+    let recordedChunks = [];
+
+    async function startExportRecording() {
+      const btn = document.getElementById('recordBtn');
+      const text = document.getElementById('recordText');
+      const dot = document.getElementById('recordDot');
+
+      try {
+        if (!window.MediaRecorder) {
+          alert('MediaRecorder is not supported in this browser. You can record using OBS or Windows Game Bar (Win+Alt+R)!');
+          return;
+        }
+
+        // Start Soundtrack automatically if not on
+        if (!isAudioPlaying) {
+          startSoundtrack();
+        }
+
+        // Prompt user for window/tab capture
+        const stream = await navigator.mediaDevices.getDisplayMedia({
+          video: { frameRate: 60 },
+          audio: true
+        });
+
+        recordedChunks = [];
+        mediaRecorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
+
+        mediaRecorder.ondataavailable = (e) => {
+          if (e.data.size > 0) recordedChunks.push(e.data);
+        };
+
+        mediaRecorder.onstop = () => {
+          const blob = new Blob(recordedChunks, { type: 'video/webm' });
+          const url = URL.createObjectURL(blob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = 'MindSync-AI-Promo-Video.webm';
+          a.click();
+          URL.revokeObjectURL(url);
+
+          text.innerText = 'Export Video (.webm)';
+          dot.className = 'w-2 h-2 rounded-full bg-white';
+          btn.classList.remove('from-rose-500', 'to-red-600');
+        };
+
+        mediaRecorder.start();
+        text.innerText = 'Recording... (Click to Stop)';
+        dot.className = 'w-2 h-2 rounded-full bg-red-400 animate-ping';
+        btn.classList.add('from-rose-500', 'to-red-600');
+
+        btn.onclick = () => {
+          mediaRecorder.stop();
+          stream.getTracks().forEach(track => track.stop());
+          btn.onclick = startExportRecording;
+        };
+
+      } catch (err) {
+        console.warn('Recording cancelled or not supported:', err);
+      }
+    }
+
+    // Initialize on load
+    startTimeline();
+  </script>
+</body>
+</html>
