@@ -207,11 +207,12 @@ export const AuthController = {
       html: emailTemplate,
     });
 
-    const isDev = process.env.NODE_ENV === "development" || !process.env.SMTP_HOST;
+    // If SMTP credentials are not configured, provide the code directly for preview/testing
+    const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
     res.json({
       success: true,
       message: "If that email is registered, a 6-digit verification code has been sent.",
-      ...(isDev ? { devCode: resetCode } : {}),
+      ...(!hasSmtp ? { devCode: resetCode } : {}),
     });
   }),
 
@@ -284,11 +285,11 @@ export const AuthController = {
       html: emailTemplate,
     });
 
-    const isDev = process.env.NODE_ENV === "development" || !process.env.SMTP_HOST;
+    const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
     res.json({
       success: true,
       message: "A 6-digit confirmation code has been sent to your email to verify deletion.",
-      ...(isDev ? { devCode: deleteCode } : {}),
+      ...(!hasSmtp ? { devCode: deleteCode } : {}),
     });
   }),
 
