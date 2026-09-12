@@ -52,12 +52,20 @@ export default function JournalPage() {
       const payload = { ...data, tags: data.tags ? data.tags.split(",").map((t) => t.trim()) : [] };
       const res = await api.post("/journals", payload);
       toast.success("Journal saved & analyzed!");
-      setSelectedEntry(res.data.data);
-      setShowAnalysis(true);
-      reset({ mood: 7, energy: 6, stress: 4 });
-      fetchEntries();
-    } catch (err) { toast.error("Failed to save journal"); }
-    finally { setLoading(false); }
+      const newEntry = res.data.data;
+      if (newEntry) {
+        setSelectedEntry(newEntry);
+        setShowAnalysis(true);
+        // Instantly prepend to recent entries list
+        setEntries((prev) => [newEntry, ...prev.filter((e) => e.id !== newEntry.id)]);
+      }
+      reset({ mood: 7, energy: 6, stress: 4, title: "", content: "", tags: "" });
+      await fetchEntries();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to save journal");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const mood = watch("mood");
@@ -109,26 +117,67 @@ export default function JournalPage() {
           </form>
 
           <div className="space-y-3">
-            <h3 className="font-semibold text-lg">Recent Entries</h3>
-            {entries.map((entry) => (
-              <motion.div key={entry.id} initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="glass-card rounded-xl p-4 cursor-pointer hover:border-primary-500/30 transition-colors" onClick={() => { setSelectedEntry(entry); setShowAnalysis(true); }}>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h4 className="font-medium">{entry.title}</h4>
-                    <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{entry.content}</p>
-                    <div className="flex items-center gap-3 mt-2 text-xs text-muted-foreground">
-                      <span className="flex items-center gap-1"><Calendar size={12} /> {new Date(entry.date).toLocaleDateString()}</span>
-                      <span className="flex items-center gap-1"><Heart size={12} className="text-wellness-calm" /> {entry.mood}/10</span>
-                    </div>
-                  </div>
-                  {entry.aiAnalysis && (
-                    <span className={cn("px-2 py-1 rounded-full text-xs font-medium", entry.aiAnalysis.burnoutRisk === "high" || entry.aiAnalysis.burnoutRisk === "critical" ? "bg-wellness-stress/10 text-wellness-stress" : "bg-wellness-calm/10 text-wellness-calm")}>
-                      {entry.aiAnalysis.sentiment}
-                    </span>
+            <div className="flex items-center justify-between">
+              <h3 className="font-semibold text-lg">Recent Entries</h3>
+              <span className="text-xs text-muted-foreground">{entries.length} {entries.length === 1 ? "entry" : "entries"}</span>
+            </div>
+
+            {entries.length === 0 ? (
+              <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground space-y-2">
+                <BookOpen size={36} className="mx-auto opacity-30 text-primary-400 mb-2" />
+                <p className="font-medium text-foreground text-sm">No journal entries yet</p>
+                <p className="text-xs text-muted-foreground max-w-sm mx-auto">Write your first reflection in the form above and click &quot;Save &amp; Analyze&quot; to begin building your wellness timeline.</p>
+              </div>
+            ) : (
+              entries.map((entry) => (
+                <motion.div
+                  key={entry.id}
+                  initial={{ opacity: 0, y: 10 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  className={cn(
+                    "glass-card rounded-xl p-4 cursor-pointer transition-all border",
+                    selectedEntry?.id === entry.id
+                      ? "border-primary-500 shadow-md bg-primary-500/5"
+                      : "hover:border-primary-500/30"
                   )}
-                </div>
-              </motion.div>
-            ))}
+                  onClick={() => { setSelectedEntry(entry); setShowAnalysis(true); }}
+                >
+                  <div className="flex items-start justify-between gap-3">
+                    <div className="flex-1 min-w-0">
+                      <h4 className="font-medium text-foreground truncate">{entry.title}</h4>
+                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">{entry.content}</p>
+                      <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
+                        <span className="flex items-center gap-1">
+                          <Calendar size={12} /> {new Date(entry.date || entry.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}
+                        </span>
+                        <span className="flex items-center gap-1">
+                          <Heart size={12} className="text-wellness-calm" /> {entry.mood}/10
+                        </span>
+                        {Array.isArray(entry.tags) && entry.tags.length > 0 && (
+                          <div className="flex gap-1">
+                            {entry.tags.slice(0, 3).map((tag: string, idx: number) => (
+                              <span key={idx} className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-muted-foreground">
+                                #{tag}
+                              </span>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                    {entry.aiAnalysis && (
+                      <span className={cn(
+                        "px-2.5 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap shrink-0",
+                        entry.aiAnalysis.burnoutRisk === "high" || entry.aiAnalysis.burnoutRisk === "critical"
+                          ? "bg-wellness-stress/10 text-wellness-stress"
+                          : "bg-wellness-calm/10 text-wellness-calm"
+                      )}>
+                        {entry.aiAnalysis.sentiment}
+                      </span>
+                    )}
+                  </div>
+                </motion.div>
+              ))
+            )}
           </div>
         </div>
 
