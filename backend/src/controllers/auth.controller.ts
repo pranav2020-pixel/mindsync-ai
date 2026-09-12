@@ -40,7 +40,8 @@ export const AuthController = {
     await prisma.session.create({
       data: { userId: user.id, token: tokens.refreshToken, type: "REFRESH", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
     });
-    res.json({ success: true, data: { user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, wellnessGoals: user.wellnessGoals, productivityGoals: user.productivityGoals }, ...tokens } });
+    const streak = await AuthController.calculateUserStreak(user.id);
+    res.json({ success: true, data: { user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, wellnessGoals: user.wellnessGoals, productivityGoals: user.productivityGoals, streak }, ...tokens } });
   }),
 
   refresh: asyncHandler(async (req: Request, res: Response) => {
@@ -56,8 +57,72 @@ export const AuthController = {
   }),
 
   me: asyncHandler(async (req: any, res: Response) => {
-    res.json({ success: true, data: req.user });
+    const streak = await AuthController.calculateUserStreak(req.user.id);
+    res.json({ success: true, data: { ...req.user, streak } });
   }),
+
+  getStreak: asyncHandler(async (req: any, res: Response) => {
+    const streak = await AuthController.calculateUserStreak(req.user.id);
+    res.json({ success: true, data: { streak } });
+  }),
+
+  calculateUserStreak: async (userId: string): Promise<number> => {
+    const sixtyDaysAgo = new Date();
+    sixtyDaysAgo.setDate(sixtyDaysAgo.getDate() - 60);
+
+    const [moods, journals, habits, productivity] = await Promise.all([
+      prisma.moodLog.findMany({ where: { userId, date: { gte: sixtyDaysAgo } }, select: { date: true } }),
+      prisma.journalEntry.findMany({ where: { userId, date: { gte: sixtyDaysAgo } }, select: { date: true } }),
+      prisma.habitLog.findMany({ where: { userId, completed: true, date: { gte: sixtyDaysAgo } }, select: { date: true } }),
+      prisma.productivityLog.findMany({ where: { userId, date: { gte: sixtyDaysAgo } }, select: { date: true } }),
+    ]);
+
+    const dateSet = new Set<string>();
+    const toDateKey = (d: Date) => {
+      const date = new Date(d);
+      const year = date.getFullYear();
+      const month = String(date.getMonth() + 1).padStart(2, "0");
+      const day = String(date.getDate()).padStart(2, "0");
+      return `${year}-${month}-${day}`;
+    };
+
+    moods.forEach((m) => dateSet.add(toDateKey(m.date)));
+    journals.forEach((j) => dateSet.add(toDateKey(j.date)));
+    habits.forEach((h) => dateSet.add(toDateKey(h.date)));
+    productivity.forEach((p) => dateSet.add(toDateKey(p.date)));
+
+    if (dateSet.size === 0) return 0;
+
+    const today = new Date();
+    const todayKey = toDateKey(today);
+
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const yesterdayKey = toDateKey(yesterday);
+
+    let streak = 0;
+    let checkDate = new Date();
+
+    if (dateSet.has(todayKey)) {
+      checkDate = today;
+    } else if (dateSet.has(yesterdayKey)) {
+      checkDate = yesterday;
+    } else {
+      return 0;
+    }
+
+    while (true) {
+      const checkKey = toDateKey(checkDate);
+      if (dateSet.has(checkKey)) {
+        streak++;
+        checkDate.setDate(checkDate.getDate() - 1);
+      } else {
+        break;
+      }
+    }
+
+    return streak;
+  },
 
   updateProfile: asyncHandler(async (req: any, res: Response) => {
     const { name, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;

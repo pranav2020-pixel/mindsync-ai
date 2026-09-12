@@ -18,6 +18,7 @@ router.post("/register", authLimiter, AuthController.register);
 router.post("/login", authLimiter, AuthController.login);
 router.post("/refresh", AuthController.refresh);
 router.get("/me", authenticate, AuthController.me);
+router.get("/streak", authenticate, AuthController.getStreak);
 router.patch("/profile", authenticate, AuthController.updateProfile);
 router.post("/logout", authenticate, AuthController.logout);
 export default router;

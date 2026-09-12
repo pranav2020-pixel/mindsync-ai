@@ -5,10 +5,12 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
-  ClipboardList, MessageCircle, BarChart3, Brain, Menu, X
+  ClipboardList, MessageCircle, BarChart3, Brain, Menu, X, Flame
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useAuth } from "@/hooks/use-auth";
+import api from "@/lib/api";
 
 const icons: Record<string, any> = {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
@@ -28,7 +30,33 @@ const navItems = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [streak, setStreak] = useState<number>(user?.streak || 0);
+
+  useEffect(() => {
+    if (user?.streak !== undefined) {
+      setStreak(user.streak);
+    }
+  }, [user?.streak]);
+
+  useEffect(() => {
+    if (!user) {
+      setStreak(0);
+      return;
+    }
+    const fetchStreak = async () => {
+      try {
+        const res = await api.get("/auth/streak");
+        if (res.data?.data?.streak !== undefined) {
+          setStreak(res.data.data.streak);
+        }
+      } catch (err) {
+        // Ignore fetch errors silently
+      }
+    };
+    fetchStreak();
+  }, [user, pathname]);
 
   if (pathname === "/login" || pathname === "/register") {
     return null;
@@ -89,13 +117,24 @@ export function Sidebar() {
 
         <div className="p-4">
           <div className="glass-card rounded-xl p-4">
-            <p className="text-xs text-muted-foreground mb-2">Daily Streak</p>
-            <div className="flex items-center gap-2">
-              <div className="h-2 flex-1 bg-secondary rounded-full overflow-hidden">
-                <div className="h-full w-3/4 bg-gradient-to-r from-primary-500 to-wellness-calm rounded-full" />
-              </div>
-              <span className="text-sm font-bold">12</span>
+            <div className="flex items-center justify-between mb-2">
+              <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
+                <Flame size={14} className={streak > 0 ? "text-amber-400 fill-amber-400/20" : "text-muted-foreground"} />
+                Daily Streak
+              </p>
+              <span className="text-xs font-bold text-primary-400">
+                {streak} {streak === 1 ? "day" : "days"}
+              </span>
             </div>
+            <div className="h-2 w-full bg-secondary rounded-full overflow-hidden">
+              <div
+                className="h-full bg-gradient-to-r from-primary-500 via-amber-400 to-wellness-calm rounded-full transition-all duration-500"
+                style={{ width: `${Math.min(100, Math.max(streak > 0 ? 8 : 0, (streak / 30) * 100))}%` }}
+              />
+            </div>
+            <p className="text-[10px] text-muted-foreground mt-1.5 text-right">
+              {streak >= 30 ? "Milestone reached! 🏆" : `${30 - streak}d to 30-day goal`}
+            </p>
           </div>
         </div>
       </motion.aside>
