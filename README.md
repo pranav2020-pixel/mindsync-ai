@@ -8,7 +8,7 @@
 ## 🌐 Live Demo & Access
 
 Experience MindSync AI live in your browser:
-- **Public URL**: [https://clock-peripheral-eva-acknowledged.trycloudflare.com](https://clock-peripheral-eva-acknowledged.trycloudflare.com)
+- **Public URL**: [https://without-sufficient-network-basics.trycloudflare.com](https://without-sufficient-network-basics.trycloudflare.com)
 - **Demo Account**: `demo@mindsync.ai`
 - **Password**: `password123`
 *(Or click **Register** to create your own account)*
