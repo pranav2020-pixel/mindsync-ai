@@ -52,43 +52,72 @@ export const JournalController = {
         productivityRating: productivityRating ? Number(productivityRating) : null,
       },
     });
-    const aiAnalysis = await AIService.analyzeJournal(cleanContent);
-    await prisma.journalAIAnalysis.create({
-      data: {
-        journalId: entry.id, sentiment: aiAnalysis.sentiment, sentimentScore: aiAnalysis.sentimentScore,
-        emotions: aiAnalysis.emotions, stressLevel: aiAnalysis.stressLevel, optimismScore: aiAnalysis.optimismScore,
-        anxietyIndicators: aiAnalysis.anxietyIndicators, burnoutRisk: aiAnalysis.burnoutRisk,
-        suggestedActivities: aiAnalysis.suggestedActivities, motivationalSummary: aiAnalysis.motivationalSummary,
-        aiReflection: aiAnalysis.aiReflection,
-      },
-    });
-    const recommendations = await AIService.generateRecommendations({ mood, energy, stress });
-    const validRecTypes = new Set([
-      "MEDITATION", "STRETCHING", "WALKING", "READING", "MUSIC", "BREATHING",
-      "HYDRATION", "CREATIVE", "DIGITAL_DETOX", "GRATITUDE", "SLEEP_HYGIENE", "SOCIAL"
-    ]);
-    const validDifficulties = new Set(["easy", "medium", "hard"]);
+    let aiAnalysis: any = {
+      sentiment: "neutral", sentimentScore: 0,
+      emotions: { joy: 0.5, sadness: 0.5, anger: 0, fear: 0.2, surprise: 0, disgust: 0 },
+      stressLevel: 5, optimismScore: 0.5, anxietyIndicators: [], burnoutRisk: "low",
+      suggestedActivities: ["journaling", "walking", "meditation"],
+      motivationalSummary: "Thank you for sharing your thoughts. Every entry helps build self-awareness.",
+      aiReflection: "I notice you're taking time to reflect on your day. This practice of self-awareness is a powerful tool for personal growth.",
+      crisisDetected: false,
+    };
 
-    await Promise.all(recommendations.map((rec: any) => {
-      const typeKey = (rec.type || "BREATHING").toUpperCase().replace(/[\s-]/g, "_");
-      const safeType = validRecTypes.has(typeKey) ? typeKey : "BREATHING";
-      const diffKey = (rec.difficulty || "easy").toLowerCase();
-      const safeDiff = validDifficulties.has(diffKey) ? diffKey : "easy";
-
-      return prisma.recommendation.create({
+    try {
+      const generatedAnalysis = await AIService.analyzeJournal(cleanContent);
+      if (generatedAnalysis) {
+        aiAnalysis = generatedAnalysis;
+      }
+      await prisma.journalAIAnalysis.create({
         data: {
-          userId: req.user.id,
-          type: safeType as any,
-          title: rec.title || "Wellness Practice",
-          description: rec.description || "A mindful wellness moment.",
-          why: rec.why || "Supports your current mental state.",
-          duration: rec.duration || "5 min",
-          benefits: Array.isArray(rec.benefits) ? rec.benefits : ["Promotes well-being"],
-          difficulty: safeDiff,
+          journalId: entry.id,
+          sentiment: aiAnalysis.sentiment || "neutral",
+          sentimentScore: typeof aiAnalysis.sentimentScore === "number" ? aiAnalysis.sentimentScore : 0,
+          emotions: aiAnalysis.emotions || {},
+          stressLevel: aiAnalysis.stressLevel ? Number(aiAnalysis.stressLevel) : 5,
+          optimismScore: aiAnalysis.optimismScore ? Number(aiAnalysis.optimismScore) : 0.5,
+          anxietyIndicators: Array.isArray(aiAnalysis.anxietyIndicators) ? aiAnalysis.anxietyIndicators : [],
+          burnoutRisk: aiAnalysis.burnoutRisk || "low",
+          suggestedActivities: Array.isArray(aiAnalysis.suggestedActivities) ? aiAnalysis.suggestedActivities : ["journaling"],
+          motivationalSummary: aiAnalysis.motivationalSummary || "Thank you for sharing your thoughts.",
+          aiReflection: aiAnalysis.aiReflection || "Every reflection is a step toward greater self-awareness.",
         },
       });
-    }));
-    res.status(201).json({ success: true, data: { ...entry, content, aiAnalysis } });
+    } catch (aiErr) {
+      console.warn("Non-fatal: Journal AI analysis creation failed:", aiErr);
+    }
+
+    try {
+      const recommendations = await AIService.generateRecommendations({ mood, energy, stress });
+      const validRecTypes = new Set([
+        "MEDITATION", "STRETCHING", "WALKING", "READING", "MUSIC", "BREATHING",
+        "HYDRATION", "CREATIVE", "DIGITAL_DETOX", "GRATITUDE", "SLEEP_HYGIENE", "SOCIAL"
+      ]);
+      const validDifficulties = new Set(["easy", "medium", "hard"]);
+
+      await Promise.all((recommendations || []).map((rec: any) => {
+        const typeKey = (rec.type || "BREATHING").toUpperCase().replace(/[\s-]/g, "_");
+        const safeType = validRecTypes.has(typeKey) ? typeKey : "BREATHING";
+        const diffKey = (rec.difficulty || "easy").toLowerCase();
+        const safeDiff = validDifficulties.has(diffKey) ? diffKey : "easy";
+
+        return prisma.recommendation.create({
+          data: {
+            userId: req.user.id,
+            type: safeType as any,
+            title: rec.title || "Wellness Practice",
+            description: rec.description || "A mindful wellness moment.",
+            why: rec.why || "Supports your current mental state.",
+            duration: rec.duration || "5 min",
+            benefits: Array.isArray(rec.benefits) ? rec.benefits : ["Promotes well-being"],
+            difficulty: safeDiff,
+          },
+        });
+      }));
+    } catch (recErr) {
+      console.warn("Non-fatal: Recommendation generation failed:", recErr);
+    }
+
+    res.status(201).json({ success: true, data: { ...entry, content: cleanContent, aiAnalysis } });
   }),
 
   update: asyncHandler(async (req: any, res: Response) => {

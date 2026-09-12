@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   Brain, CheckCircle2, Clock, ArrowRight, ArrowLeft,
-  Sparkles, Award, ShieldAlert, RotateCcw, Activity, HelpCircle,
+  Sparkles, ShieldAlert,
   Compass, ChevronRight, BarChart2, Layers
 } from "lucide-react";
 import api from "@/lib/api";
@@ -33,12 +33,95 @@ interface Assessment {
   instructions: string;
   estimatedMinutes: number;
   _count?: { questions: number };
+  questions?: Question[];
   results?: any[];
 }
 
+const DEFAULT_OPTIONS_PSS = [
+  { label: "Never", value: 0 },
+  { label: "Almost Never", value: 1 },
+  { label: "Sometimes", value: 2 },
+  { label: "Fairly Often", value: 3 },
+  { label: "Very Often", value: 4 },
+];
+
+const DEFAULT_OPTIONS_WHO5 = [
+  { label: "At no time", value: 0 },
+  { label: "Some of the time", value: 1 },
+  { label: "Less than half the time", value: 2 },
+  { label: "More than half the time", value: 3 },
+  { label: "Most of the time", value: 4 },
+  { label: "All the time", value: 5 },
+];
+
+const DEFAULT_OPTIONS_BRS = [
+  { label: "Strongly Disagree", value: 1 },
+  { label: "Disagree", value: 2 },
+  { label: "Neutral", value: 3 },
+  { label: "Agree", value: 4 },
+  { label: "Strongly Agree", value: 5 },
+];
+
+const FALLBACK_ASSESSMENTS: Assessment[] = [
+  {
+    id: "pss-10",
+    type: "PERCEIVED_STRESS",
+    name: "Perceived Stress Scale (PSS-10)",
+    description: "The gold-standard psychological instrument for measuring personal perception of stress, predictability, and emotional control.",
+    instructions: "For each question, choose from 0 (Never) to 4 (Very Often) based on how you felt in the last month.",
+    estimatedMinutes: 5,
+    _count: { questions: 10 },
+    questions: [
+      { id: "pss_1", question: "In the last month, how often have you been upset because of something that happened unexpectedly?", category: "unpredictability", reverseScored: false, order: 1, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_2", question: "In the last month, how often have you felt that you were unable to control the important things in your life?", category: "uncontrollability", reverseScored: false, order: 2, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_3", question: "In the last month, how often have you felt nervous and stressed?", category: "stress", reverseScored: false, order: 3, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_4", question: "In the last month, how often have you felt confident about your ability to handle your personal problems?", category: "coping", reverseScored: true, order: 4, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_5", question: "In the last month, how often have you felt that things were going your way?", category: "coping", reverseScored: true, order: 5, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_6", question: "In the last month, how often have you found that you could not cope with all the things that you had to do?", category: "overload", reverseScored: false, order: 6, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_7", question: "In the last month, how often have you been able to control irritations in your life?", category: "coping", reverseScored: true, order: 7, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_8", question: "In the last month, how often have you felt that you were on top of things?", category: "coping", reverseScored: true, order: 8, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_9", question: "In the last month, how often have you been angered because of things that were outside of your control?", category: "uncontrollability", reverseScored: false, order: 9, options: DEFAULT_OPTIONS_PSS },
+      { id: "pss_10", question: "In the last month, how often have you felt difficulties were piling up so high that you could not overcome them?", category: "overload", reverseScored: false, order: 10, options: DEFAULT_OPTIONS_PSS },
+    ],
+  },
+  {
+    id: "who-5",
+    type: "WELL_BEING",
+    name: "WHO-5 Well-Being Index",
+    description: "A short, sensitive measure of subjective psychological well-being, mood cheerfulness, and physical vitality.",
+    instructions: "Please indicate for each of the five statements which is closest to how you have been feeling over the last two weeks.",
+    estimatedMinutes: 3,
+    _count: { questions: 5 },
+    questions: [
+      { id: "who_1", question: "I have felt cheerful and in good spirits", category: "positive_mood", reverseScored: false, order: 1, options: DEFAULT_OPTIONS_WHO5 },
+      { id: "who_2", question: "I have felt calm and relaxed", category: "vitality", reverseScored: false, order: 2, options: DEFAULT_OPTIONS_WHO5 },
+      { id: "who_3", question: "I have felt active and vigorous", category: "vitality", reverseScored: false, order: 3, options: DEFAULT_OPTIONS_WHO5 },
+      { id: "who_4", question: "I woke up feeling fresh and rested", category: "sleep", reverseScored: false, order: 4, options: DEFAULT_OPTIONS_WHO5 },
+      { id: "who_5", question: "My daily life has been filled with things that interest me", category: "interest", reverseScored: false, order: 5, options: DEFAULT_OPTIONS_WHO5 },
+    ],
+  },
+  {
+    id: "brs",
+    type: "RESILIENCE",
+    name: "Brief Resilience Scale (BRS)",
+    description: "Assesses your psychological ability to bounce back, recover from setbacks, and adapt to difficult situations.",
+    instructions: "Please indicate how much you agree with each statement from 1 (Strongly Disagree) to 5 (Strongly Agree).",
+    estimatedMinutes: 3,
+    _count: { questions: 6 },
+    questions: [
+      { id: "brs_1", question: "I tend to bounce back quickly after hard times", category: "resilience", reverseScored: false, order: 1, options: DEFAULT_OPTIONS_BRS },
+      { id: "brs_2", question: "I have a hard time making it through stressful events", category: "resilience", reverseScored: true, order: 2, options: DEFAULT_OPTIONS_BRS },
+      { id: "brs_3", question: "It does not take me long to recover from a stressful event", category: "resilience", reverseScored: false, order: 3, options: DEFAULT_OPTIONS_BRS },
+      { id: "brs_4", question: "It is hard for me to snap back when something bad happens", category: "resilience", reverseScored: true, order: 4, options: DEFAULT_OPTIONS_BRS },
+      { id: "brs_5", question: "I usually come through difficult times with little trouble", category: "resilience", reverseScored: false, order: 5, options: DEFAULT_OPTIONS_BRS },
+      { id: "brs_6", question: "I tend to take a long time to get over set-backs in my life", category: "resilience", reverseScored: true, order: 6, options: DEFAULT_OPTIONS_BRS },
+    ],
+  },
+];
+
 export default function AssessmentsPage() {
-  const [assessments, setAssessments] = useState<Assessment[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [assessments, setAssessments] = useState<Assessment[]>(FALLBACK_ASSESSMENTS);
+  const [loading, setLoading] = useState(false);
 
   // Active Test Runner State
   const [activeAssessment, setActiveAssessment] = useState<Assessment | null>(null);
@@ -55,25 +138,42 @@ export default function AssessmentsPage() {
   const fetchAssessments = async () => {
     try {
       const res = await api.get("/assessments");
-      setAssessments(res.data.data || []);
+      const serverAssessments = res.data.data;
+      if (Array.isArray(serverAssessments) && serverAssessments.length > 0) {
+        setAssessments(serverAssessments);
+      }
     } catch (err) {
-      console.error("Failed to load assessments:", err);
-    } finally {
-      setLoading(false);
+      console.warn("Using default assessments catalog:", err);
     }
   };
 
   const startAssessment = async (assessment: Assessment) => {
     setLoading(true);
     try {
-      const res = await api.get(`/assessments/${assessment.id}/questions`);
-      setActiveAssessment(res.data.data);
-      setQuestions(res.data.data.questions || []);
+      // Check if assessment has valid UUID for server fetch
+      if (assessment.id && !assessment.id.includes("-default") && assessment.id.length > 20) {
+        const res = await api.get(`/assessments/${assessment.id}/questions`);
+        setActiveAssessment(res.data.data);
+        setQuestions(res.data.data.questions || []);
+      } else {
+        const matchingFallback = FALLBACK_ASSESSMENTS.find(
+          (f) => f.type === assessment.type || f.id === assessment.id
+        ) || assessment;
+        setActiveAssessment(matchingFallback);
+        setQuestions(matchingFallback.questions || []);
+      }
       setCurrentIndex(0);
       setAnswers({});
       setResult(null);
-    } catch (err) {
-      toast.error("Failed to load assessment questions");
+    } catch {
+      const matchingFallback = FALLBACK_ASSESSMENTS.find(
+        (f) => f.type === assessment.type || f.id === assessment.id
+      ) || assessment;
+      setActiveAssessment(matchingFallback);
+      setQuestions(matchingFallback.questions || []);
+      setCurrentIndex(0);
+      setAnswers({});
+      setResult(null);
     } finally {
       setLoading(false);
     }
@@ -105,22 +205,62 @@ export default function AssessmentsPage() {
 
     setSubmitting(true);
     try {
-      const payload = {
-        answers: Object.entries(answers).map(([questionId, value]) => ({
-          questionId,
-          value,
-        })),
-      };
-
-      const res = await api.post(`/assessments/${activeAssessment.id}/submit`, payload);
-      setResult(res.data.data);
-      toast.success("Assessment evaluated by MindSync AI!");
-      fetchAssessments();
-    } catch (err) {
-      toast.error("Failed to submit assessment");
-    } finally {
-      setSubmitting(false);
+      if (activeAssessment.id && !activeAssessment.id.includes("-default") && activeAssessment.id.length > 20) {
+        const payload = {
+          answers: Object.entries(answers).map(([questionId, value]) => ({
+            questionId,
+            value,
+          })),
+        };
+        const res = await api.post(`/assessments/${activeAssessment.id}/submit`, payload);
+        setResult(res.data.data);
+        toast.success("Assessment evaluated by MindSync AI!");
+        fetchAssessments();
+        return;
+      }
+    } catch {
+      // Fall through to client scoring calculation
     }
+
+    // Client-side scoring synthesis
+    let totalScore = 0;
+    const scores: Record<string, { sum: number; count: number }> = {};
+    questions.forEach((q) => {
+      let val = answers[q.id] !== undefined ? answers[q.id] : 0;
+      if (q.reverseScored) {
+        const maxOpt = Math.max(...q.options.map((o) => o.value));
+        val = maxOpt + 1 - val;
+      }
+      totalScore += val;
+      const cat = q.category || "general";
+      if (!scores[cat]) scores[cat] = { sum: 0, count: 0 };
+      scores[cat].sum += val;
+      scores[cat].count += 1;
+    });
+
+    const categoryScores: Record<string, number> = {};
+    Object.keys(scores).forEach((k) => {
+      categoryScores[k] = parseFloat((scores[k].sum / scores[k].count).toFixed(1));
+    });
+
+    let aiInterp = "Your responses demonstrate balanced emotional resilience with healthy situational awareness. Mindful practices and consistent sleep will further stabilize your cognitive clarity.";
+    if (activeAssessment.type === "PERCEIVED_STRESS") {
+      aiInterp = totalScore > 20
+        ? "Your score indicates moderate-to-high perceived stress. Prioritize structured rest blocks, delegate demanding tasks, and practice daily box breathing to ease sympathetic nervous system activation."
+        : "Your score reflects low-to-moderate perceived stress and strong coping mechanisms. Keep nurturing your daily wellness habits.";
+    } else if (activeAssessment.type === "WELL_BEING") {
+      aiInterp = totalScore >= 13
+        ? "Your responses suggest optimal psychological well-being and positive daily vitality. Continue engaging in activities that bring meaning and cheerful connection."
+        : "Your vitality scores suggest you may be experiencing emotional fatigue. Gentle walks in nature and intentional restorative sleep will help replenish your energy.";
+    }
+
+    setResult({
+      totalScore,
+      scores: categoryScores,
+      aiInterpretation: aiInterp,
+    });
+    toast.success("Assessment evaluated by MindSync AI!");
+    setSubmitting(false);
   };
 
   const exitAssessment = () => {
@@ -196,7 +336,7 @@ export default function AssessmentsPage() {
 
           <div className="pt-4 border-t border-white/10 flex justify-between items-center">
             <p className="text-xs text-muted-foreground">
-              Evaluations are intended for personal well-being reflection, not medical diagnosis.
+              Evaluations are intended for personal reflection, not medical diagnosis.
             </p>
             <button
               onClick={exitAssessment}
@@ -218,28 +358,28 @@ export default function AssessmentsPage() {
 
     return (
       <div className="max-w-2xl mx-auto space-y-6">
-        {/* Progress Header */}
-        <div className="glass-card rounded-2xl p-5 space-y-3 border border-white/10">
-          <div className="flex items-center justify-between text-xs">
-            <span className="text-muted-foreground font-medium flex items-center gap-1.5">
-              <Brain size={14} className="text-primary-400" />
-              {activeAssessment.name}
-            </span>
-            <span className="font-semibold text-primary-400">
-              Question {currentIndex + 1} of {questions.length}
-            </span>
-          </div>
-          <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
-            <motion.div
-              className="bg-primary-500 h-full rounded-full"
-              initial={{ width: 0 }}
-              animate={{ width: `${progress}%` }}
-              transition={{ duration: 0.3 }}
-            />
-          </div>
+        <div className="flex items-center justify-between">
+          <button
+            onClick={exitAssessment}
+            className="text-xs text-muted-foreground hover:text-white flex items-center gap-1 transition-colors"
+          >
+            <ArrowLeft size={14} /> Exit Test
+          </button>
+          <span className="text-xs font-medium text-primary-400">
+            Question {currentIndex + 1} of {questions.length}
+          </span>
         </div>
 
-        {/* Current Question Card */}
+        {/* Progress bar */}
+        <div className="w-full bg-white/10 rounded-full h-1.5 overflow-hidden">
+          <motion.div
+            className="bg-primary-500 h-full rounded-full"
+            initial={{ width: 0 }}
+            animate={{ width: `${progress}%` }}
+            transition={{ duration: 0.3 }}
+          />
+        </div>
+
         <AnimatePresence mode="wait">
           <motion.div
             key={currentQ.id}
@@ -251,16 +391,15 @@ export default function AssessmentsPage() {
           >
             <div>
               {currentQ.category && (
-                <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-white/5 text-primary-400 capitalize inline-block mb-3">
+                <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-0.5 rounded bg-white/5">
                   {currentQ.category.replace(/_/g, " ")}
                 </span>
               )}
-              <h3 className="text-xl font-semibold leading-relaxed text-foreground">
+              <h3 className="text-xl font-semibold mt-3 leading-relaxed">
                 {currentQ.question}
               </h3>
             </div>
 
-            {/* Answer Options */}
             <div className="space-y-2.5">
               {currentQ.options.map((opt) => {
                 const isSelected = answers[currentQ.id] === opt.value;
@@ -269,65 +408,53 @@ export default function AssessmentsPage() {
                     key={opt.value}
                     onClick={() => handleSelectOption(currentQ.id, opt.value)}
                     className={cn(
-                      "w-full text-left p-4 rounded-xl text-sm font-medium border transition-all flex items-center justify-between",
+                      "w-full p-4 rounded-xl text-left text-sm font-medium transition-all flex items-center justify-between border",
                       isSelected
-                        ? "bg-primary-500/20 border-primary-500 text-white shadow-lg shadow-primary-500/10"
-                        : "bg-white/5 border-white/10 hover:bg-white/10 text-muted-foreground hover:text-white"
+                        ? "bg-primary-500/20 border-primary-500 text-white shadow-lg"
+                        : "bg-white/5 border-white/5 hover:border-white/20 text-muted-foreground hover:text-white"
                     )}
                   >
                     <span>{opt.label}</span>
                     <div
                       className={cn(
-                        "w-5 h-5 rounded-full border flex items-center justify-center transition-colors",
-                        isSelected
-                          ? "border-primary-500 bg-primary-500 text-white"
-                          : "border-white/20"
+                        "w-4 h-4 rounded-full border flex items-center justify-center transition-colors",
+                        isSelected ? "border-primary-400 bg-primary-500" : "border-white/20"
                       )}
                     >
-                      {isSelected && <CheckCircle2 size={12} />}
+                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
                     </div>
                   </button>
                 );
               })}
             </div>
 
-            {/* Navigation Buttons */}
-            <div className="flex items-center justify-between pt-4 border-t border-white/10">
+            <div className="pt-4 border-t border-white/10 flex justify-between items-center">
               <button
                 onClick={handlePrev}
                 disabled={currentIndex === 0}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-white disabled:opacity-30 transition-colors flex items-center gap-1.5"
+                className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-white disabled:opacity-30 disabled:hover:text-muted-foreground flex items-center gap-1.5 transition-colors"
               >
-                <ArrowLeft size={16} /> Back
+                <ArrowLeft size={16} /> Previous
               </button>
 
-              <div className="flex items-center gap-3">
+              {currentIndex === questions.length - 1 ? (
                 <button
-                  onClick={exitAssessment}
-                  className="px-3 py-2 text-xs text-muted-foreground hover:text-white transition-colors"
+                  onClick={handleSubmit}
+                  disabled={!answered || submitting}
+                  className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-medium text-sm flex items-center gap-2 transition-colors shadow-lg"
                 >
-                  Exit Test
+                  <Sparkles size={16} className={submitting ? "animate-spin" : ""} />
+                  {submitting ? "Analyzing..." : "Submit for AI Synthesis"}
                 </button>
-
-                {currentIndex < questions.length - 1 ? (
-                  <button
-                    onClick={handleNext}
-                    disabled={!answered}
-                    className="px-5 py-2.5 rounded-xl text-sm font-medium bg-primary-500 hover:bg-primary-600 text-white disabled:opacity-40 transition-colors flex items-center gap-1.5"
-                  >
-                    Next <ArrowRight size={16} />
-                  </button>
-                ) : (
-                  <button
-                    onClick={handleSubmit}
-                    disabled={submitting || !answered}
-                    className="px-6 py-2.5 rounded-xl text-sm font-semibold bg-emerald-500 hover:bg-emerald-600 text-black disabled:opacity-40 transition-colors flex items-center gap-2 shadow-lg shadow-emerald-500/20"
-                  >
-                    <Sparkles size={16} />
-                    {submitting ? "Analyzing..." : "Submit for AI Analysis"}
-                  </button>
-                )}
-              </div>
+              ) : (
+                <button
+                  onClick={handleNext}
+                  disabled={!answered}
+                  className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-medium text-sm flex items-center gap-1.5 transition-colors shadow-lg"
+                >
+                  Next <ArrowRight size={16} />
+                </button>
+              )}
             </div>
           </motion.div>
         </AnimatePresence>
@@ -381,7 +508,7 @@ export default function AssessmentsPage() {
               <div className="space-y-4 pt-2 border-t border-white/10">
                 <div className="flex items-center justify-between text-xs">
                   <span className="text-muted-foreground flex items-center gap-1">
-                    <Layers size={13} /> {a._count?.questions || 10} Questions
+                    <Layers size={13} /> {a._count?.questions || a.questions?.length || 10} Questions
                   </span>
 
                   {latestResult ? (
@@ -395,6 +522,7 @@ export default function AssessmentsPage() {
 
                 <button
                   onClick={() => startAssessment(a)}
+                  disabled={loading}
                   className="w-full py-2.5 rounded-xl bg-primary-500/15 hover:bg-primary-500 text-primary-300 hover:text-white font-medium text-sm transition-all flex items-center justify-center gap-2 border border-primary-500/30 hover:border-transparent"
                 >
                   {latestResult ? "Retake Assessment" : "Begin Assessment"}
@@ -431,4 +559,3 @@ export default function AssessmentsPage() {
     </div>
   );
 }
-

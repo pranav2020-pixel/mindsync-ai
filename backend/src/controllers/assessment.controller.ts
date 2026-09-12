@@ -4,12 +4,23 @@ import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
 import { AIService } from "../services/ai.service";
 
+import { ensureAssessmentsSeeded } from "../utils/seedData";
+
 export const AssessmentController = {
   getAll: asyncHandler(async (req: any, res: Response) => {
-    const assessments = await prisma.assessment.findMany({
+    let assessments = await prisma.assessment.findMany({
       where: { isActive: true },
       include: { _count: { select: { questions: true } }, results: { where: { userId: req.user.id }, orderBy: { takenAt: "desc" }, take: 1 } },
     });
+
+    if (assessments.length === 0) {
+      await ensureAssessmentsSeeded(prisma);
+      assessments = await prisma.assessment.findMany({
+        where: { isActive: true },
+        include: { _count: { select: { questions: true } }, results: { where: { userId: req.user.id }, orderBy: { takenAt: "desc" }, take: 1 } },
+      });
+    }
+
     res.json({ success: true, data: assessments });
   }),
 

@@ -43,27 +43,32 @@ app.use("/api/v1", routes);
 app.use((req, res) => { res.status(404).json({ error: "Endpoint not found" }); });
 app.use(errorHandler);
 
+import { ensureAssessmentsSeeded } from "./utils/seedData";
+
 const initApp = async () => {
   try {
     await prisma.$connect();
     console.log("✅ Database connected successfully");
-    const demo = await prisma.user.findUnique({ where: { email: "demo@mindsync.ai" } });
-    if (!demo) {
-      console.log("🌱 Auto-seeding demo user (demo@mindsync.ai)...");
-      const bcrypt = require("bcryptjs");
-      const hashedPassword = await bcrypt.hash("password123", 12);
-      await prisma.user.create({
-        data: {
-          email: "demo@mindsync.ai",
-          password: hashedPassword,
-          name: "Alex Chen",
-          role: "USER" as any,
-          wellnessGoals: ["Reduce stress", "Improve sleep", "Mindful journaling"],
-          productivityGoals: ["Consistent morning routine"],
-        },
-      });
-      console.log("✅ Demo user seeded successfully!");
-    }
+    
+    // Auto-seed assessments
+    await ensureAssessmentsSeeded(prisma);
+
+    // Auto-seed or update demo user
+    const bcrypt = require("bcryptjs");
+    const hashedPassword = await bcrypt.hash("password123", 12);
+    await prisma.user.upsert({
+      where: { email: "demo@mindsync.ai" },
+      update: { password: hashedPassword },
+      create: {
+        email: "demo@mindsync.ai",
+        password: hashedPassword,
+        name: "Alex Chen",
+        role: "USER" as any,
+        wellnessGoals: ["Reduce stress", "Improve sleep", "Mindful journaling"],
+        productivityGoals: ["Consistent morning routine"],
+      },
+    });
+    console.log("✅ Demo user verified / seeded!");
   } catch (e) {
     console.error("⚠️ Database connection / init error:", e);
   }
