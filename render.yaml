@@ -4,7 +4,7 @@ services:
     env: node
     rootDir: backend
     plan: free
-    buildCommand: npm install && npx prisma generate && npm run build
+    buildCommand: npm install --include=dev && npx prisma generate && npm run build
     startCommand: npx prisma db push --accept-data-loss && npm start
     envVars:
       - key: NODE_ENV
