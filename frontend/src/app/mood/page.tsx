@@ -19,15 +19,35 @@ export default function MoodPage() {
     try {
       const [statsRes, todayRes] = await Promise.all([api.get("/moods/stats"), api.get("/moods/today")]);
       setStats(statsRes.data.data);
-      if (todayRes.data.data) { setTodayLog(todayRes.data.data); setForm(todayRes.data.data); }
+      if (todayRes.data.data) {
+        const d = todayRes.data.data;
+        setTodayLog(d);
+        setForm({
+          mood: d.mood ?? 7,
+          energy: d.energy ?? 6,
+          stress: d.stress ?? 4,
+          focus: d.focus ?? 7,
+          sleepHours: d.sleepHours ?? 7.5,
+          exercise: Boolean(d.exercise),
+          waterIntake: d.waterIntake ?? 6,
+          socialInteraction: Boolean(d.socialInteraction),
+          notes: d.notes ?? "",
+        });
+      }
     } catch (err) { console.error(err); }
   };
 
   const handleSubmit = async () => {
     setLoading(true);
-    try { await api.post("/moods", form); toast.success(todayLog ? "Mood updated!" : "Mood logged!"); fetchData(); }
-    catch (err) { toast.error("Failed to save"); }
-    finally { setLoading(false); }
+    try {
+      await api.post("/moods", form);
+      toast.success(todayLog ? "Mood updated successfully!" : "Today's mood logged!");
+      fetchData();
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to save mood");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const moodEmojis = ["😢", "😟", "😐", "🙂", "😊", "😄", "🤩", "✨", "🌟", "🔥"];

@@ -28,11 +28,29 @@ export const MoodController = {
     const today = new Date(); today.setHours(0, 0, 0, 0);
     const tomorrow = new Date(today); tomorrow.setDate(tomorrow.getDate() + 1);
     const existing = await prisma.moodLog.findFirst({ where: { userId: req.user.id, date: { gte: today, lt: tomorrow } } });
+
+    const parsedSocial = typeof socialInteraction === "boolean"
+      ? (socialInteraction ? 1 : 0)
+      : (socialInteraction !== undefined && socialInteraction !== null ? Number(socialInteraction) : null);
+
+    const moodData = {
+      mood: Number(mood) || 7,
+      energy: Number(energy) || 6,
+      stress: Number(stress) || 4,
+      focus: focus !== undefined && focus !== null ? Number(focus) : null,
+      sleepHours: sleepHours !== undefined && sleepHours !== null ? Number(sleepHours) : null,
+      exercise: Boolean(exercise),
+      exerciseMinutes: exerciseMinutes ? Number(exerciseMinutes) : null,
+      waterIntake: waterIntake !== undefined && waterIntake !== null ? Number(waterIntake) : null,
+      socialInteraction: parsedSocial,
+      notes: notes ? String(notes).trim() : null,
+    };
+
     let log;
     if (existing) {
-      log = await prisma.moodLog.update({ where: { id: existing.id }, data: { mood, energy, stress, focus, sleepHours, exercise, exerciseMinutes, waterIntake, socialInteraction, notes } });
+      log = await prisma.moodLog.update({ where: { id: existing.id }, data: moodData });
     } else {
-      log = await prisma.moodLog.create({ data: { userId: req.user.id, mood, energy, stress, focus, sleepHours, exercise, exerciseMinutes, waterIntake, socialInteraction, notes } });
+      log = await prisma.moodLog.create({ data: { userId: req.user.id, ...moodData } });
     }
     res.status(201).json({ success: true, data: log });
   }),
