@@ -157,6 +157,17 @@ export const AuthController = {
       where: { id: user.id },
       data: { password: hashedPassword },
     });
+
+    // Create security notification
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: "SYSTEM",
+        title: "Security Alert: Password Changed",
+        message: `Your account password was successfully updated on ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}. If you didn't do this, contact support immediately.`,
+      },
+    });
+
     // Revoke previous sessions
     await prisma.session.deleteMany({ where: { userId: user.id } });
 
@@ -232,6 +243,16 @@ export const AuthController = {
         password: hashedPassword,
         passwordResetToken: null,
         passwordResetExpires: null,
+      },
+    });
+
+    // Create security notification
+    await prisma.notification.create({
+      data: {
+        userId: user.id,
+        type: "SYSTEM",
+        title: "Security Alert: Password Reset via Email",
+        message: `Your account password was successfully reset using email verification on ${new Date().toLocaleDateString("en-US", { month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" })}.`,
       },
     });
 

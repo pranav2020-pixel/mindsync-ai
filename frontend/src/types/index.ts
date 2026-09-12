@@ -36,3 +36,11 @@ export interface Recommendation {
   id: string; type: string; title: string; description: string;
   why: string; duration: string; benefits: string[]; difficulty: string;
 }
+export interface Notification {
+  id: string;
+  type: string;
+  title: string;
+  message: string;
+  isRead: boolean;
+  createdAt: string;
+}

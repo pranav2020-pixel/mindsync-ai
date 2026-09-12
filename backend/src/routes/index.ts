@@ -8,6 +8,8 @@ import assessmentRoutes from "./assessment.routes";
 import chatRoutes from "./chat.routes";
 import insightRoutes from "./insight.routes";
 import reportRoutes from "./report.routes";
+import notificationRoutes from "./notification.routes";
+
 const router = Router();
 router.use("/auth", authRoutes);
 router.use("/journals", journalRoutes);
@@ -18,4 +20,5 @@ router.use("/assessments", assessmentRoutes);
 router.use("/chat", chatRoutes);
 router.use("/insights", insightRoutes);
 router.use("/reports", reportRoutes);
+router.use("/notifications", notificationRoutes);
 export default router;

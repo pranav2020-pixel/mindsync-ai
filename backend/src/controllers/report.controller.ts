@@ -42,6 +42,17 @@ export const ReportController = {
         dateRange: { from: `${targetYear}-${formattedMonth}-01`, to: `${targetYear}-${formattedMonth}-${lastDayOfMonth}` }
       },
     });
+
+    // Create report download notification
+    await prisma.notification.create({
+      data: {
+        userId: req.user.id,
+        type: "SYSTEM",
+        title: "Report Downloaded",
+        message: `Your ${type.replace(/_/g, " ")} (${format}) for ${formattedMonth}/${targetYear} was successfully generated and downloaded.`,
+      },
+    });
+
     res.status(201).json({ success: true, data: report, ...(fileBuffer && { download: fileBuffer.toString("base64") }) });
   }),
 };
