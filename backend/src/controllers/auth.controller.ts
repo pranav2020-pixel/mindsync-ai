@@ -4,6 +4,7 @@ import jwt from "jsonwebtoken";
 import { prisma } from "../server";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
+import { sendEmail, getPasswordResetEmailTemplate, getAccountDeletionEmailTemplate } from "../utils/mailer";
 
 const getJwtSecret = () => process.env.JWT_SECRET || "mindsync-default-jwt-secret-key";
 const getJwtRefreshSecret = () => process.env.JWT_REFRESH_SECRET || "mindsync-default-jwt-refresh-secret-key";
@@ -138,5 +139,176 @@ export const AuthController = {
 
   logout: asyncHandler(async (req: any, res: Response) => {
     res.json({ success: true, message: "Logged out successfully" });
+  }),
+
+  changePassword: asyncHandler(async (req: any, res: Response) => {
+    const { currentPassword, newPassword } = req.body;
+    if (!newPassword || newPassword.length < 6) {
+      throw new AppError("New password must be at least 6 characters long", 400);
+    }
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) throw new AppError("User not found", 404);
+
+    const isValid = await bcrypt.compare(currentPassword, user.password);
+    if (!isValid) throw new AppError("Current password is incorrect", 401);
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: hashedPassword },
+    });
+    // Revoke previous sessions
+    await prisma.session.deleteMany({ where: { userId: user.id } });
+
+    res.json({ success: true, message: "Password updated successfully. Please sign in again with your new password." });
+  }),
+
+  forgotPassword: asyncHandler(async (req: Request, res: Response) => {
+    const { email } = req.body;
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    if (!normalizedEmail) throw new AppError("Email is required", 400);
+
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    // To prevent email enumeration attacks, always respond with success
+    if (!user) {
+      return res.json({
+        success: true,
+        message: "If that email is registered, a 6-digit verification code has been sent.",
+      });
+    }
+
+    // Generate a cryptographically secure 6-digit code
+    const resetCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000); // 15 minutes
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: resetCode,
+        passwordResetExpires: expiresAt,
+      },
+    });
+
+    const emailTemplate = getPasswordResetEmailTemplate(user.name, resetCode);
+    await sendEmail({
+      to: user.email,
+      subject: "MindSync AI - Password Reset Verification Code",
+      html: emailTemplate,
+    });
+
+    const isDev = process.env.NODE_ENV === "development" || !process.env.SMTP_HOST;
+    res.json({
+      success: true,
+      message: "If that email is registered, a 6-digit verification code has been sent.",
+      ...(isDev ? { devCode: resetCode } : {}),
+    });
+  }),
+
+  resetPassword: asyncHandler(async (req: Request, res: Response) => {
+    const { email, code, newPassword } = req.body;
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    const cleanCode = (code || "").trim();
+
+    if (!normalizedEmail || !cleanCode || !newPassword) {
+      throw new AppError("Email, verification code, and new password are required", 400);
+    }
+    if (newPassword.length < 6) {
+      throw new AppError("Password must be at least 6 characters", 400);
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user || !user.passwordResetToken || !user.passwordResetExpires) {
+      throw new AppError("Invalid or expired verification code", 400);
+    }
+
+    if (user.passwordResetExpires < new Date() || user.passwordResetToken !== cleanCode) {
+      throw new AppError("Invalid or expired verification code", 400);
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 12);
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        password: hashedPassword,
+        passwordResetToken: null,
+        passwordResetExpires: null,
+      },
+    });
+
+    // Invalidate all active user sessions
+    await prisma.session.deleteMany({ where: { userId: user.id } });
+
+    res.json({ success: true, message: "Password reset successful! You can now sign in with your new password." });
+  }),
+
+  requestDeleteAccount: asyncHandler(async (req: any, res: Response) => {
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) throw new AppError("User not found", 404);
+
+    const deleteCode = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
+
+    await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        passwordResetToken: `DELETE:${deleteCode}`,
+        passwordResetExpires: expiresAt,
+      },
+    });
+
+    const emailTemplate = getAccountDeletionEmailTemplate(user.name, deleteCode);
+    await sendEmail({
+      to: user.email,
+      subject: "⚠️ MindSync AI - Confirm Account Deletion",
+      html: emailTemplate,
+    });
+
+    const isDev = process.env.NODE_ENV === "development" || !process.env.SMTP_HOST;
+    res.json({
+      success: true,
+      message: "A 6-digit confirmation code has been sent to your email to verify deletion.",
+      ...(isDev ? { devCode: deleteCode } : {}),
+    });
+  }),
+
+  confirmDeleteAccount: asyncHandler(async (req: any, res: Response) => {
+    const { password, code } = req.body;
+    const cleanCode = (code || "").trim();
+
+    const user = await prisma.user.findUnique({ where: { id: req.user.id } });
+    if (!user) throw new AppError("User not found", 404);
+
+    // Verify current password first
+    const isPasswordValid = await bcrypt.compare(password, user.password);
+    if (!isPasswordValid) throw new AppError("Incorrect password", 401);
+
+    // Verify 6-digit confirmation code
+    if (!user.passwordResetToken || !user.passwordResetExpires) {
+      throw new AppError("Please request a deletion confirmation code first", 400);
+    }
+
+    if (user.passwordResetExpires < new Date() || user.passwordResetToken !== `DELETE:${cleanCode}`) {
+      throw new AppError("Invalid or expired confirmation code", 400);
+    }
+
+    // Cascade delete all records belonging to this user
+    await prisma.$transaction([
+      prisma.session.deleteMany({ where: { userId: user.id } }),
+      prisma.journalEntry.deleteMany({ where: { userId: user.id } }),
+      prisma.moodLog.deleteMany({ where: { userId: user.id } }),
+      prisma.productivityLog.deleteMany({ where: { userId: user.id } }),
+      prisma.habitLog.deleteMany({ where: { userId: user.id } }),
+      prisma.customHabit.deleteMany({ where: { userId: user.id } }),
+      prisma.assessmentResult.deleteMany({ where: { userId: user.id } }),
+      prisma.aIInsight.deleteMany({ where: { userId: user.id } }),
+      prisma.recommendation.deleteMany({ where: { userId: user.id } }),
+      prisma.chatMessage.deleteMany({ where: { userId: user.id } }),
+      prisma.notification.deleteMany({ where: { userId: user.id } }),
+      prisma.userAchievement.deleteMany({ where: { userId: user.id } }),
+      prisma.report.deleteMany({ where: { userId: user.id } }),
+      prisma.user.delete({ where: { id: user.id } }),
+    ]);
+
+    res.json({ success: true, message: "Your account and all associated data have been permanently deleted." });
   }),
 };

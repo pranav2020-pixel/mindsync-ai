@@ -2,10 +2,11 @@
 
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "./theme-provider";
-import { Sun, Moon, Bell, LogOut, User } from "lucide-react";
+import { Sun, Moon, Bell, LogOut, User, Settings } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
 import { usePathname } from "next/navigation";
+import Link from "next/link";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -57,9 +58,13 @@ export function Navbar() {
                   <p className="font-medium">{user?.name}</p>
                   <p className="text-xs text-muted-foreground">{user?.email}</p>
                 </div>
-                <button className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition-colors">
-                  <User size={16} /> Profile
-                </button>
+                <Link
+                  href="/settings"
+                  onClick={() => setShowProfile(false)}
+                  className="w-full flex items-center gap-2 px-3 py-2 text-sm hover:bg-white/5 rounded-lg transition-colors"
+                >
+                  <Settings size={16} /> Account Settings
+                </Link>
                 <button
                   onClick={logout}
                   className="w-full flex items-center gap-2 px-3 py-2 text-sm text-wellness-stress hover:bg-wellness-stress/10 rounded-lg transition-colors"

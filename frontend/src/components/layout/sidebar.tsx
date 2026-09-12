@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
-  ClipboardList, MessageCircle, BarChart3, Brain, Menu, X, Flame
+  ClipboardList, MessageCircle, BarChart3, Brain, Menu, X, Flame, Settings
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -14,7 +14,7 @@ import api from "@/lib/api";
 
 const icons: Record<string, any> = {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
-  ClipboardList, MessageCircle, BarChart3, Brain
+  ClipboardList, MessageCircle, BarChart3, Brain, Settings
 };
 
 const navItems = [
@@ -26,6 +26,7 @@ const navItems = [
   { name: "Assessments", href: "/assessments", icon: "ClipboardList" },
   { name: "AI Chat", href: "/chat", icon: "MessageCircle" },
   { name: "Analytics", href: "/analytics", icon: "BarChart3" },
+  { name: "Settings", href: "/settings", icon: "Settings" },
 ];
 
 export function Sidebar() {
