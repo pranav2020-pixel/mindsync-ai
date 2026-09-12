@@ -14,6 +14,7 @@ import {
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { useChartTheme } from "@/lib/chart-theme";
 
 type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
 
@@ -24,6 +25,7 @@ const TIMER_CONFIGS: Record<TimerMode, { label: string; defaultMinutes: number; 
 };
 
 export default function ProductivityPage() {
+  const chartTheme = useChartTheme();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
@@ -393,16 +395,10 @@ export default function ProductivityPage() {
               <div className="h-64 w-full">
                 <ResponsiveContainer width="100%" height="100%">
                   <BarChart data={stats.weeklyData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                    <XAxis dataKey="week" stroke="rgba(255,255,255,0.3)" />
-                    <YAxis stroke="rgba(255,255,255,0.3)" />
-                    <Tooltip
-                      contentStyle={{
-                        backgroundColor: "rgba(15,23,42,0.9)",
-                        border: "1px solid rgba(255,255,255,0.1)",
-                        borderRadius: "12px",
-                      }}
-                    />
+                    <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                    <XAxis dataKey="week" stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                    <YAxis stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                    <Tooltip contentStyle={chartTheme.tooltipStyle} />
                     <Bar dataKey="focusTime" name="Focus Time (min)" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="tasks" name="Tasks Done" fill="#10b981" radius={[4, 4, 0, 0]} />
                     <Bar dataKey="pomodoro" name="Focus Blocks" fill="#f59e0b" radius={[4, 4, 0, 0]} />

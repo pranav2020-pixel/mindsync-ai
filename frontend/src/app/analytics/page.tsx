@@ -14,8 +14,10 @@ import {
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { useChartTheme } from "@/lib/chart-theme";
 
 export default function AnalyticsPage() {
+  const chartTheme = useChartTheme();
   const [moodStats, setMoodStats] = useState<any>(null);
   const [productivityStats, setProductivityStats] = useState<any>(null);
   const [insights, setInsights] = useState<any[]>([]);
@@ -220,28 +222,24 @@ export default function AnalyticsPage() {
             <div className="h-64 w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <LineChart data={timelineData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(d) => new Date(d).getDate().toString()}
-                    stroke="rgba(255,255,255,0.3)"
+                    tickFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    stroke={chartTheme.axisStroke}
+                    tick={chartTheme.axisTick}
                   />
-                  <YAxis domain={[0, 10]} stroke="rgba(255,255,255,0.3)" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15,23,42,0.9)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
-                    }}
-                  />
-                  <Legend />
+                  <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                  <Tooltip contentStyle={chartTheme.tooltipStyle} />
+                  <Legend wrapperStyle={{ color: chartTheme.isDark ? "#94a3b8" : "#475569" }} />
                   <Line
                     type="monotone"
                     dataKey="mood"
                     name="Mood (1-10)"
                     stroke="#10b981"
                     strokeWidth={2.5}
-                    dot={{ r: 3 }}
+                    connectNulls
+                    dot={{ fill: "#10b981", r: 3 }}
                   />
                   <Line
                     type="monotone"
@@ -249,7 +247,8 @@ export default function AnalyticsPage() {
                     name="Sleep (hrs)"
                     stroke="#818cf8"
                     strokeWidth={2}
-                    dot={{ r: 3 }}
+                    connectNulls
+                    dot={{ fill: "#818cf8", r: 3 }}
                   />
                 </LineChart>
               </ResponsiveContainer>
@@ -273,21 +272,16 @@ export default function AnalyticsPage() {
             <div className="h-64 w-full pt-2">
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={timelineData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
                   <XAxis
                     dataKey="date"
-                    tickFormatter={(d) => new Date(d).getDate().toString()}
-                    stroke="rgba(255,255,255,0.3)"
+                    tickFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    stroke={chartTheme.axisStroke}
+                    tick={chartTheme.axisTick}
                   />
-                  <YAxis domain={[0, 10]} stroke="rgba(255,255,255,0.3)" />
-                  <Tooltip
-                    contentStyle={{
-                      backgroundColor: "rgba(15,23,42,0.9)",
-                      border: "1px solid rgba(255,255,255,0.1)",
-                      borderRadius: "12px",
-                    }}
-                  />
-                  <Legend />
+                  <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                  <Tooltip contentStyle={chartTheme.tooltipStyle} />
+                  <Legend wrapperStyle={{ color: chartTheme.isDark ? "#94a3b8" : "#475569" }} />
                   <Bar dataKey="energy" name="Energy (1-10)" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="stress" name="Stress (1-10)" fill="#ef4444" radius={[4, 4, 0, 0]} />
                 </BarChart>

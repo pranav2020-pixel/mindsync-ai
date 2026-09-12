@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
+import { useChartTheme } from "@/lib/chart-theme";
 
 const container = {
   hidden: { opacity: 0 },
@@ -28,6 +29,7 @@ const item = {
 
 export default function Dashboard() {
   const router = useRouter();
+  const chartTheme = useChartTheme();
   const [stats, setStats] = useState<any>(null);
   const [moodData, setMoodData] = useState<any[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
@@ -47,7 +49,23 @@ export default function Dashboard() {
           api.get("/journals/stats"),
           api.get("/insights?limit=3"),
         ]);
-        setMoodData(moodRes.data.data?.timeline?.slice(-7) || []);
+        const rawTimeline = moodRes.data.data?.timeline || [];
+        const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+        const weeklyTimeline = [];
+        const today = new Date();
+        for (let i = 6; i >= 0; i--) {
+          const d = new Date(today);
+          d.setDate(today.getDate() - i);
+          const dateStr = d.toISOString().split("T")[0];
+          const match = rawTimeline.find((t: any) => new Date(t.date).toISOString().split("T")[0] === dateStr);
+          weeklyTimeline.push({
+            date: dateStr,
+            day: days[d.getDay()],
+            mood: match ? match.mood : null,
+            stress: match ? match.stress : null,
+          });
+        }
+        setMoodData(weeklyTimeline);
         setStats({ mood: moodRes.data.data, journal: journalRes.data.data });
         setInsights(insightRes.data.data || []);
       } catch (err) {
@@ -112,12 +130,12 @@ export default function Dashboard() {
           </div>
           <ResponsiveContainer width="100%" height={300}>
             <LineChart data={moodData}>
-              <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-              <XAxis dataKey="date" tickFormatter={(date) => new Date(date).toLocaleDateString("en-US", { weekday: "short" })} stroke="rgba(255,255,255,0.3)" />
-              <YAxis domain={[0, 10]} stroke="rgba(255,255,255,0.3)" />
-              <Tooltip contentStyle={{ backgroundColor: "rgba(15, 23, 42, 0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
-              <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={3} dot={{ fill: "#10b981" }} />
-              <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={3} dot={{ fill: "#ef4444" }} />
+              <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+              <XAxis dataKey="day" stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+              <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+              <Tooltip contentStyle={chartTheme.tooltipStyle} />
+              <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={3} connectNulls dot={{ fill: "#10b981", r: 4 }} activeDot={{ r: 6 }} />
+              <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={3} connectNulls dot={{ fill: "#ef4444", r: 4 }} activeDot={{ r: 6 }} />
             </LineChart>
           </ResponsiveContainer>
         </motion.div>
@@ -126,10 +144,10 @@ export default function Dashboard() {
           <h3 className="font-semibold text-lg mb-6">Wellness Balance</h3>
           <ResponsiveContainer width="100%" height={300}>
             <RadarChart data={radarData}>
-              <PolarGrid stroke="rgba(255,255,255,0.1)" />
-              <PolarAngleAxis dataKey="subject" tick={{ fill: "rgba(255,255,255,0.5)", fontSize: 12 }} />
+              <PolarGrid stroke={chartTheme.radarGrid} />
+              <PolarAngleAxis dataKey="subject" tick={chartTheme.radarAngleTick} />
               <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-              <Radar name="You" dataKey="A" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={0.3} strokeWidth={2} />
+              <Radar name="You" dataKey="A" stroke="#0ea5e9" fill="#0ea5e9" fillOpacity={chartTheme.isDark ? 0.35 : 0.25} strokeWidth={2.5} />
             </RadarChart>
           </ResponsiveContainer>
         </motion.div>

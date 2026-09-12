@@ -6,8 +6,10 @@ import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContai
 import { Heart, Zap, Frown, Moon, Droplets, Users, Dumbbell } from "lucide-react";
 import api from "@/lib/api";
 import toast from "react-hot-toast";
+import { useChartTheme } from "@/lib/chart-theme";
 
 export default function MoodPage() {
+  const chartTheme = useChartTheme();
   const [stats, setStats] = useState<any>(null);
   const [todayLog, setTodayLog] = useState<any>(null);
   const [loading, setLoading] = useState(false);
@@ -97,10 +99,10 @@ export default function MoodPage() {
               <h3 className="font-semibold text-lg mb-4">Weekly Overview</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <BarChart data={stats.weeklyData}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="week" stroke="rgba(255,255,255,0.3)" />
-                  <YAxis domain={[0, 10]} stroke="rgba(255,255,255,0.3)" />
-                  <Tooltip contentStyle={{ backgroundColor: "rgba(15,23,42,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                  <XAxis dataKey="week" stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                  <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                  <Tooltip contentStyle={chartTheme.tooltipStyle} />
                   <Bar dataKey="mood" fill="#10b981" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="energy" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                   <Bar dataKey="stress" fill="#ef4444" radius={[4, 4, 0, 0]} />
@@ -113,12 +115,12 @@ export default function MoodPage() {
               <h3 className="font-semibold text-lg mb-4">30-Day Timeline</h3>
               <ResponsiveContainer width="100%" height={250}>
                 <LineChart data={stats.timeline}>
-                  <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.05)" />
-                  <XAxis dataKey="date" tickFormatter={(d) => new Date(d).getDate().toString()} stroke="rgba(255,255,255,0.3)" />
-                  <YAxis domain={[0, 10]} stroke="rgba(255,255,255,0.3)" />
-                  <Tooltip contentStyle={{ backgroundColor: "rgba(15,23,42,0.9)", border: "1px solid rgba(255,255,255,0.1)", borderRadius: "12px" }} />
-                  <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={2} dot={false} />
-                  <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={2} dot={false} />
+                  <CartesianGrid strokeDasharray="3 3" stroke={chartTheme.gridStroke} />
+                  <XAxis dataKey="date" tickFormatter={(d) => new Date(d).toLocaleDateString("en-US", { month: "short", day: "numeric" })} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                  <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
+                  <Tooltip contentStyle={chartTheme.tooltipStyle} />
+                  <Line type="monotone" dataKey="mood" stroke="#10b981" strokeWidth={2.5} connectNulls dot={{ fill: "#10b981", r: 3 }} />
+                  <Line type="monotone" dataKey="stress" stroke="#ef4444" strokeWidth={2.5} connectNulls dot={{ fill: "#ef4444", r: 3 }} />
                 </LineChart>
               </ResponsiveContainer>
             </motion.div>
