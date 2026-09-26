@@ -19,7 +19,7 @@ interface AuthContextType {
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
-const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "663226411128-bts6nkunj6fl5nogo87i06j8eic6o956.apps.googleusercontent.com";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -98,7 +98,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <GoogleOAuthProvider clientId={googleClientId || "mindsync-google-client-id"}>
+    <GoogleOAuthProvider clientId={googleClientId}>
       <AuthContext.Provider value={{ user, login, loginWithGoogle, sendEmailOtp, verifyEmailOtp, logout, register, loading }}>
         {children}
       </AuthContext.Provider>
