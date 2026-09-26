@@ -61,8 +61,9 @@ export function Navbar() {
   }
 
   return (
-    <header className="h-16 glass border-b border-white/10 flex items-center justify-between px-3.5 sm:px-6 sticky top-0 z-30">
-      <div className="flex items-center gap-2 sm:gap-3">
+    <header className="sticky top-0 z-30 w-full glass border-b border-white/10 pt-[env(safe-area-inset-top,0px)]">
+      <div className="h-16 flex items-center justify-between px-3.5 sm:px-6">
+        <div className="flex items-center gap-2 sm:gap-3">
         <button
           onClick={() => {
             if (typeof window !== "undefined") {
@@ -248,6 +249,7 @@ export function Navbar() {
             )}
           </AnimatePresence>
         </div>
+      </div>
       </div>
     </header>
   );
