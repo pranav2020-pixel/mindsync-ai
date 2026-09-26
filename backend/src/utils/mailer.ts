@@ -54,8 +54,26 @@ const getTransporter = () => {
   return transporter;
 };
 
+export const cleanHtmlToPlainText = (html: string): string => {
+  return html
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, "")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, "")
+    .replace(/<\/div>/gi, "\n")
+    .replace(/<\/p>/gi, "\n\n")
+    .replace(/<br\s*[\/]?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&copy;/g, "©")
+    .replace(/&amp;/g, "&")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
+};
+
 export const sendEmail = async (options: SendEmailOptions): Promise<{ success: boolean; previewCode?: string }> => {
-  // Method 1: Resend HTTP API (Uses Port 443 HTTPS - Works on Render Free Tier without SMTP port blocks!)
+  const plainText = options.text || cleanHtmlToPlainText(options.html);
+  const replyTo = process.env.REPLY_TO || process.env.SMTP_USER || "support@mindsync.ai";
+
+  // Method 1: Resend HTTP API (Uses Port 443 HTTPS - Works reliably across cloud firewalls)
   if (process.env.RESEND_API_KEY) {
     try {
       const res = await fetch("https://api.resend.com/emails", {
@@ -67,9 +85,13 @@ export const sendEmail = async (options: SendEmailOptions): Promise<{ success: b
         body: JSON.stringify({
           from: process.env.RESEND_FROM || "MindSync AI <onboarding@resend.dev>",
           to: [options.to],
+          reply_to: replyTo,
           subject: options.subject,
           html: options.html,
-          text: options.text || options.html.replace(/<[^>]*>?/gm, ""),
+          text: plainText,
+          headers: {
+            "X-Entity-Ref-ID": `${Date.now()}`,
+          },
         }),
       });
 
@@ -98,8 +120,10 @@ export const sendEmail = async (options: SendEmailOptions): Promise<{ success: b
         body: JSON.stringify({
           sender: { name: "MindSync AI", email: process.env.SMTP_USER || "support@mindsync.ai" },
           to: [{ email: options.to }],
+          replyTo: { email: replyTo },
           subject: options.subject,
           htmlContent: options.html,
+          textContent: plainText,
         }),
       });
       if (res.ok) {
@@ -111,7 +135,7 @@ export const sendEmail = async (options: SendEmailOptions): Promise<{ success: b
     }
   }
 
-  // Method 3: Standard SMTP (Nodemailer - Works locally and on paid cloud instances)
+  // Method 3: Standard SMTP (Nodemailer)
   try {
     const transport = getTransporter();
     if (!transport) {
@@ -124,8 +148,9 @@ export const sendEmail = async (options: SendEmailOptions): Promise<{ success: b
     await transport.sendMail({
       from: fromAddress,
       to: options.to,
+      replyTo,
       subject: options.subject,
-      text: options.text || options.html.replace(/<[^>]*>?/gm, ""),
+      text: plainText,
       html: options.html,
     });
 
@@ -244,4 +269,16 @@ export const getEmailOtpTemplate = (code: string, purpose: string = "Sign In"): 
   </body>
   </html>
   `;
+};
+
+export const getEmailOtpText = (code: string, purpose: string = "Sign In"): string => {
+  return `MindSync AI - ${purpose}\n\nYour 6-digit verification code is: ${code}\n\nThis verification code is valid for 10 minutes. Do not share this code with anyone.\n\nIf you did not request this verification code, please ignore this email. Your account remains secure.\n\n© ${new Date().getFullYear()} MindSync AI. All rights reserved.`;
+};
+
+export const getPasswordResetEmailText = (name: string, code: string): string => {
+  return `Hello ${name || "there"},\n\nWe received a request to reset your MindSync AI account password.\n\nYour 6-digit verification code is: ${code}\n\nThis verification code is valid for 15 minutes. If you did not request this change, you can safely ignore this email — your account remains secure.\n\n© ${new Date().getFullYear()} MindSync AI. All rights reserved.`;
+};
+
+export const getAccountDeletionEmailText = (name: string, code: string): string => {
+  return `Hello ${name || "there"},\n\nWe received a request to permanently delete your MindSync AI account.\n\nYour 6-digit confirmation code is: ${code}\n\nThis code expires in 15 minutes. If you did not request account deletion, change your password immediately.\n\n© ${new Date().getFullYear()} MindSync AI. All rights reserved.`;
 };

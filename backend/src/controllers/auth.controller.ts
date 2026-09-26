@@ -5,7 +5,15 @@ import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../server";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
-import { sendEmail, getPasswordResetEmailTemplate, getAccountDeletionEmailTemplate, getEmailOtpTemplate } from "../utils/mailer";
+import {
+  sendEmail,
+  getPasswordResetEmailTemplate,
+  getPasswordResetEmailText,
+  getAccountDeletionEmailTemplate,
+  getAccountDeletionEmailText,
+  getEmailOtpTemplate,
+  getEmailOtpText,
+} from "../utils/mailer";
 
 const getJwtSecret = () => process.env.JWT_SECRET || "mindsync-default-jwt-secret-key";
 const getJwtRefreshSecret = () => process.env.JWT_REFRESH_SECRET || "mindsync-default-jwt-refresh-secret-key";
@@ -94,10 +102,12 @@ export const AuthController = {
       }
 
       const html = getEmailOtpTemplate(otp, "Account Verification");
+      const text = getEmailOtpText(otp, "Account Verification");
       sendEmail({
         to: normalizedEmail,
-        subject: `MindSync AI - Verify your email: ${otp}`,
+        subject: `MindSync AI Verification Code: ${otp}`,
         html,
+        text,
       }).catch((emailErr) => {
         console.error("[MindSync Auth] Registration verification email dispatch failed:", emailErr);
       });
@@ -312,11 +322,13 @@ export const AuthController = {
     }
 
     const html = getEmailOtpTemplate(otp, purpose || "Sign In");
+    const text = getEmailOtpText(otp, purpose || "Sign In");
     // Dispatch email asynchronously so SMTP handshake latency never hangs or times out the user's request
     sendEmail({
       to: normalizedEmail,
-      subject: `MindSync AI - Your Verification Code: ${otp}`,
+      subject: `MindSync AI Verification Code: ${otp}`,
       html,
+      text,
     }).catch((emailErr) => {
       console.error("[MindSync Auth] Background email dispatch failed:", emailErr);
     });
@@ -536,10 +548,12 @@ export const AuthController = {
 
     try {
       const emailTemplate = getPasswordResetEmailTemplate(user.name, resetCode);
+      const emailText = getPasswordResetEmailText(user.name, resetCode);
       await sendEmail({
         to: user.email,
-        subject: "MindSync AI - Password Reset Verification Code",
+        subject: "MindSync AI: Password Reset Verification Code",
         html: emailTemplate,
+        text: emailText,
       });
     } catch (emailErr) {
       console.warn("Failed to send email via SMTP, proceeding with on-screen verification code:", emailErr);
@@ -618,10 +632,12 @@ export const AuthController = {
     });
 
     const emailTemplate = getAccountDeletionEmailTemplate(user.name, deleteCode);
+    const emailText = getAccountDeletionEmailText(user.name, deleteCode);
     await sendEmail({
       to: user.email,
-      subject: "⚠️ MindSync AI - Confirm Account Deletion",
+      subject: "MindSync AI: Confirm Account Deletion",
       html: emailTemplate,
+      text: emailText,
     });
 
     const hasSmtp = Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.SMTP_SERVICE === "gmail" && process.env.SMTP_USER));
