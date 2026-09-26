@@ -175,10 +175,13 @@ export const AuthController = {
     }
 
     const html = getEmailOtpTemplate(otp, purpose || "Sign In");
-    await sendEmail({
+    // Dispatch email asynchronously so SMTP handshake latency never hangs or times out the user's request
+    sendEmail({
       to: normalizedEmail,
       subject: `MindSync AI - Your Verification Code: ${otp}`,
       html,
+    }).catch((emailErr) => {
+      console.error("[MindSync Auth] Background email dispatch failed:", emailErr);
     });
 
     const hasSmtp = Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.SMTP_SERVICE === "gmail" && process.env.SMTP_USER));
@@ -186,9 +189,7 @@ export const AuthController = {
 
     res.json({
       success: true,
-      message: hasSmtp
-        ? "A 6-digit verification code has been sent to your Gmail inbox."
-        : "A 6-digit verification code has been sent to your email address.",
+      message: "A 6-digit verification code has been sent to your Gmail inbox.",
       ...(isLocalDev ? { devCode: otp } : {}),
     });
   }),

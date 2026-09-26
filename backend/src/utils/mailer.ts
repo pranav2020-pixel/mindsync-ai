@@ -12,16 +12,22 @@ const getTransporter = () => {
 
   try {
     const nodemailer = require("nodemailer");
-    const service = process.env.SMTP_SERVICE;
+    const service = (process.env.SMTP_SERVICE || "").toLowerCase();
     const host = process.env.SMTP_HOST || (service === "gmail" ? "smtp.gmail.com" : undefined);
-    const port = parseInt(process.env.SMTP_PORT || "587", 10);
-    const user = process.env.SMTP_USER;
-    const pass = process.env.SMTP_PASS;
+    const port = parseInt(process.env.SMTP_PORT || "465", 10);
+    const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : "";
+    // Clean App Password: strip all whitespace/spaces that Google displays in app password view
+    const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim().replace(/\s+/g, "") : "";
 
-    if (service === "gmail" && user && pass) {
+    if ((service === "gmail" || host === "smtp.gmail.com") && user && pass) {
       transporter = nodemailer.createTransport({
-        service: "gmail",
+        host: "smtp.gmail.com",
+        port: 465,
+        secure: true, // Port 465 uses direct SSL/TLS, reliable across cloud firewalls
         auth: { user, pass },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 8000,
       });
     } else if (host && user && pass) {
       transporter = nodemailer.createTransport({
@@ -29,6 +35,9 @@ const getTransporter = () => {
         port,
         secure: port === 465,
         auth: { user, pass },
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 8000,
       });
     } else {
       transporter = nodemailer.createTransport({
@@ -52,8 +61,11 @@ export const sendEmail = async (options: SendEmailOptions): Promise<{ success: b
       console.log(`[MindSync Email Simulation] Recipient: ${options.to} | Subject: "${options.subject}"`);
       return { success: true };
     }
+
+    const fromAddress = process.env.SMTP_FROM || (process.env.SMTP_USER ? `"MindSync AI" <${process.env.SMTP_USER}>` : '"MindSync AI" <support@mindsync.ai>');
+
     await transport.sendMail({
-      from: process.env.SMTP_FROM || '"MindSync AI" <support@mindsync.ai>',
+      from: fromAddress,
       to: options.to,
       subject: options.subject,
       text: options.text || options.html.replace(/<[^>]*>?/gm, ""),
