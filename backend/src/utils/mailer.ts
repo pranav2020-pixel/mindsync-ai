@@ -55,6 +55,63 @@ const getTransporter = () => {
 };
 
 export const sendEmail = async (options: SendEmailOptions): Promise<{ success: boolean; previewCode?: string }> => {
+  // Method 1: Resend HTTP API (Uses Port 443 HTTPS - Works on Render Free Tier without SMTP port blocks!)
+  if (process.env.RESEND_API_KEY) {
+    try {
+      const res = await fetch("https://api.resend.com/emails", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          from: process.env.RESEND_FROM || "MindSync AI <onboarding@resend.dev>",
+          to: [options.to],
+          subject: options.subject,
+          html: options.html,
+          text: options.text || options.html.replace(/<[^>]*>?/gm, ""),
+        }),
+      });
+
+      if (res.ok) {
+        const data = await res.json() as any;
+        console.log(`[MindSync Email - Resend API] Sent to: ${options.to} (ID: ${data.id})`);
+        return { success: true };
+      } else {
+        const errText = await res.text();
+        console.error(`[MindSync Email - Resend API] Delivery failed:`, errText);
+      }
+    } catch (resendErr) {
+      console.error(`[MindSync Email - Resend API] Exception:`, resendErr);
+    }
+  }
+
+  // Method 2: Brevo HTTP API (Uses Port 443 HTTPS)
+  if (process.env.BREVO_API_KEY) {
+    try {
+      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
+        method: "POST",
+        headers: {
+          "api-key": process.env.BREVO_API_KEY.trim(),
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sender: { name: "MindSync AI", email: process.env.SMTP_USER || "support@mindsync.ai" },
+          to: [{ email: options.to }],
+          subject: options.subject,
+          htmlContent: options.html,
+        }),
+      });
+      if (res.ok) {
+        console.log(`[MindSync Email - Brevo API] Sent to: ${options.to}`);
+        return { success: true };
+      }
+    } catch (brevoErr) {
+      console.error(`[MindSync Email - Brevo API] Error:`, brevoErr);
+    }
+  }
+
+  // Method 3: Standard SMTP (Nodemailer - Works locally and on paid cloud instances)
   try {
     const transport = getTransporter();
     if (!transport) {
