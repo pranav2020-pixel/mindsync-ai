@@ -179,19 +179,19 @@ export default function JournalPage() {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-4">
-          <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 space-y-4">
+          <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200/80 dark:border-slate-700/50 shadow-sm dark:shadow-lg">
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Title (Optional)</label>
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Title (Optional)</label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="E.g., Morning Thoughts, Overcoming a hurdle..."
-                className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-base font-semibold placeholder:text-muted-foreground/50 outline-none focus:border-primary-500 transition-colors"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
                 Your Reflection <span className="text-wellness-stress">*</span>
               </label>
               <textarea
@@ -203,32 +203,34 @@ export default function JournalPage() {
                 rows={7}
                 placeholder="Write your thoughts, feelings, gratitude, goals, or reflections..."
                 className={cn(
-                  "w-full bg-white/5 border rounded-xl px-4 py-3 text-sm placeholder:text-muted-foreground/50 outline-none leading-relaxed resize-none transition-colors",
-                  contentError ? "border-wellness-stress" : "border-white/10 focus:border-primary-500"
+                  "w-full bg-slate-50 dark:bg-white/5 border rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none leading-relaxed resize-none focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all",
+                  contentError
+                    ? "border-wellness-stress ring-1 ring-wellness-stress/30"
+                    : "border-slate-200 dark:border-white/10 focus:border-primary-500"
                 )}
               />
               {contentError && <p className="text-xs text-wellness-stress mt-1">{contentError}</p>}
             </div>
 
             <div>
-              <label className="text-xs font-medium text-muted-foreground mb-1 block">Tags (Optional)</label>
-              <div className="flex items-center gap-2 bg-white/5 border border-white/10 rounded-xl px-3 py-2">
-                <Tag size={16} className="text-muted-foreground shrink-0" />
+              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Tags (Optional)</label>
+              <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-primary-500 focus-within:bg-white dark:focus-within:bg-white/10 focus-within:ring-2 focus-within:ring-primary-500/20 transition-all">
+                <Tag size={16} className="text-slate-400 dark:text-muted-foreground shrink-0" />
                 <input
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="mindfulness, work, gratitude (comma separated)"
-                  className="flex-1 bg-transparent text-sm placeholder:text-muted-foreground/50 outline-none"
+                  className="flex-1 bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
                 />
               </div>
             </div>
 
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-white/10">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-slate-200/80 dark:border-white/10">
               <SliderField label="Mood" value={mood} onChange={setMood} icon={Heart} color="text-wellness-calm" />
               <SliderField label="Energy" value={energy} onChange={setEnergy} icon={Zap} color="text-wellness-energy" />
               <SliderField label="Stress" value={stress} onChange={setStress} icon={Frown} color="text-wellness-stress" />
               <div>
-                <label className="text-xs text-muted-foreground mb-1 block">Sleep (hrs)</label>
+                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Sleep (hrs)</label>
                 <input
                   type="number"
                   step="0.5"
@@ -237,7 +239,7 @@ export default function JournalPage() {
                   value={sleepHours}
                   onChange={(e) => setSleepHours(e.target.value)}
                   placeholder="7.5"
-                  className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none focus:border-primary-500"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
                 />
               </div>
             </div>
@@ -246,7 +248,7 @@ export default function JournalPage() {
               <button
                 type="submit"
                 disabled={loading}
-                className="glass-card px-6 py-2.5 rounded-xl font-medium flex items-center gap-2 hover:bg-primary-500/20 transition-colors disabled:opacity-50"
+                className="bg-primary-600 hover:bg-primary-700 text-white font-medium px-6 py-2.5 rounded-xl shadow-md hover:shadow-lg transition-all flex items-center gap-2 disabled:opacity-50 active:scale-[0.98]"
               >
                 <Sparkles size={18} className={loading ? "animate-spin" : ""} />
                 {loading ? "Analyzing..." : "Save & Analyze"}
@@ -263,10 +265,10 @@ export default function JournalPage() {
             </div>
 
             {entries.length === 0 ? (
-              <div className="glass-card rounded-2xl p-8 text-center text-muted-foreground space-y-2">
-                <BookOpen size={36} className="mx-auto opacity-30 text-primary-400 mb-2" />
-                <p className="font-medium text-foreground text-sm">No journal entries yet</p>
-                <p className="text-xs text-muted-foreground max-w-sm mx-auto">
+              <div className="glass-card rounded-2xl p-8 text-center border border-slate-200/80 dark:border-white/10 space-y-2">
+                <BookOpen size={36} className="mx-auto text-primary-500/40 dark:text-primary-400/30 mb-2" />
+                <p className="font-semibold text-slate-800 dark:text-foreground text-sm">No journal entries yet</p>
+                <p className="text-xs text-slate-500 dark:text-muted-foreground max-w-sm mx-auto">
                   Write your first reflection in the form above and click &quot;Save &amp; Analyze&quot; to begin building your wellness timeline.
                 </p>
               </div>
@@ -277,10 +279,10 @@ export default function JournalPage() {
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   className={cn(
-                    "glass-card rounded-xl p-4 cursor-pointer transition-all border",
+                    "glass-card rounded-xl p-4 cursor-pointer transition-all border shadow-sm",
                     selectedEntry?.id === entry.id
-                      ? "border-primary-500 shadow-md bg-primary-500/5"
-                      : "hover:border-primary-500/30"
+                      ? "border-primary-500 ring-2 ring-primary-500/20 bg-primary-50/40 dark:bg-primary-500/5 shadow-md"
+                      : "border-slate-200/80 dark:border-white/10 hover:border-primary-500/40 hover:shadow-md"
                   )}
                   onClick={() => {
                     setSelectedEntry(entry);
@@ -289,12 +291,12 @@ export default function JournalPage() {
                 >
                   <div className="flex items-start justify-between gap-3">
                     <div className="flex-1 min-w-0">
-                      <h4 className="font-medium text-foreground truncate">{entry.title}</h4>
-                      <p className="text-sm text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
+                      <h4 className="font-semibold text-slate-900 dark:text-white truncate">{entry.title}</h4>
+                      <p className="text-sm text-slate-600 dark:text-muted-foreground mt-1 line-clamp-2 leading-relaxed">
                         {entry.content}
                       </p>
-                      <div className="flex flex-wrap items-center gap-3 mt-2 text-xs text-muted-foreground">
-                        <span className="flex items-center gap-1">
+                      <div className="flex flex-wrap items-center gap-3 mt-2.5 text-xs text-slate-500 dark:text-muted-foreground">
+                        <span className="flex items-center gap-1 font-medium">
                           <Calendar size={12} />{" "}
                           {new Date(entry.date || entry.createdAt).toLocaleDateString("en-US", {
                             month: "short",
@@ -302,13 +304,13 @@ export default function JournalPage() {
                             year: "numeric",
                           })}
                         </span>
-                        <span className="flex items-center gap-1">
+                        <span className="flex items-center gap-1 font-medium">
                           <Heart size={12} className="text-wellness-calm" /> {entry.mood || 7}/10
                         </span>
                         {Array.isArray(entry.tags) && entry.tags.length > 0 && (
                           <div className="flex gap-1">
                             {entry.tags.slice(0, 3).map((tag: string, idx: number) => (
-                              <span key={idx} className="px-1.5 py-0.5 rounded bg-white/10 text-[10px] text-muted-foreground">
+                              <span key={idx} className="px-1.5 py-0.5 rounded bg-slate-100 dark:bg-white/10 border border-slate-200/60 dark:border-white/5 text-[10px] font-medium text-slate-600 dark:text-slate-300">
                                 #{tag}
                               </span>
                             ))}
@@ -319,7 +321,7 @@ export default function JournalPage() {
                     {entry.aiAnalysis && (
                       <span
                         className={cn(
-                          "px-2.5 py-1 rounded-full text-xs font-medium capitalize whitespace-nowrap shrink-0",
+                          "px-2.5 py-1 rounded-full text-xs font-semibold capitalize whitespace-nowrap shrink-0",
                           entry.aiAnalysis.burnoutRisk === "high" || entry.aiAnalysis.burnoutRisk === "critical"
                             ? "bg-wellness-stress/10 text-wellness-stress"
                             : "bg-wellness-calm/10 text-wellness-calm"
@@ -341,11 +343,11 @@ export default function JournalPage() {
               <motion.div
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
-                className="glass-card rounded-2xl p-6 space-y-4 sticky top-24"
+                className="glass-card rounded-2xl p-6 space-y-4 sticky top-24 border border-slate-200/80 dark:border-slate-700/60 shadow-sm"
               >
                 <div className="flex items-center gap-2">
                   <Sparkles className="text-wellness-energy" size={20} />
-                  <h3 className="font-semibold">AI Analysis</h3>
+                  <h3 className="font-bold text-slate-900 dark:text-white">AI Analysis</h3>
                 </div>
                 <div className="space-y-3">
                   <AnalysisRow
@@ -371,7 +373,7 @@ export default function JournalPage() {
                     }
                   />
                 </div>
-                <div className="p-4 rounded-xl bg-primary-500/5 border border-primary-500/10">
+                <div className="p-4 rounded-xl bg-primary-50/60 dark:bg-primary-500/5 border border-primary-200/80 dark:border-primary-500/10 text-slate-800 dark:text-slate-200">
                   <p className="text-sm italic leading-relaxed">
                     &ldquo;
                     {selectedEntry.aiAnalysis?.aiReflection ||
@@ -381,12 +383,12 @@ export default function JournalPage() {
                 </div>
                 {selectedEntry.aiAnalysis?.suggestedActivities?.length > 0 && (
                   <div>
-                    <h4 className="text-sm font-medium mb-2 flex items-center gap-2">
+                    <h4 className="text-sm font-semibold text-slate-800 dark:text-slate-200 mb-2 flex items-center gap-2">
                       <Lightbulb size={14} /> Suggested Activities
                     </h4>
                     <div className="flex flex-wrap gap-2">
                       {selectedEntry.aiAnalysis.suggestedActivities.map((activity: string) => (
-                        <span key={activity} className="px-2 py-1 rounded-lg bg-white/5 text-xs capitalize">
+                        <span key={activity} className="px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-xs font-medium text-slate-700 dark:text-slate-300 capitalize">
                           {activity.replace(/_/g, " ")}
                         </span>
                       ))}
@@ -405,19 +407,21 @@ export default function JournalPage() {
 function SliderField({ label, value, onChange, icon: Icon, color }: any) {
   return (
     <div>
-      <label className="text-xs text-muted-foreground mb-1 flex items-center gap-1">
-        <Icon size={12} className={color} /> {label}
+      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
+        <Icon size={14} className={color} /> {label}
       </label>
-      <div className="space-y-1">
+      <div className="space-y-1.5">
         <input
           type="range"
           min={1}
           max={10}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full accent-primary-500"
+          className="w-full accent-primary-600 dark:accent-primary-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none"
         />
-        <div className="text-center text-sm font-medium">{value}/10</div>
+        <div className="text-center text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 py-0.5 rounded-md border border-slate-200/50 dark:border-white/5">
+          {value}/10
+        </div>
       </div>
     </div>
   );
@@ -425,9 +429,9 @@ function SliderField({ label, value, onChange, icon: Icon, color }: any) {
 
 function AnalysisRow({ label, value, score, alert }: any) {
   return (
-    <div className="flex items-center justify-between py-2 border-b border-white/5">
-      <span className="text-sm text-muted-foreground">{label}</span>
-      <span className={cn("text-sm font-medium", alert && "text-wellness-stress")}>
+    <div className="flex items-center justify-between py-2 border-b border-slate-100 dark:border-white/5">
+      <span className="text-sm font-medium text-slate-600 dark:text-muted-foreground">{label}</span>
+      <span className={cn("text-sm font-semibold text-slate-900 dark:text-white", alert && "text-wellness-stress")}>
         {value}
         {score !== undefined && (
           <TrendingUp
