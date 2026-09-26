@@ -182,12 +182,14 @@ export const AuthController = {
     });
 
     const hasSmtp = Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.SMTP_SERVICE === "gmail" && process.env.SMTP_USER));
+    const isLocalDev = process.env.NODE_ENV !== "production" && !hasSmtp;
+
     res.json({
       success: true,
       message: hasSmtp
         ? "A 6-digit verification code has been sent to your Gmail inbox."
-        : "Verification code generated! (Showing on-screen for development preview).",
-      devCode: otp,
+        : "A 6-digit verification code has been sent to your email address.",
+      ...(isLocalDev ? { devCode: otp } : {}),
     });
   }),
 
@@ -403,13 +405,13 @@ export const AuthController = {
       console.warn("Failed to send email via SMTP, proceeding with on-screen verification code:", emailErr);
     }
 
-    const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
+    const hasSmtp = Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.SMTP_SERVICE === "gmail" && process.env.SMTP_USER));
+    const isLocalDev = process.env.NODE_ENV !== "production" && !hasSmtp;
+
     res.json({
       success: true,
-      message: hasSmtp
-        ? "A 6-digit verification code has been sent to your email."
-        : "Verification code generated! (Showing on screen since SMTP is not configured).",
-      devCode: resetCode,
+      message: "If that email is registered, a 6-digit verification code has been sent to your email.",
+      ...(isLocalDev ? { devCode: resetCode } : {}),
     });
   }),
 
@@ -482,11 +484,13 @@ export const AuthController = {
       html: emailTemplate,
     });
 
-    const hasSmtp = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER);
+    const hasSmtp = Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.SMTP_SERVICE === "gmail" && process.env.SMTP_USER));
+    const isLocalDev = process.env.NODE_ENV !== "production" && !hasSmtp;
+
     res.json({
       success: true,
       message: "A 6-digit confirmation code has been sent to your email to verify deletion.",
-      ...(!hasSmtp ? { devCode: deleteCode } : {}),
+      ...(isLocalDev ? { devCode: deleteCode } : {}),
     });
   }),
 

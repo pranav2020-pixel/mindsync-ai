@@ -313,7 +313,7 @@ export default function SettingsPage() {
                     Step 2 of 2: Enter your current password and the <strong>6-digit code</strong> sent to <strong>{user?.email}</strong> to permanently purge your account.
                   </p>
 
-                  {deleteDevCode && (
+                  {process.env.NODE_ENV === "development" && deleteDevCode && (
                     <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 text-center">
                       <strong>Test Code:</strong> <span className="font-mono text-sm tracking-widest">{deleteDevCode}</span>
                     </div>

@@ -321,8 +321,8 @@ export default function LoginPage() {
                   </div>
                 </div>
 
-                {/* Dev Code Autofill Banner */}
-                {devCode && (
+                {/* Dev Code Autofill Banner (Only in local development) */}
+                {process.env.NODE_ENV === "development" && devCode && (
                   <div
                     onClick={() => setOtpCode(devCode)}
                     className="p-2.5 rounded-xl bg-primary-500/10 border border-primary-500/30 text-primary-300 text-xs flex items-center justify-between cursor-pointer hover:bg-primary-500/20 transition-colors"

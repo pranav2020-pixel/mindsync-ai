@@ -141,7 +141,7 @@ export default function ForgotPasswordPage() {
               </div>
             )}
 
-            {devCode && (
+            {process.env.NODE_ENV === "development" && devCode && (
               <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 text-center">
                 <strong>Quick Test Code:</strong> <span className="font-mono text-sm tracking-widest">{devCode}</span>
               </div>

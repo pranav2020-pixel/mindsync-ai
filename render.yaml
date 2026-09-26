@@ -24,7 +24,21 @@ services:
       - key: JWT_REFRESH_EXPIRATION
         value: 7d
       - key: FRONTEND_URL
-        value: https://mindsync-ai.vercel.app
+        value: https://mindsync-ai-six.vercel.app
+      - key: GOOGLE_CLIENT_ID
+        value: 663226411128-bts6nkunj6fl5nogo87i06j8eic6o956.apps.googleusercontent.com
+      - key: SMTP_SERVICE
+        value: gmail
+      - key: SMTP_HOST
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: 587
+      - key: SMTP_USER
+        value: pranavmsc2020@gmail.com
+      - key: SMTP_PASS
+        sync: false
+      - key: SMTP_FROM
+        value: '"MindSync AI" <pranavmsc2020@gmail.com>'
 
 databases:
   - name: mindsync-postgres
