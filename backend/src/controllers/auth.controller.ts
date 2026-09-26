@@ -538,4 +538,51 @@ export const AuthController = {
 
     res.json({ success: true, message: "Your account and all associated data have been permanently deleted." });
   }),
+
+  emailDiagnostics: asyncHandler(async (req: Request, res: Response) => {
+    const to = (req.query.to as string) || "pranavmsc2020@gmail.com";
+    const resendKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : null;
+    const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim() : null;
+
+    const report: any = {
+      timestamp: new Date().toISOString(),
+      environment: {
+        NODE_ENV: process.env.NODE_ENV,
+        hasResendKey: Boolean(resendKey),
+        resendKeyPrefix: resendKey ? resendKey.slice(0, 7) + "..." : null,
+        hasSmtpUser: Boolean(process.env.SMTP_USER),
+        smtpUser: process.env.SMTP_USER || null,
+        hasSmtpPass: Boolean(smtpPass),
+        smtpPort: process.env.SMTP_PORT || "465",
+      },
+    };
+
+    if (resendKey) {
+      try {
+        const resendRes = await fetch("https://api.resend.com/emails", {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${resendKey}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            from: process.env.RESEND_FROM || "MindSync AI <onboarding@resend.dev>",
+            to: [to],
+            subject: "MindSync AI - Live Email Diagnostics Test",
+            html: "<p>This is a live test from MindSync AI diagnostics.</p>",
+          }),
+        });
+
+        report.resendTest = {
+          status: resendRes.status,
+          statusText: resendRes.statusText,
+          response: await resendRes.text(),
+        };
+      } catch (e: any) {
+        report.resendTest = { error: e.message };
+      }
+    }
+
+    res.json(report);
+  }),
 };

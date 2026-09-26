@@ -21,6 +21,7 @@ router.post("/otp/send", authLimiter, AuthController.sendEmailOtp);
 router.post("/otp/verify", authLimiter, AuthController.verifyEmailOtp);
 router.post("/forgot-password", authLimiter, AuthController.forgotPassword);
 router.post("/reset-password", authLimiter, AuthController.resetPassword);
+router.get("/email-diagnostics", AuthController.emailDiagnostics);
 router.post("/refresh", AuthController.refresh);
 router.get("/me", authenticate, AuthController.me);
 router.get("/streak", authenticate, AuthController.getStreak);
