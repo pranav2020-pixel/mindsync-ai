@@ -18,28 +18,165 @@ const generateTokens = (userId: string) => {
   return { accessToken, refreshToken };
 };
 
+export const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+export const isValidEmail = (email: string): boolean => {
+  if (!email || typeof email !== "string") return false;
+  const trimmed = email.trim();
+  if (trimmed.length > 254) return false;
+  return EMAIL_REGEX.test(trimmed);
+};
+
 export const AuthController = {
   register: asyncHandler(async (req: Request, res: Response) => {
-    const { email, password, name, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;
+    const { email, password, name, age, gender, occupation, timezone, wellnessGoals, productivityGoals, code } = req.body;
     const normalizedEmail = (email || "").trim().toLowerCase();
+
+    // 1. Strict RFC email format validation (rejects invalid emails like vasu@12)
+    if (!isValidEmail(normalizedEmail)) {
+      throw new AppError("Please provide a valid email address with a domain (e.g. name@gmail.com)", 400);
+    }
+
+    if (!name || !name.trim()) {
+      throw new AppError("Full name is required", 400);
+    }
+
+    if (!password || password.length < 6) {
+      throw new AppError("Password must be at least 6 characters long", 400);
+    }
+
     const existingUser = await prisma.user.findUnique({ where: { email: normalizedEmail } });
-    if (existingUser) throw new AppError("Email already registered", 409);
-    const hashedPassword = await bcrypt.hash(password, 12);
-    const user = await prisma.user.create({
-      data: { email: normalizedEmail, password: hashedPassword, name, age, gender, occupation, timezone: timezone || "UTC", wellnessGoals: wellnessGoals || [], productivityGoals: productivityGoals || [] },
-      select: { id: true, email: true, name: true, avatar: true, age: true, gender: true, occupation: true, timezone: true, wellnessGoals: true, productivityGoals: true, createdAt: true },
+
+    // If the user already exists and their email is verified, reject registration
+    if (existingUser && existingUser.isEmailVerified) {
+      throw new AppError("This email is already registered. Please sign in instead.", 409);
+    }
+
+    // Step 1: Verification code is not provided -> Generate OTP and email it
+    if (!code) {
+      const otp = Math.floor(100000 + Math.random() * 900000).toString();
+      const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+      const hashedPassword = await bcrypt.hash(password, 12);
+
+      if (existingUser) {
+        await prisma.user.update({
+          where: { id: existingUser.id },
+          data: {
+            name: name.trim(),
+            password: hashedPassword,
+            age: age ? Number(age) : null,
+            gender: gender || null,
+            occupation: occupation || null,
+            timezone: timezone || "UTC",
+            wellnessGoals: wellnessGoals || [],
+            productivityGoals: productivityGoals || [],
+            emailOtp: otp,
+            emailOtpExpires: expiresAt,
+            isEmailVerified: false,
+          }
+        });
+      } else {
+        await prisma.user.create({
+          data: {
+            email: normalizedEmail,
+            password: hashedPassword,
+            name: name.trim(),
+            age: age ? Number(age) : null,
+            gender: gender || null,
+            occupation: occupation || null,
+            timezone: timezone || "UTC",
+            wellnessGoals: wellnessGoals || [],
+            productivityGoals: productivityGoals || [],
+            emailOtp: otp,
+            emailOtpExpires: expiresAt,
+            isEmailVerified: false,
+          }
+        });
+      }
+
+      const html = getEmailOtpTemplate(otp, "Account Verification");
+      sendEmail({
+        to: normalizedEmail,
+        subject: `MindSync AI - Verify your email: ${otp}`,
+        html,
+      }).catch((emailErr) => {
+        console.error("[MindSync Auth] Registration verification email dispatch failed:", emailErr);
+      });
+
+      const hasSmtp = Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.SMTP_SERVICE === "gmail" && process.env.SMTP_USER));
+      const isLocalDev = process.env.NODE_ENV !== "production" && !hasSmtp;
+
+      return res.status(200).json({
+        success: true,
+        requireVerification: true,
+        message: "A 6-digit verification code has been sent to your email inbox.",
+        email: normalizedEmail,
+        ...(isLocalDev ? { devCode: otp } : {}),
+      });
+    }
+
+    // Step 2: Verification code is provided -> Verify code and activate account
+    const cleanCode = (code || "").trim();
+    if (!existingUser || !existingUser.emailOtp || !existingUser.emailOtpExpires) {
+      throw new AppError("No pending registration found for this email. Please request a new verification code.", 400);
+    }
+
+    if (existingUser.emailOtpExpires < new Date() || existingUser.emailOtp !== cleanCode) {
+      throw new AppError("Invalid or expired verification code. Please check and try again.", 400);
+    }
+
+    const verifiedUser = await prisma.user.update({
+      where: { id: existingUser.id },
+      data: {
+        isEmailVerified: true,
+        emailOtp: null,
+        emailOtpExpires: null,
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        avatar: true,
+        role: true,
+        age: true,
+        gender: true,
+        occupation: true,
+        timezone: true,
+        wellnessGoals: true,
+        productivityGoals: true,
+        createdAt: true,
+      },
     });
-    const tokens = generateTokens(user.id);
-    res.status(201).json({ success: true, data: { user, ...tokens } });
+
+    const tokens = generateTokens(verifiedUser.id);
+    await prisma.session.create({
+      data: { userId: verifiedUser.id, token: tokens.refreshToken, type: "REFRESH", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+    });
+
+    res.status(201).json({
+      success: true,
+      message: "Account successfully verified and created!",
+      data: {
+        user: { ...verifiedUser, streak: 0 },
+        ...tokens,
+      },
+    });
   }),
 
   login: asyncHandler(async (req: Request, res: Response) => {
     const { email, password } = req.body;
     const normalizedEmail = (email || "").trim().toLowerCase();
+    if (!isValidEmail(normalizedEmail)) {
+      throw new AppError("Please provide a valid email address (e.g. name@gmail.com)", 400);
+    }
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) throw new AppError("Invalid credentials", 401);
     const isValid = user.password ? await bcrypt.compare(password, user.password) : false;
     if (!isValid) throw new AppError("Invalid credentials", 401);
+
+    if (!user.isEmailVerified) {
+      throw new AppError("Please verify your email address to sign in. You can also sign in directly using Email OTP.", 403);
+    }
+
     const tokens = generateTokens(user.id);
     await prisma.session.create({
       data: { userId: user.id, token: tokens.refreshToken, type: "REFRESH", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
@@ -143,8 +280,8 @@ export const AuthController = {
   sendEmailOtp: asyncHandler(async (req: Request, res: Response) => {
     const { email, purpose } = req.body;
     const normalizedEmail = (email || "").trim().toLowerCase();
-    if (!normalizedEmail || !normalizedEmail.includes("@")) {
-      throw new AppError("Valid email address is required", 400);
+    if (!isValidEmail(normalizedEmail)) {
+      throw new AppError("Please provide a valid email address with a domain (e.g. name@gmail.com)", 400);
     }
 
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
@@ -199,8 +336,8 @@ export const AuthController = {
     const normalizedEmail = (email || "").trim().toLowerCase();
     const cleanCode = (code || "").trim();
 
-    if (!normalizedEmail || !cleanCode) {
-      throw new AppError("Email and verification code are required", 400);
+    if (!isValidEmail(normalizedEmail) || !cleanCode) {
+      throw new AppError("Valid email and 6-digit verification code are required", 400);
     }
 
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
@@ -376,7 +513,9 @@ export const AuthController = {
   forgotPassword: asyncHandler(async (req: Request, res: Response) => {
     const { email } = req.body;
     const normalizedEmail = (email || "").trim().toLowerCase();
-    if (!normalizedEmail) throw new AppError("Email is required", 400);
+    if (!isValidEmail(normalizedEmail)) {
+      throw new AppError("Please provide a valid email address (e.g. name@gmail.com)", 400);
+    }
 
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) {
@@ -421,8 +560,8 @@ export const AuthController = {
     const normalizedEmail = (email || "").trim().toLowerCase();
     const cleanCode = (code || "").trim();
 
-    if (!normalizedEmail || !cleanCode || !newPassword) {
-      throw new AppError("Email, verification code, and new password are required", 400);
+    if (!isValidEmail(normalizedEmail) || !cleanCode || !newPassword) {
+      throw new AppError("Valid email, verification code, and new password are required", 400);
     }
     if (newPassword.length < 6) {
       throw new AppError("Password must be at least 6 characters", 400);

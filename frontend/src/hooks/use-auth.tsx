@@ -13,7 +13,7 @@ interface AuthContextType {
   loginWithGoogle: (credential: string) => Promise<void>;
   sendEmailOtp: (email: string, purpose?: string) => Promise<{ success: boolean; message: string; devCode?: string }>;
   verifyEmailOtp: (email: string, code: string) => Promise<void>;
-  register: (data: any) => Promise<void>;
+  register: (data: any) => Promise<any>;
   logout: () => void;
   loading: boolean;
 }
@@ -83,11 +83,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const register = async (data: any) => {
     const res = await api.post("/auth/register", data);
-    const { accessToken, refreshToken, user } = res.data.data;
-    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
-    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
-    setUser(user);
-    router.push("/");
+    if (res.data?.data?.accessToken) {
+      const { accessToken, refreshToken, user } = res.data.data;
+      Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
+      Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
+      setUser(user);
+      router.push("/");
+    }
+    return res.data;
   };
 
   const logout = () => {

@@ -27,6 +27,13 @@ export default function ForgotPasswordPage() {
     setDevCode(null);
 
     const cleanEmail = email.trim().toLowerCase();
+    const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+    if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
+      setError("Please enter a valid email address (e.g. name@gmail.com)");
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await api.post("/auth/forgot-password", { email: cleanEmail });
       setSuccessMessage(res.data.message || "A 6-digit verification code has been sent to your email.");
@@ -107,15 +114,6 @@ export default function ForgotPasswordPage() {
                   placeholder="you@example.com"
                   required
                 />
-              </div>
-              <div className="flex justify-between items-center mt-1.5 px-0.5">
-                <button
-                  type="button"
-                  onClick={() => setEmail("demo@mindsync.ai")}
-                  className="text-xs text-primary-400 hover:text-primary-300 transition-colors"
-                >
-                  Fill demo account (<span className="underline">demo@mindsync.ai</span>)
-                </button>
               </div>
             </div>
 

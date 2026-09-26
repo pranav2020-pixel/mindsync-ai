@@ -58,17 +58,32 @@ const initApp = async () => {
     const hashedPassword = await bcrypt.hash("password123", 12);
     await prisma.user.upsert({
       where: { email: "demo@mindsync.ai" },
-      update: { password: hashedPassword },
+      update: { password: hashedPassword, isEmailVerified: true },
       create: {
         email: "demo@mindsync.ai",
         password: hashedPassword,
         name: "Alex Chen",
         role: "USER" as any,
+        isEmailVerified: true,
         wellnessGoals: ["Reduce stress", "Improve sleep", "Mindful journaling"],
         productivityGoals: ["Consistent morning routine"],
       },
     });
     console.log("✅ Demo user verified / seeded!");
+
+    // Clean up any bogus test accounts created without valid email format (e.g. vasu@12)
+    try {
+      const allUsers = await prisma.user.findMany({ select: { id: true, email: true } });
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+      for (const u of allUsers) {
+        if (!emailRegex.test(u.email) && u.email !== "demo@mindsync.ai") {
+          await prisma.user.delete({ where: { id: u.id } }).catch(() => {});
+          console.log(`Cleaned up invalid user account: ${u.email}`);
+        }
+      }
+    } catch (cleanErr) {
+      console.warn("Cleanup check skipped:", cleanErr);
+    }
   } catch (e) {
     console.error("⚠️ Database connection / init error:", e);
   }

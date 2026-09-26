@@ -36,12 +36,20 @@ export default function LoginPage() {
     }
   }, [countdown]);
 
+  const EMAIL_REGEX = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/;
+
   const handlePasswordSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    const cleanEmail = email.trim().toLowerCase();
+    if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
+      setError("Please enter a valid email address (e.g. name@gmail.com)");
+      return;
+    }
+
     setLoading(true);
     setError("");
     try {
-      await login(email.trim().toLowerCase(), password);
+      await login(cleanEmail, password);
       toast.success("Welcome back!");
     } catch (err: any) {
       setError(err.response?.data?.error || "Login failed. Please check your credentials.");
@@ -53,8 +61,8 @@ export default function LoginPage() {
   const handleSendOtp = async (e: React.FormEvent) => {
     e.preventDefault();
     const cleanEmail = otpEmail.trim().toLowerCase();
-    if (!cleanEmail || !cleanEmail.includes("@")) {
-      setError("Please enter a valid email address");
+    if (!cleanEmail || !EMAIL_REGEX.test(cleanEmail)) {
+      setError("Please enter a valid email address with a domain (e.g. name@gmail.com)");
       return;
     }
 
