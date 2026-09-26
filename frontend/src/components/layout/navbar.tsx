@@ -170,105 +170,116 @@ export function Navbar() {
 
           <AnimatePresence>
             {showNotifications && (
-              <motion.div
-                initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                className="fixed sm:absolute top-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:top-12 left-3 right-3 sm:left-auto sm:right-0 sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 glass-card rounded-2xl p-4 shadow-2xl border border-slate-200/80 dark:border-white/10 z-50"
-              >
-                <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-white/10">
-                  <div className="flex items-center gap-2">
-                    <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Notifications</h3>
-                    {unreadCount > 0 && (
-                      <span className="text-[10px] bg-primary-500/20 text-primary-700 dark:text-primary-300 font-semibold px-2 py-0.5 rounded-full">
-                        {unreadCount} new
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
-                    {notifications.length > 0 && (
-                      <>
-                        {unreadCount > 0 && (
-                          <button
-                            onClick={handleMarkAllRead}
-                            className="hover:text-primary-500 p-1 rounded-md transition-colors"
-                            title="Mark all as read"
-                          >
-                            <Check size={14} />
-                          </button>
-                        )}
-                        <button
-                          onClick={handleClearAll}
-                          className="hover:text-red-500 p-1 rounded-md transition-colors"
-                          title="Clear all"
-                        >
-                          <Trash2 size={14} />
-                        </button>
-                      </>
-                    )}
-                    <button
-                      onClick={() => setShowNotifications(false)}
-                      className="hover:text-slate-900 dark:hover:text-white p-1 rounded-md transition-colors"
-                      title="Close"
-                      aria-label="Close notifications"
-                    >
-                      <X size={15} />
-                    </button>
-                  </div>
-                </div>
+              <>
+                {/* Mobile backdrop overlay to prevent background bleeding and allow tap-outside dismiss */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  onClick={() => setShowNotifications(false)}
+                  className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm sm:hidden"
+                />
 
-                <div className="mt-3 max-h-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
-                  {notifications.length === 0 ? (
-                    <div className="py-8 text-center text-muted-foreground">
-                      <Inbox size={32} className="mx-auto mb-2 opacity-40 text-slate-400 dark:text-slate-500 stroke-[1.5]" />
-                      <p className="text-xs font-semibold text-slate-800 dark:text-foreground/90">No notifications</p>
-                      <p className="text-[11px] text-slate-500 dark:text-muted-foreground mt-0.5">
-                        Recent password updates and report downloads will appear here.
-                      </p>
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                  className="fixed sm:absolute top-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:top-12 left-3 right-3 sm:left-auto sm:right-0 sm:w-96 max-w-sm sm:max-w-none mx-auto sm:mx-0 bg-white dark:bg-slate-900 rounded-2xl p-4 shadow-2xl border border-slate-200 dark:border-slate-800 z-50"
+                >
+                  <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
+                    <div className="flex items-center gap-2">
+                      <h3 className="font-semibold text-sm text-slate-900 dark:text-white">Notifications</h3>
+                      {unreadCount > 0 && (
+                        <span className="text-[10px] bg-primary-500/20 text-primary-700 dark:text-primary-300 font-semibold px-2 py-0.5 rounded-full">
+                          {unreadCount} new
+                        </span>
+                      )}
                     </div>
-                  ) : (
-                    notifications.map((n) => (
-                      <div
-                        key={n.id}
-                        className={cn(
-                          "p-3 rounded-xl border transition-colors",
-                          n.isRead
-                            ? "bg-slate-100/70 dark:bg-white/[0.02] border-slate-200/70 dark:border-white/5 text-slate-600 dark:text-muted-foreground"
-                            : "bg-primary-50/80 dark:bg-primary-500/10 border-primary-200 dark:border-primary-500/20 text-slate-900 dark:text-foreground"
-                        )}
+                    <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
+                      {notifications.length > 0 && (
+                        <>
+                          {unreadCount > 0 && (
+                            <button
+                              onClick={handleMarkAllRead}
+                              className="hover:text-primary-500 p-1 rounded-md transition-colors"
+                              title="Mark all as read"
+                            >
+                              <Check size={14} />
+                            </button>
+                          )}
+                          <button
+                            onClick={handleClearAll}
+                            className="hover:text-red-500 p-1 rounded-md transition-colors"
+                            title="Clear all"
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        </>
+                      )}
+                      <button
+                        onClick={() => setShowNotifications(false)}
+                        className="hover:text-slate-900 dark:hover:text-white p-1 rounded-md transition-colors"
+                        title="Close"
+                        aria-label="Close notifications"
                       >
-                        <div className="flex items-start gap-2.5">
-                          <div className="mt-0.5 text-primary-500 dark:text-primary-400 shrink-0">
-                            {n.title.toLowerCase().includes("password") ? (
-                              <Shield size={16} />
-                            ) : n.title.toLowerCase().includes("report") ? (
-                              <FileText size={16} />
-                            ) : (
-                              <Sparkles size={16} />
-                            )}
-                          </div>
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between gap-1">
-                              <p className="text-xs font-semibold truncate text-slate-900 dark:text-foreground">
-                                {n.title}
-                              </p>
-                              <span className="text-[10px] text-slate-500 dark:text-muted-foreground shrink-0">
-                                {new Date(n.createdAt).toLocaleDateString("en-US", {
-                                  month: "short",
-                                  day: "numeric",
-                                })}
-                              </span>
+                        <X size={15} />
+                      </button>
+                    </div>
+                  </div>
+
+                  <div className="mt-3 max-h-72 overflow-y-auto space-y-2 pr-1 custom-scrollbar">
+                    {notifications.length === 0 ? (
+                      <div className="py-8 text-center text-muted-foreground">
+                        <Inbox size={32} className="mx-auto mb-2 opacity-40 text-slate-400 dark:text-slate-500 stroke-[1.5]" />
+                        <p className="text-xs font-semibold text-slate-800 dark:text-slate-200">No notifications</p>
+                        <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                          Recent password updates and report downloads will appear here.
+                        </p>
+                      </div>
+                    ) : (
+                      notifications.map((n) => (
+                        <div
+                          key={n.id}
+                          className={cn(
+                            "p-3 rounded-xl border transition-colors",
+                            n.isRead
+                              ? "bg-slate-50 dark:bg-slate-800/50 border-slate-200/70 dark:border-slate-800 text-slate-600 dark:text-muted-foreground"
+                              : "bg-primary-50/80 dark:bg-primary-500/10 border-primary-200 dark:border-primary-500/20 text-slate-900 dark:text-foreground"
+                          )}
+                        >
+                          <div className="flex items-start gap-2.5">
+                            <div className="mt-0.5 text-primary-500 dark:text-primary-400 shrink-0">
+                              {n.title.toLowerCase().includes("password") ? (
+                                <Shield size={16} />
+                              ) : n.title.toLowerCase().includes("report") ? (
+                                <FileText size={16} />
+                              ) : (
+                                <Sparkles size={16} />
+                              )}
                             </div>
-                            <p className="text-[11px] text-slate-600 dark:text-muted-foreground mt-1 leading-relaxed">
-                              {n.message}
-                            </p>
+                            <div className="flex-1 min-w-0">
+                              <div className="flex items-center justify-between gap-1">
+                                <p className="text-xs font-semibold truncate text-slate-900 dark:text-foreground">
+                                  {n.title}
+                                </p>
+                                <span className="text-[10px] text-slate-500 dark:text-muted-foreground shrink-0">
+                                  {new Date(n.createdAt).toLocaleDateString("en-US", {
+                                    month: "short",
+                                    day: "numeric",
+                                  })}
+                                </span>
+                              </div>
+                              <p className="text-[11px] text-slate-600 dark:text-muted-foreground mt-1 leading-relaxed">
+                                {n.message}
+                              </p>
+                            </div>
                           </div>
                         </div>
-                      </div>
-                    ))
-                  )}
-                </div>
-              </motion.div>
+                      ))
+                    )}
+                  </div>
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>
@@ -290,30 +301,40 @@ export function Navbar() {
 
           <AnimatePresence>
             {showProfile && (
-              <motion.div
-                initial={{ opacity: 0, y: 8, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                className="absolute right-0 top-12 w-56 glass-card rounded-xl p-2 shadow-2xl z-50 border border-slate-200/80 dark:border-white/10"
-              >
-                <div className="px-3 py-2 border-b border-slate-200/80 dark:border-white/10 mb-1">
-                  <p className="font-semibold text-sm text-slate-900 dark:text-white">{user?.name}</p>
-                  <p className="text-xs text-slate-500 dark:text-muted-foreground truncate">{user?.email}</p>
-                </div>
-                <Link
-                  href="/settings"
+              <>
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
                   onClick={() => setShowProfile(false)}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                  className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm sm:hidden"
+                />
+
+                <motion.div
+                  initial={{ opacity: 0, y: 8, scale: 0.96 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
+                  className="absolute right-0 top-12 w-56 bg-white dark:bg-slate-900 rounded-xl p-2 shadow-2xl z-50 border border-slate-200 dark:border-slate-800"
                 >
-                  <Settings size={16} /> Account Settings
-                </Link>
-                <button
-                  onClick={logout}
-                  className="w-full flex items-center gap-2 px-3 py-2 text-sm text-wellness-stress hover:bg-wellness-stress/10 rounded-lg transition-colors"
-                >
-                  <LogOut size={16} /> Logout
-                </button>
-              </motion.div>
+                  <div className="px-3 py-2 border-b border-slate-200/80 dark:border-slate-800 mb-1">
+                    <p className="font-semibold text-sm text-slate-900 dark:text-white">{user?.name}</p>
+                    <p className="text-xs text-slate-500 dark:text-muted-foreground truncate">{user?.email}</p>
+                  </div>
+                  <Link
+                    href="/settings"
+                    onClick={() => setShowProfile(false)}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                  >
+                    <Settings size={16} /> Account Settings
+                  </Link>
+                  <button
+                    onClick={logout}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-wellness-stress hover:bg-wellness-stress/10 rounded-lg transition-colors"
+                  >
+                    <LogOut size={16} /> Logout
+                  </button>
+                </motion.div>
+              </>
             )}
           </AnimatePresence>
         </div>
