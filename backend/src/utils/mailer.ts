@@ -12,12 +12,18 @@ const getTransporter = () => {
 
   try {
     const nodemailer = require("nodemailer");
-    const host = process.env.SMTP_HOST;
+    const service = process.env.SMTP_SERVICE;
+    const host = process.env.SMTP_HOST || (service === "gmail" ? "smtp.gmail.com" : undefined);
     const port = parseInt(process.env.SMTP_PORT || "587", 10);
     const user = process.env.SMTP_USER;
     const pass = process.env.SMTP_PASS;
 
-    if (host && user && pass) {
+    if (service === "gmail" && user && pass) {
+      transporter = nodemailer.createTransport({
+        service: "gmail",
+        auth: { user, pass },
+      });
+    } else if (host && user && pass) {
       transporter = nodemailer.createTransport({
         host,
         port,
@@ -122,6 +128,46 @@ export const getAccountDeletionEmailTemplate = (name: string, code: string): str
       <p>To confirm that it's you, enter this 6-digit confirmation code:</p>
       <div class="code-box">${code}</div>
       <p>This code expires in <strong>15 minutes</strong>. If you did not request account deletion, change your password immediately.</p>
+      <div class="footer">
+        &copy; ${new Date().getFullYear()} MindSync AI. All rights reserved.
+      </div>
+    </div>
+  </body>
+  </html>
+  `;
+};
+
+export const getEmailOtpTemplate = (code: string, purpose: string = "Sign In"): string => {
+  return `
+  <!DOCTYPE html>
+  <html>
+  <head>
+    <meta charset="utf-8">
+    <style>
+      body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background-color: #0f172a; color: #f8fafc; margin: 0; padding: 40px 20px; }
+      .container { max-width: 540px; margin: 0 auto; background: #1e293b; border-radius: 16px; border: 1px solid #334155; padding: 32px; box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.3); }
+      .logo { font-size: 26px; font-weight: 800; color: #38bdf8; text-align: center; margin-bottom: 24px; letter-spacing: -0.5px; }
+      .badge { display: inline-block; background: rgba(56, 189, 248, 0.15); color: #38bdf8; font-size: 12px; font-weight: 600; padding: 4px 12px; border-radius: 9999px; margin-bottom: 12px; }
+      .code-box { background: #090d16; border: 2px dashed #0284c7; border-radius: 14px; padding: 24px; text-align: center; font-size: 38px; font-weight: 800; letter-spacing: 10px; color: #38bdf8; margin: 24px 0; font-family: 'Courier New', Courier, monospace; }
+      p { font-size: 15px; line-height: 1.6; color: #cbd5e1; }
+      .note { background: rgba(255, 255, 255, 0.05); padding: 14px; border-radius: 10px; font-size: 13px; color: #94a3b8; border-left: 3px solid #38bdf8; margin-top: 20px; }
+      .footer { margin-top: 32px; font-size: 12px; color: #64748b; text-align: center; border-top: 1px solid #334155; padding-top: 16px; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <div class="logo">🧠 MindSync AI</div>
+      <div style="text-align: center;">
+        <span class="badge">Verification Code</span>
+      </div>
+      <h2 style="text-align: center; margin-top: 4px; font-size: 20px; color: #f8fafc;">Your ${purpose} Code</h2>
+      <p>Hello,</p>
+      <p>Use the 6-digit One-Time Password (OTP) below to authenticate your MindSync AI account:</p>
+      <div class="code-box">${code}</div>
+      <p>This verification code is valid for <strong>10 minutes</strong>. Do not share this code with anyone.</p>
+      <div class="note">
+        If you did not request this verification code, please ignore this email. Your account remains secure.
+      </div>
       <div class="footer">
         &copy; ${new Date().getFullYear()} MindSync AI. All rights reserved.
       </div>

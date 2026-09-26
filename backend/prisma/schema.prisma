@@ -109,7 +109,7 @@ enum ReportFormat {
 model User {
   id                     String   @id @default(uuid())
   email                  String   @unique
-  password               String
+  password               String?
   name                   String
   avatar                 String?
   age                    Int?
@@ -120,8 +120,13 @@ model User {
   wellnessGoals          String[] @default([])
   productivityGoals      String[] @default([])
 
+  googleId               String?  @unique
+  authProvider           String   @default("LOCAL")
+
   isEmailVerified        Boolean  @default(false)
   emailVerificationToken String?
+  emailOtp               String?
+  emailOtpExpires        DateTime?
   passwordResetToken     String?
   passwordResetExpires   DateTime?
 

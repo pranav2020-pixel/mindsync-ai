@@ -1,10 +1,11 @@
 import { Request, Response } from "express";
 import bcrypt from "bcryptjs";
 import jwt from "jsonwebtoken";
+import { OAuth2Client } from "google-auth-library";
 import { prisma } from "../server";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
-import { sendEmail, getPasswordResetEmailTemplate, getAccountDeletionEmailTemplate } from "../utils/mailer";
+import { sendEmail, getPasswordResetEmailTemplate, getAccountDeletionEmailTemplate, getEmailOtpTemplate } from "../utils/mailer";
 
 const getJwtSecret = () => process.env.JWT_SECRET || "mindsync-default-jwt-secret-key";
 const getJwtRefreshSecret = () => process.env.JWT_REFRESH_SECRET || "mindsync-default-jwt-refresh-secret-key";
@@ -37,7 +38,7 @@ export const AuthController = {
     const normalizedEmail = (email || "").trim().toLowerCase();
     const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
     if (!user) throw new AppError("Invalid credentials", 401);
-    const isValid = await bcrypt.compare(password, user.password);
+    const isValid = user.password ? await bcrypt.compare(password, user.password) : false;
     if (!isValid) throw new AppError("Invalid credentials", 401);
     const tokens = generateTokens(user.id);
     await prisma.session.create({
@@ -45,6 +46,199 @@ export const AuthController = {
     });
     const streak = await AuthController.calculateUserStreak(user.id);
     res.json({ success: true, data: { user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, wellnessGoals: user.wellnessGoals, productivityGoals: user.productivityGoals, streak }, ...tokens } });
+  }),
+
+  googleAuth: asyncHandler(async (req: Request, res: Response) => {
+    const { credential } = req.body;
+    if (!credential) throw new AppError("Google credential token is required", 400);
+
+    const googleClientId = process.env.GOOGLE_CLIENT_ID;
+    let payload: any = null;
+
+    try {
+      const client = new OAuth2Client(googleClientId);
+      const ticket = await client.verifyIdToken({
+        idToken: credential,
+        audience: googleClientId,
+      });
+      payload = ticket.getPayload();
+    } catch (verifyErr) {
+      try {
+        const resp = await fetch(`https://oauth2.googleapis.com/tokeninfo?id_token=${credential}`);
+        if (resp.ok) {
+          payload = await resp.json();
+        } else {
+          throw new AppError("Invalid or expired Google authentication token", 401);
+        }
+      } catch (fallbackErr) {
+        throw new AppError("Google token verification failed", 401);
+      }
+    }
+
+    if (!payload || !payload.email) {
+      throw new AppError("Failed to obtain verified Google account profile", 400);
+    }
+
+    const normalizedEmail = (payload.email || "").trim().toLowerCase();
+    const googleId = payload.sub || payload.user_id;
+
+    let user = await prisma.user.findFirst({
+      where: {
+        OR: [
+          { googleId: googleId },
+          { email: normalizedEmail }
+        ]
+      }
+    });
+
+    if (user) {
+      user = await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          googleId: user.googleId || googleId,
+          avatar: user.avatar || payload.picture || null,
+          isEmailVerified: true,
+          authProvider: user.authProvider === "LOCAL" ? "LOCAL" : "GOOGLE",
+        }
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          name: payload.name || normalizedEmail.split("@")[0],
+          avatar: payload.picture || null,
+          googleId: googleId,
+          authProvider: "GOOGLE",
+          isEmailVerified: true,
+          timezone: "UTC",
+          wellnessGoals: [],
+          productivityGoals: [],
+        }
+      });
+    }
+
+    const tokens = generateTokens(user.id);
+    await prisma.session.create({
+      data: { userId: user.id, token: tokens.refreshToken, type: "REFRESH", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+    });
+    const streak = await AuthController.calculateUserStreak(user.id);
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: user.id,
+          email: user.email,
+          name: user.name,
+          avatar: user.avatar,
+          role: user.role,
+          wellnessGoals: user.wellnessGoals,
+          productivityGoals: user.productivityGoals,
+          streak,
+        },
+        ...tokens,
+      },
+    });
+  }),
+
+  sendEmailOtp: asyncHandler(async (req: Request, res: Response) => {
+    const { email, purpose } = req.body;
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    if (!normalizedEmail || !normalizedEmail.includes("@")) {
+      throw new AppError("Valid email address is required", 400);
+    }
+
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const expiresAt = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes
+
+    let user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (user) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          emailOtp: otp,
+          emailOtpExpires: expiresAt,
+        }
+      });
+    } else {
+      user = await prisma.user.create({
+        data: {
+          email: normalizedEmail,
+          name: normalizedEmail.split("@")[0],
+          authProvider: "OTP",
+          emailOtp: otp,
+          emailOtpExpires: expiresAt,
+          timezone: "UTC",
+          wellnessGoals: [],
+          productivityGoals: [],
+        }
+      });
+    }
+
+    const html = getEmailOtpTemplate(otp, purpose || "Sign In");
+    await sendEmail({
+      to: normalizedEmail,
+      subject: `MindSync AI - Your Verification Code: ${otp}`,
+      html,
+    });
+
+    const hasSmtp = Boolean((process.env.SMTP_HOST && process.env.SMTP_USER) || (process.env.SMTP_SERVICE === "gmail" && process.env.SMTP_USER));
+    res.json({
+      success: true,
+      message: hasSmtp
+        ? "A 6-digit verification code has been sent to your Gmail inbox."
+        : "Verification code generated! (Showing on-screen for development preview).",
+      devCode: otp,
+    });
+  }),
+
+  verifyEmailOtp: asyncHandler(async (req: Request, res: Response) => {
+    const { email, code } = req.body;
+    const normalizedEmail = (email || "").trim().toLowerCase();
+    const cleanCode = (code || "").trim();
+
+    if (!normalizedEmail || !cleanCode) {
+      throw new AppError("Email and verification code are required", 400);
+    }
+
+    const user = await prisma.user.findUnique({ where: { email: normalizedEmail } });
+    if (!user || !user.emailOtp || !user.emailOtpExpires) {
+      throw new AppError("Invalid or expired verification code", 400);
+    }
+
+    if (user.emailOtpExpires < new Date() || user.emailOtp !== cleanCode) {
+      throw new AppError("Invalid or expired verification code", 400);
+    }
+
+    const updatedUser = await prisma.user.update({
+      where: { id: user.id },
+      data: {
+        emailOtp: null,
+        emailOtpExpires: null,
+        isEmailVerified: true,
+      }
+    });
+
+    const tokens = generateTokens(updatedUser.id);
+    await prisma.session.create({
+      data: { userId: updatedUser.id, token: tokens.refreshToken, type: "REFRESH", expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000) },
+    });
+    const streak = await AuthController.calculateUserStreak(updatedUser.id);
+    res.json({
+      success: true,
+      data: {
+        user: {
+          id: updatedUser.id,
+          email: updatedUser.email,
+          name: updatedUser.name,
+          avatar: updatedUser.avatar,
+          role: updatedUser.role,
+          wellnessGoals: updatedUser.wellnessGoals,
+          productivityGoals: updatedUser.productivityGoals,
+          streak,
+        },
+        ...tokens,
+      },
+    });
   }),
 
   refresh: asyncHandler(async (req: Request, res: Response) => {
@@ -149,8 +343,10 @@ export const AuthController = {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) throw new AppError("User not found", 404);
 
-    const isValid = await bcrypt.compare(currentPassword, user.password);
-    if (!isValid) throw new AppError("Current password is incorrect", 401);
+    if (user.password) {
+      const isValid = await bcrypt.compare(currentPassword, user.password);
+      if (!isValid) throw new AppError("Current password is incorrect", 401);
+    }
 
     const hashedPassword = await bcrypt.hash(newPassword, 12);
     await prisma.user.update({
@@ -301,9 +497,12 @@ export const AuthController = {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) throw new AppError("User not found", 404);
 
-    // Verify current password first
-    const isPasswordValid = await bcrypt.compare(password, user.password);
-    if (!isPasswordValid) throw new AppError("Incorrect password", 401);
+    // Verify current password if user has one
+    if (user.password) {
+      if (!password) throw new AppError("Password is required to confirm account deletion", 400);
+      const isPasswordValid = await bcrypt.compare(password, user.password);
+      if (!isPasswordValid) throw new AppError("Incorrect password", 401);
+    }
 
     // Verify 6-digit confirmation code
     if (!user.passwordResetToken || !user.passwordResetExpires) {

@@ -3,18 +3,23 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Cookies from "js-cookie";
+import { GoogleOAuthProvider } from "@react-oauth/google";
 import api from "@/lib/api";
 import { User } from "@/types";
 
 interface AuthContextType {
   user: User | null;
   login: (email: string, password: string) => Promise<void>;
+  loginWithGoogle: (credential: string) => Promise<void>;
+  sendEmailOtp: (email: string, purpose?: string) => Promise<{ success: boolean; message: string; devCode?: string }>;
+  verifyEmailOtp: (email: string, code: string) => Promise<void>;
   register: (data: any) => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
+const googleClientId = process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID || "";
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
@@ -53,6 +58,29 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     router.push("/");
   };
 
+  const loginWithGoogle = async (credential: string) => {
+    const res = await api.post("/auth/google", { credential });
+    const { accessToken, refreshToken, user } = res.data.data;
+    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
+    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
+    setUser(user);
+    router.push("/");
+  };
+
+  const sendEmailOtp = async (email: string, purpose: string = "Sign In") => {
+    const res = await api.post("/auth/otp/send", { email, purpose });
+    return res.data;
+  };
+
+  const verifyEmailOtp = async (email: string, code: string) => {
+    const res = await api.post("/auth/otp/verify", { email, code });
+    const { accessToken, refreshToken, user } = res.data.data;
+    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
+    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
+    setUser(user);
+    router.push("/");
+  };
+
   const register = async (data: any) => {
     const res = await api.post("/auth/register", data);
     const { accessToken, refreshToken, user } = res.data.data;
@@ -70,9 +98,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <AuthContext.Provider value={{ user, login, logout, register, loading }}>
-      {children}
-    </AuthContext.Provider>
+    <GoogleOAuthProvider clientId={googleClientId || "mindsync-google-client-id"}>
+      <AuthContext.Provider value={{ user, login, loginWithGoogle, sendEmailOtp, verifyEmailOtp, logout, register, loading }}>
+        {children}
+      </AuthContext.Provider>
+    </GoogleOAuthProvider>
   );
 }
 
