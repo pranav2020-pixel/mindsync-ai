@@ -6,4 +6,5 @@ router.get("/", authenticate, HabitController.getAll);
 router.get("/stats", authenticate, HabitController.getStats);
 router.post("/", authenticate, HabitController.createOrUpdate);
 router.post("/custom", authenticate, HabitController.createCustomHabit);
+router.delete("/custom/:id", authenticate, HabitController.deleteCustomHabit);
 export default router;

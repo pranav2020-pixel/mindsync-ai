@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   CheckCircle2, Circle, Flame, Plus, Award, Sparkles,
   Trophy, Target, Droplets, Dumbbell, Moon, BookOpen,
-  Brain, Compass, Zap, Heart, Calendar, X, ChevronLeft, ChevronRight
+  Brain, Compass, Zap, Heart, Calendar, X, ChevronLeft, ChevronRight, Trash2
 } from "lucide-react";
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
@@ -139,7 +139,7 @@ export default function HabitsPage() {
 
     try {
       await api.post("/habits", {
-        habitType: habitType || undefined,
+        habitType: habitType || (customHabitId ? "CUSTOM" : undefined),
         customHabitId: customHabitId || undefined,
         date: formatDateParam(selectedDate),
         completed: nextState,
@@ -157,6 +157,18 @@ export default function HabitsPage() {
       fetchData(selectedDate);
     } finally {
       setTogglingHabit(null);
+    }
+  };
+
+  const handleDeleteCustom = async (id: string, name: string) => {
+    if (!confirm(`Are you sure you want to remove the habit "${name}"?`)) return;
+    try {
+      await api.delete(`/habits/custom/${id}`);
+      toast.success("Custom habit removed");
+      fetchData(selectedDate);
+      fetchStats();
+    } catch (err) {
+      toast.error("Failed to delete habit");
     }
   };
 
@@ -412,6 +424,11 @@ export default function HabitsPage() {
                         <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground font-medium">
                           +10 XP
                         </span>
+                        {streaks[ch.id] > 0 && (
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 font-medium flex items-center gap-1">
+                            <Flame size={12} /> {streaks[ch.id]}d
+                          </span>
+                        )}
                         <span className="text-xs px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-400 font-medium">
                           {ch.targetPerDay} {ch.unit || "goal"}
                         </span>
@@ -422,19 +439,28 @@ export default function HabitsPage() {
                     </div>
                   </div>
 
-                  <button
-                    onClick={() => handleToggle(undefined, ch.id)}
-                    disabled={isBusy}
-                    className={cn(
-                      "w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0",
-                      done
-                        ? "bg-wellness-calm text-black shadow-lg shadow-emerald-500/20"
-                        : "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/10"
-                    )}
-                    aria-label={`Mark ${ch.name} as ${done ? "incomplete" : "complete"}`}
-                  >
-                    {done ? <CheckCircle2 size={20} className="stroke-[2.5]" /> : <Circle size={20} />}
-                  </button>
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => handleDeleteCustom(ch.id, ch.name)}
+                      className="w-9 h-9 rounded-xl flex items-center justify-center text-muted-foreground hover:text-wellness-stress hover:bg-wellness-stress/10 transition-colors"
+                      title="Delete habit"
+                    >
+                      <Trash2 size={16} />
+                    </button>
+                    <button
+                      onClick={() => handleToggle(undefined, ch.id)}
+                      disabled={isBusy}
+                      className={cn(
+                        "w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0",
+                        done
+                          ? "bg-wellness-calm text-black shadow-lg shadow-emerald-500/20"
+                          : "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/10"
+                      )}
+                      aria-label={`Mark ${ch.name} as ${done ? "incomplete" : "complete"}`}
+                    >
+                      {done ? <CheckCircle2 size={20} className="stroke-[2.5]" /> : <Circle size={20} />}
+                    </button>
+                  </div>
                 </motion.div>
               );
             })}
