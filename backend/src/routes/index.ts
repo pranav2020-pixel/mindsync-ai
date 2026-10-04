@@ -9,6 +9,7 @@ import chatRoutes from "./chat.routes";
 import insightRoutes from "./insight.routes";
 import reportRoutes from "./report.routes";
 import notificationRoutes from "./notification.routes";
+import adminRoutes from "./admin.routes";
 
 import { prisma } from "../server";
 
@@ -43,4 +44,5 @@ router.use("/chat", chatRoutes);
 router.use("/insights", insightRoutes);
 router.use("/reports", reportRoutes);
 router.use("/notifications", notificationRoutes);
+router.use("/admin", adminRoutes);
 export default router;

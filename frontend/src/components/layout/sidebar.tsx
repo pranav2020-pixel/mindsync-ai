@@ -5,7 +5,7 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
-  ClipboardList, MessageCircle, BarChart3, Brain, X, Flame, Settings, Download
+  ClipboardList, MessageCircle, BarChart3, Brain, X, Flame, Settings, Download, ShieldCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -152,6 +152,24 @@ export function Sidebar() {
               </Link>
             );
           })}
+
+          {user?.role === "ADMIN" && (
+            <div className="pt-2 mt-2 border-t border-white/10">
+              <Link
+                href="/admin"
+                onClick={() => setMobileOpen(false)}
+                className={cn(
+                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all",
+                  pathname === "/admin"
+                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
+                    : "text-amber-400/90 hover:bg-amber-500/10 hover:text-amber-300"
+                )}
+              >
+                <ShieldCheck size={18} className="text-amber-400" />
+                <span>Creator Admin</span>
+              </Link>
+            </div>
+          )}
         </nav>
 
         {/* Install App Button & Streak Widget Card */}

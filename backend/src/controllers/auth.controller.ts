@@ -415,6 +415,11 @@ export const AuthController = {
   }),
 
   me: asyncHandler(async (req: any, res: Response) => {
+    const adminEmail = (process.env.ADMIN_EMAIL || "pranavmsc2020@gmail.com").trim().toLowerCase();
+    if (req.user?.email && req.user.email.toLowerCase() === adminEmail && req.user.role !== "ADMIN") {
+      await prisma.user.update({ where: { id: req.user.id }, data: { role: "ADMIN" } });
+      req.user.role = "ADMIN";
+    }
     const streak = await AuthController.calculateUserStreak(req.user.id);
     res.json({ success: true, data: { ...req.user, streak } });
   }),
