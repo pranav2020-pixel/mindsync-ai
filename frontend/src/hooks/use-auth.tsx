@@ -2,9 +2,14 @@
 
 import { createContext, useContext, useState, useEffect, ReactNode } from "react";
 import { useRouter, usePathname } from "next/navigation";
-import Cookies from "js-cookie";
 import { GoogleOAuthProvider } from "@react-oauth/google";
 import api from "@/lib/api";
+import {
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  setStoredTokens,
+  clearStoredTokens,
+} from "@/lib/auth-storage";
 import { User } from "@/types";
 
 interface AuthContextType {
@@ -27,33 +32,71 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
 
+  // Initial persistent authentication check (runs on app mount / cold open)
   useEffect(() => {
-    const token = Cookies.get("accessToken");
-    if (token) {
-      api.get("/auth/me")
-        .then((res: { data: { data: User } }) => setUser(res.data.data))
-        .catch(() => {
-          Cookies.remove("accessToken");
-          Cookies.remove("refreshToken");
+    let isMounted = true;
+
+    const initAuth = async () => {
+      const accessToken = getStoredAccessToken();
+      const refreshToken = getStoredRefreshToken();
+
+      // If neither token is present, user is not logged in
+      if (!accessToken && !refreshToken) {
+        if (isMounted) {
+          setUser(null);
+          setLoading(false);
+          if (pathname !== "/login" && pathname !== "/register" && pathname !== "/forgot-password") {
+            router.push("/login");
+          }
+        }
+        return;
+      }
+
+      try {
+        // Fetch current user profile.
+        // If accessToken is expired, api.ts interceptor uses refreshToken to silently regenerate tokens seamlessly
+        const res = await api.get("/auth/me");
+        if (isMounted) {
+          setUser(res.data.data);
+        }
+      } catch (err) {
+        console.warn("[MindSync Auth] Session restoration failed:", err);
+        if (isMounted) {
+          clearStoredTokens();
           setUser(null);
           if (pathname !== "/login" && pathname !== "/register" && pathname !== "/forgot-password") {
             router.push("/login");
           }
-        })
-        .finally(() => setLoading(false));
-    } else {
-      setLoading(false);
-      if (pathname !== "/login" && pathname !== "/register" && pathname !== "/forgot-password") {
-        router.push("/login");
+        }
+      } finally {
+        if (isMounted) {
+          setLoading(false);
+        }
       }
+    };
+
+    initAuth();
+
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  // Route protection after initial auth resolution
+  useEffect(() => {
+    if (loading) return;
+    const isPublicAuthRoute = pathname === "/login" || pathname === "/register" || pathname === "/forgot-password";
+    if (!user && !isPublicAuthRoute) {
+      router.push("/login");
+    } else if (user && (pathname === "/login" || pathname === "/register")) {
+      router.push("/");
     }
-  }, [pathname, router]);
+  }, [user, loading, pathname, router]);
 
   const login = async (email: string, password: string) => {
     const res = await api.post("/auth/login", { email, password });
     const { accessToken, refreshToken, user } = res.data.data;
-    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
-    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
+    setStoredTokens(accessToken, refreshToken);
     setUser(user);
     router.push("/");
   };
@@ -61,8 +104,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const loginWithGoogle = async (credential: string) => {
     const res = await api.post("/auth/google", { credential });
     const { accessToken, refreshToken, user } = res.data.data;
-    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
-    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
+    setStoredTokens(accessToken, refreshToken);
     setUser(user);
     router.push("/");
   };
@@ -75,8 +117,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const verifyEmailOtp = async (email: string, code: string) => {
     const res = await api.post("/auth/otp/verify", { email, code });
     const { accessToken, refreshToken, user } = res.data.data;
-    Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
-    Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
+    setStoredTokens(accessToken, refreshToken);
     setUser(user);
     router.push("/");
   };
@@ -85,8 +126,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const res = await api.post("/auth/register", data);
     if (res.data?.data?.accessToken) {
       const { accessToken, refreshToken, user } = res.data.data;
-      Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
-      Cookies.set("refreshToken", refreshToken, { path: "/", expires: 30 });
+      setStoredTokens(accessToken, refreshToken);
       setUser(user);
       router.push("/");
     }
@@ -94,8 +134,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   const logout = () => {
-    Cookies.remove("accessToken", { path: "/" });
-    Cookies.remove("refreshToken", { path: "/" });
+    clearStoredTokens();
     setUser(null);
     router.push("/login");
   };

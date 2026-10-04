@@ -14,6 +14,7 @@ import {
   Sparkles, Calendar, Activity
 } from "lucide-react";
 import api from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useChartTheme } from "@/lib/chart-theme";
 
@@ -29,6 +30,7 @@ const item = {
 
 export default function Dashboard() {
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
   const chartTheme = useChartTheme();
   const [stats, setStats] = useState<any>(null);
   const [moodData, setMoodData] = useState<any[]>([]);
@@ -36,11 +38,8 @@ export default function Dashboard() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const token = Cookies.get("accessToken");
-    if (!token) {
-      router.push("/login");
-      return;
-    }
+    if (authLoading) return;
+    if (!user) return;
 
     const fetchData = async () => {
       try {
@@ -75,7 +74,7 @@ export default function Dashboard() {
       }
     };
     fetchData();
-  }, [router]);
+  }, [user, authLoading]);
 
   const radarData = [
     { subject: "Mood", A: stats?.mood?.avgMood ? parseFloat(stats.mood.avgMood) * 10 : 70, fullMark: 100 },
@@ -86,7 +85,7 @@ export default function Dashboard() {
     { subject: "Stress", A: stats?.mood?.avgStress ? 100 - parseFloat(stats.mood.avgStress) * 10 : 50, fullMark: 100 },
   ];
 
-  if (loading) {
+  if (loading || authLoading) {
     return (
       <div className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

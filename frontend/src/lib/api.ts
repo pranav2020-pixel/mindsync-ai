@@ -1,5 +1,11 @@
-import axios from "axios";
-import Cookies from "js-cookie";
+import axios, { AxiosError, InternalAxiosRequestConfig } from "axios";
+import {
+  getStoredAccessToken,
+  getStoredRefreshToken,
+  setStoredTokens,
+  clearStoredTokens,
+} from "./auth-storage";
+
 const getBaseURL = () => {
   if (typeof window !== "undefined") {
     // In browser context, always use relative path to route through the active origin
@@ -16,41 +22,110 @@ export const api = axios.create({
 });
 
 api.interceptors.request.use((config) => {
-  const token = Cookies.get("accessToken");
-  if (token) config.headers.Authorization = `Bearer ${token}`;
+  const token = getStoredAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
   return config;
 });
 
+// Mutex & Queue to avoid race conditions when multiple API calls encounter 401 at once
+let isRefreshing = false;
+let failedQueue: Array<{
+  resolve: (token: string | null) => void;
+  reject: (err: any) => void;
+}> = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (error) {
+      prom.reject(error);
+    } else {
+      prom.resolve(token);
+    }
+  });
+  failedQueue = [];
+};
+
 api.interceptors.response.use(
   (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-    if (error.response?.status === 401 && !originalRequest._retry) {
+  async (error: AxiosError) => {
+    const originalRequest = error.config as (InternalAxiosRequestConfig & { _retry?: boolean }) | undefined;
+
+    // Check if error is 401 and request hasn't been retried yet
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !originalRequest.url?.includes("/auth/refresh") &&
+      !originalRequest.url?.includes("/auth/login") &&
+      !originalRequest.url?.includes("/auth/otp")
+    ) {
+      if (isRefreshing) {
+        // Queue this request until current token refresh finishes
+        return new Promise<string | null>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        })
+          .then((token) => {
+            if (token && originalRequest.headers) {
+              originalRequest.headers.Authorization = `Bearer ${token}`;
+            }
+            return api(originalRequest);
+          })
+          .catch((err) => Promise.reject(err));
+      }
+
       originalRequest._retry = true;
-      const refreshToken = Cookies.get("refreshToken");
+      isRefreshing = true;
+
+      const refreshToken = getStoredRefreshToken();
+
       if (!refreshToken) {
-        Cookies.remove("accessToken", { path: "/" });
-        Cookies.remove("refreshToken", { path: "/" });
-        if (typeof window !== "undefined" && window.location.pathname !== "/login" && window.location.pathname !== "/register" && window.location.pathname !== "/forgot-password") {
+        isRefreshing = false;
+        clearStoredTokens();
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname !== "/login" &&
+          window.location.pathname !== "/register" &&
+          window.location.pathname !== "/forgot-password"
+        ) {
           window.location.href = "/login";
         }
         return Promise.reject(error);
       }
+
       try {
         const response = await axios.post(`${API_URL}/auth/refresh`, { refreshToken });
-        const { accessToken } = response.data.data;
-        Cookies.set("accessToken", accessToken, { path: "/", expires: 7 });
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        const { accessToken, refreshToken: newRefreshToken } = response.data.data;
+
+        // Persist BOTH access token and new rotated refresh token in Cookies + localStorage
+        setStoredTokens(accessToken, newRefreshToken || refreshToken);
+
+        if (originalRequest.headers) {
+          originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        }
+
+        processQueue(null, accessToken);
         return api(originalRequest);
-      } catch {
-        Cookies.remove("accessToken", { path: "/" });
-        Cookies.remove("refreshToken", { path: "/" });
-        if (typeof window !== "undefined" && window.location.pathname !== "/login" && window.location.pathname !== "/register") {
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        clearStoredTokens();
+        if (
+          typeof window !== "undefined" &&
+          window.location.pathname !== "/login" &&
+          window.location.pathname !== "/register" &&
+          window.location.pathname !== "/forgot-password"
+        ) {
           window.location.href = "/login";
         }
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
       }
     }
+
     return Promise.reject(error);
   }
 );
+
 export default api;
