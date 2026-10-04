@@ -99,14 +99,14 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen w-72 lg:w-64 glass border-r border-white/10 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]",
+          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen w-72 lg:w-64 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl border-r border-slate-200/80 dark:border-white/10 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]",
           mobileOpen
             ? "translate-x-0 shadow-2xl pointer-events-auto visible"
             : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto invisible lg:visible"
         )}
       >
         {/* Header Branding with Mobile Close Button */}
-        <div className="p-5 flex items-center justify-between border-b border-white/5 lg:border-none">
+        <div className="p-5 flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 lg:border-none">
           <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3">
             <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md">
               <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
@@ -123,7 +123,7 @@ export function Sidebar() {
               e.stopPropagation();
               setMobileOpen(false);
             }}
-            className="lg:hidden p-2.5 rounded-xl bg-white/10 hover:bg-white/20 active:scale-95 text-white transition-all shadow-md"
+            className="lg:hidden p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 text-slate-600 dark:text-white transition-all border border-slate-200/80 dark:border-white/10 shadow-sm"
             aria-label="Close menu"
           >
             <X size={20} />
@@ -143,29 +143,29 @@ export function Sidebar() {
                 className={cn(
                   "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all",
                   isActive
-                    ? "bg-primary-500/15 text-primary-400 border border-primary-500/30 shadow-sm"
-                    : "text-muted-foreground hover:bg-white/5 hover:text-foreground"
+                    ? "bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 border border-primary-500/20 dark:border-primary-500/30 shadow-sm"
+                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-muted-foreground dark:hover:bg-white/5 dark:hover:text-foreground"
                 )}
               >
-                <Icon size={18} className={isActive ? "text-primary-400" : "text-muted-foreground"} />
+                <Icon size={18} className={isActive ? "text-primary-600 dark:text-primary-400" : "text-slate-400 dark:text-muted-foreground"} />
                 {item.name}
               </Link>
             );
           })}
 
           {user?.role === "ADMIN" && (
-            <div className="pt-2 mt-2 border-t border-white/10">
+            <div className="pt-2 mt-2 border-t border-slate-200/60 dark:border-white/10">
               <Link
                 href="/admin"
                 onClick={() => setMobileOpen(false)}
                 className={cn(
                   "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all",
                   pathname === "/admin"
-                    ? "bg-amber-500/20 text-amber-300 border border-amber-500/40 shadow-sm"
-                    : "text-amber-400/90 hover:bg-amber-500/10 hover:text-amber-300"
+                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/40 shadow-sm"
+                    : "text-amber-600 dark:text-amber-400/90 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-300"
                 )}
               >
-                <ShieldCheck size={18} className="text-amber-400" />
+                <ShieldCheck size={18} className="text-amber-500 dark:text-amber-400" />
                 <span>Creator Admin</span>
               </Link>
             </div>
@@ -173,7 +173,7 @@ export function Sidebar() {
         </nav>
 
         {/* Install App Button & Streak Widget Card */}
-        <div className="p-4 pb-safe border-t border-white/5 lg:border-none space-y-3">
+        <div className="p-4 pb-safe border-t border-slate-200/60 dark:border-white/5 lg:border-none space-y-3">
           <button
             onClick={() => {
               setMobileOpen(false);
@@ -181,29 +181,29 @@ export function Sidebar() {
                 window.dispatchEvent(new CustomEvent("trigger-pwa-install"));
               }
             }}
-            className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-primary-400 bg-primary-500/10 hover:bg-primary-500/20 border border-primary-500/25 transition-all shadow-sm active:scale-95"
+            className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-primary-600 dark:text-primary-400 bg-primary-500/10 hover:bg-primary-500/15 border border-primary-500/20 dark:border-primary-500/25 transition-all shadow-sm active:scale-95"
           >
             <Download size={15} />
             <span>Install MindSync App</span>
           </button>
 
-          <div className="glass-card rounded-xl p-4">
+          <div className="rounded-2xl p-3.5 bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/10 transition-all">
             <div className="flex items-center justify-between mb-2">
-              <p className="text-xs text-muted-foreground font-medium flex items-center gap-1.5">
-                <Flame size={14} className={streak > 0 ? "text-amber-400 fill-amber-400/20" : "text-muted-foreground"} />
+              <p className="text-xs text-slate-600 dark:text-muted-foreground font-semibold flex items-center gap-1.5">
+                <Flame size={14} className={streak > 0 ? "text-amber-500 fill-amber-500/20" : "text-slate-400 dark:text-muted-foreground"} />
                 Daily Streak
               </p>
-              <span className="text-xs font-bold text-primary-400">
+              <span className="text-xs font-bold text-primary-600 dark:text-primary-400">
                 {streak} {streak === 1 ? "day" : "days"}
               </span>
             </div>
-            <div className="h-2 w-full bg-white/10 rounded-full overflow-hidden">
+            <div className="h-2 w-full bg-slate-200/80 dark:bg-white/10 rounded-full overflow-hidden">
               <div
-                className="h-full bg-gradient-to-r from-primary-500 via-amber-400 to-wellness-calm rounded-full transition-all duration-500"
+                className="h-full bg-gradient-to-r from-primary-500 via-amber-400 to-emerald-400 rounded-full transition-all duration-500"
                 style={{ width: `${Math.min(100, Math.max(streak > 0 ? 8 : 0, (streak / 30) * 100))}%` }}
               />
             </div>
-            <p className="text-[10px] text-muted-foreground mt-1.5 text-right">
+            <p className="text-[10px] text-slate-500 dark:text-muted-foreground mt-1.5 text-right font-medium">
               {streak >= 30 ? "Milestone reached! 🏆" : `${30 - streak}d to 30-day goal`}
             </p>
           </div>

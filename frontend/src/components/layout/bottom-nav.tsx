@@ -30,7 +30,7 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-slate-900/90 dark:bg-slate-950/90 backdrop-blur-xl border-t border-white/10 pb-safe">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] dark:shadow-none pb-safe">
       <div className="flex items-center justify-around px-2 py-1.5 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;
@@ -43,24 +43,24 @@ export function BottomNav() {
               className={cn(
                 "flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all relative",
                 isActive
-                  ? "text-primary-400 font-semibold"
-                  : "text-muted-foreground hover:text-foreground"
+                  ? "text-primary-600 dark:text-primary-400 font-semibold"
+                  : "text-slate-500 hover:text-slate-900 dark:text-muted-foreground dark:hover:text-foreground"
               )}
             >
               {isActive && (
                 <motion.div
                   layoutId="bottomNavIndicator"
-                  className="absolute -top-1.5 w-6 h-1 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(14,165,233,0.8)]"
+                  className="absolute -top-1.5 w-6 h-1 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(14,165,233,0.5)]"
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}
               <div className={cn(
                 "p-1 rounded-lg transition-transform",
-                isActive && "scale-110 bg-primary-500/10"
+                isActive && "scale-110 bg-primary-500/10 dark:bg-primary-500/15"
               )}>
                 <Icon size={20} />
               </div>
-              <span className="text-[10px] mt-0.5 tracking-tight">{tab.name}</span>
+              <span className="text-[10px] mt-0.5 tracking-tight font-medium">{tab.name}</span>
             </Link>
           );
         })}
@@ -68,12 +68,12 @@ export function BottomNav() {
         {/* More Menu Drawer Trigger */}
         <button
           onClick={handleOpenMenu}
-          className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-muted-foreground hover:text-foreground transition-all"
+          className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-muted-foreground dark:hover:text-foreground transition-all"
         >
           <div className="p-1 rounded-lg">
             <Menu size={20} />
           </div>
-          <span className="text-[10px] mt-0.5 tracking-tight">More</span>
+          <span className="text-[10px] mt-0.5 tracking-tight font-medium">More</span>
         </button>
       </div>
     </nav>
