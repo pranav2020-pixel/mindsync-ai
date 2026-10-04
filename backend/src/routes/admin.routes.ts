@@ -7,4 +7,9 @@ const router = Router();
 // Only authenticated admins can fetch system analytics
 router.get("/analytics", authenticate, AdminController.getAnalytics);
 
+// Feedbacks / Issues / Suggestions management (Admin only)
+router.get("/feedbacks", authenticate, AdminController.getFeedbacks);
+router.patch("/feedbacks/:id", authenticate, AdminController.updateFeedbackStatus);
+router.delete("/feedbacks/:id", authenticate, AdminController.deleteFeedback);
+
 export default router;

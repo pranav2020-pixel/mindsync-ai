@@ -49,6 +49,22 @@ const initApp = async () => {
   try {
     await prisma.$connect();
     console.log("✅ Database connected successfully");
+
+    // Ensure feedbacks table exists in PostgreSQL
+    await prisma.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "feedbacks" (
+        "id" TEXT NOT NULL PRIMARY KEY,
+        "userId" TEXT,
+        "userName" TEXT,
+        "userEmail" TEXT,
+        "type" TEXT NOT NULL DEFAULT 'SUGGESTION',
+        "title" TEXT NOT NULL,
+        "description" TEXT NOT NULL,
+        "status" TEXT NOT NULL DEFAULT 'OPEN',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP
+      );
+    `).catch((err) => console.warn("Feedback table auto-init:", err));
     
     // Auto-seed assessments
     await ensureAssessmentsSeeded(prisma);

@@ -534,3 +534,18 @@ model Report {
 
   @@map("reports")
 }
+
+model Feedback {
+  id          String   @id @default(uuid())
+  userId      String?
+  userName    String?
+  userEmail   String?
+  type        String   @default("SUGGESTION") // BUG, SUGGESTION, FEEDBACK
+  title       String
+  description String
+  status      String   @default("OPEN") // OPEN, REVIEWED, RESOLVED
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@map("feedbacks")
+}

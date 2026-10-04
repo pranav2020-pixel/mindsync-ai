@@ -127,6 +127,11 @@ export const AdminController = {
       },
     });
 
+    const [totalFeedbacks, openFeedbacks] = await Promise.all([
+      (prisma as any).feedback.count().catch(() => 0),
+      (prisma as any).feedback.count({ where: { status: "OPEN" } }).catch(() => 0),
+    ]);
+
     res.json({
       success: true,
       data: {
@@ -142,10 +147,56 @@ export const AdminController = {
           totalHabitsCompleted,
           totalChatMessages,
           totalAssessments,
+          totalFeedbacks,
+          openFeedbacks,
         },
         timeline,
         recentUsers,
       },
     });
+  }),
+
+  getFeedbacks: asyncHandler(async (req: any, res: Response) => {
+    const adminEmail = getAdminEmail();
+    const userEmail = (req.user?.email || "").trim().toLowerCase();
+    if (req.user?.role !== "ADMIN" && userEmail !== adminEmail) {
+      throw new AppError("Access denied. Administrator privileges required.", 403);
+    }
+
+    const feedbacks = await (prisma as any).feedback.findMany({
+      orderBy: { createdAt: "desc" },
+    }).catch(() => []);
+
+    res.json({ success: true, data: feedbacks });
+  }),
+
+  updateFeedbackStatus: asyncHandler(async (req: any, res: Response) => {
+    const adminEmail = getAdminEmail();
+    const userEmail = (req.user?.email || "").trim().toLowerCase();
+    if (req.user?.role !== "ADMIN" && userEmail !== adminEmail) {
+      throw new AppError("Access denied. Administrator privileges required.", 403);
+    }
+
+    const { id } = req.params;
+    const { status } = req.body;
+    const updated = await (prisma as any).feedback.update({
+      where: { id },
+      data: { status },
+    });
+
+    res.json({ success: true, data: updated });
+  }),
+
+  deleteFeedback: asyncHandler(async (req: any, res: Response) => {
+    const adminEmail = getAdminEmail();
+    const userEmail = (req.user?.email || "").trim().toLowerCase();
+    if (req.user?.role !== "ADMIN" && userEmail !== adminEmail) {
+      throw new AppError("Access denied. Administrator privileges required.", 403);
+    }
+
+    const { id } = req.params;
+    await (prisma as any).feedback.delete({ where: { id } });
+
+    res.json({ success: true, message: "Feedback deleted successfully" });
   }),
 };
