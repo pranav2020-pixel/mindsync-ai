@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../server";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
+import { AchievementService } from "../services/achievement.service";
 
 export const HabitController = {
   getAll: asyncHandler(async (req: any, res: Response) => {
@@ -9,7 +10,7 @@ export const HabitController = {
     const targetDate = date ? new Date(date as string) : new Date();
     targetDate.setHours(0, 0, 0, 0);
 
-    const [logs, customHabits, achievements] = await Promise.all([
+    const [logs, customHabits, achievementData] = await Promise.all([
       prisma.habitLog.findMany({
         where: { userId: req.user.id, date: targetDate },
         include: { customHabit: true },
@@ -17,10 +18,7 @@ export const HabitController = {
       prisma.customHabit.findMany({
         where: { userId: req.user.id, isActive: true },
       }),
-      prisma.userAchievement.findMany({
-        where: { userId: req.user.id },
-        include: { achievement: true },
-      }),
+      AchievementService.getUserAchievementsWithProgress(req.user.id),
     ]);
 
     const habitTypes = ["MEDITATION", "EXERCISE", "WATER", "SLEEP", "READING", "LEARNING", "JOURNALING"];
@@ -52,7 +50,13 @@ export const HabitController = {
         logs,
         customHabits,
         streaks: [...standardStreaks, ...customStreaks],
-        achievements,
+        achievements: achievementData.achievements,
+        totalXP: achievementData.totalXP,
+        habitXP: achievementData.habitXP,
+        achievementXP: achievementData.achievementXP,
+        level: achievementData.level,
+        levelProgress: achievementData.levelProgress,
+        xpToNextLevel: achievementData.xpToNextLevel,
       },
     });
   }),
@@ -102,6 +106,11 @@ export const HabitController = {
       });
     }
 
+    // Auto-check and unlock achievements in background
+    AchievementService.checkAndUnlockAchievements(req.user.id).catch((err) => {
+      console.warn("Non-fatal: Achievement check failed on habit log:", err);
+    });
+
     res.json({ success: true, data: log });
   }),
 
@@ -141,11 +150,13 @@ export const HabitController = {
     const thirtyDaysAgo = new Date();
     thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
 
-    const logs = await prisma.habitLog.findMany({
-      where: { userId: req.user.id, date: { gte: thirtyDaysAgo } },
-    });
+    const [logs, achievementData] = await Promise.all([
+      prisma.habitLog.findMany({
+        where: { userId: req.user.id, date: { gte: thirtyDaysAgo } },
+      }),
+      AchievementService.getUserAchievementsWithProgress(req.user.id),
+    ]);
 
-    const totalXP = logs.reduce((sum, log) => sum + log.xpEarned, 0);
     const completionRate =
       logs.length > 0
         ? (logs.filter((l) => l.completed).length / logs.length) * 100
@@ -154,7 +165,12 @@ export const HabitController = {
     res.json({
       success: true,
       data: {
-        totalXP,
+        totalXP: achievementData.totalXP,
+        habitXP: achievementData.habitXP,
+        achievementXP: achievementData.achievementXP,
+        level: achievementData.level,
+        levelProgress: achievementData.levelProgress,
+        xpToNextLevel: achievementData.xpToNextLevel,
         completionRate: completionRate.toFixed(1),
         totalLogs: logs.length,
       },

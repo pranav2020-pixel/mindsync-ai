@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
 import { encrypt, decrypt } from "../utils/encryption";
 import { AIService } from "../services/ai.service";
+import { AchievementService } from "../services/achievement.service";
 
 export const JournalController = {
   getAll: asyncHandler(async (req: any, res: Response) => {
@@ -52,6 +53,12 @@ export const JournalController = {
         productivityRating: productivityRating ? Number(productivityRating) : null,
       },
     });
+
+    // Auto-check and unlock achievements (e.g. First Reflection +50 XP)
+    AchievementService.checkAndUnlockAchievements(req.user.id).catch((err) => {
+      console.warn("Non-fatal: Achievement check failed on journal creation:", err);
+    });
+
     let aiAnalysis: any = {
       sentiment: "neutral", sentimentScore: 0,
       emotions: { joy: 0.5, sadness: 0.5, anger: 0, fear: 0.2, surprise: 0, disgust: 0 },

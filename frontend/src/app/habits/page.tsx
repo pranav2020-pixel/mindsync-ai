@@ -31,13 +31,36 @@ const DEFAULT_HABITS: HabitItem[] = [
   { key: "JOURNALING", type: "JOURNALING", name: "Daily Reflection", description: "Write thoughts and feelings in your MindSync journal", icon: Heart, color: "text-emerald-400 border-emerald-500/30 bg-emerald-500/10", xp: 10 },
 ];
 
+const getAchievementIcon = (name: string) => {
+  if (name.includes("Reflection") || name.includes("Writer")) return "📖";
+  if (name.includes("Streak")) return "🔥";
+  if (name.includes("Let's Go") || name.includes("Week")) return "⚡";
+  if (name.includes("Mindful") || name.includes("Meditation")) return "🧘";
+  if (name.includes("Fitness") || name.includes("Exercise")) return "💪";
+  if (name.includes("Habit Builder")) return "🎯";
+  if (name.includes("Explorer")) return "🧭";
+  if (name.includes("Emotional") || name.includes("Mood")) return "❤️";
+  if (name.includes("Deep Thinker") || name.includes("Focus")) return "🧠";
+  if (name.includes("Fortnight")) return "🏆";
+  if (name.includes("Monthly") || name.includes("Master")) return "👑";
+  return "🏆";
+};
+
 export default function HabitsPage() {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [logs, setLogs] = useState<any[]>([]);
   const [customHabits, setCustomHabits] = useState<any[]>([]);
   const [streaks, setStreaks] = useState<Record<string, number>>({});
   const [achievements, setAchievements] = useState<any[]>([]);
-  const [stats, setStats] = useState<{ totalXP: number; completionRate: string; totalLogs: number }>({
+  const [stats, setStats] = useState<{
+    totalXP: number;
+    completionRate: string;
+    totalLogs: number;
+    level?: number;
+    levelProgress?: number;
+    habitXP?: number;
+    achievementXP?: number;
+  }>({
     totalXP: 0,
     completionRate: "0.0",
     totalLogs: 0,
@@ -54,6 +77,21 @@ export default function HabitsPage() {
     unit: "times",
   });
   const [submittingCustom, setSubmittingCustom] = useState(false);
+
+  const fallbackAchievements = [
+    { id: "1", name: "First Reflection", description: "Wrote your first journal entry", xpValue: 50, unlocked: false },
+    { id: "2", name: "Prolific Writer", description: "Written 5 journal reflections", xpValue: 150, unlocked: false },
+    { id: "3", name: "Streak Starter", description: "Logged 3 days consecutively", xpValue: 100, unlocked: Object.values(streaks).some((s) => s >= 3) },
+    { id: "4", name: "Let's Go! (Week Warrior)", description: "Maintained a full 7-day daily habit streak", xpValue: 200, unlocked: Object.values(streaks).some((s) => s >= 7) },
+    { id: "5", name: "Fortnight Champion", description: "Maintained a consistent 14-day streak", xpValue: 350, unlocked: Object.values(streaks).some((s) => s >= 14) },
+    { id: "6", name: "Monthly Master", description: "Achieved an incredible 30-day streak milestone", xpValue: 500, unlocked: Object.values(streaks).some((s) => s >= 30) },
+    { id: "7", name: "Mindful Master", description: "Completed 5 meditation or mindfulness sessions", xpValue: 150, unlocked: false },
+    { id: "8", name: "Fitness Enthusiast", description: "Completed 5 workout or exercise sessions", xpValue: 150, unlocked: false },
+    { id: "9", name: "Habit Builder", description: "Successfully completed 15 daily habits", xpValue: 150, unlocked: false },
+    { id: "10", name: "Inner Explorer", description: "Completed your first psychological assessment", xpValue: 100, unlocked: false },
+    { id: "11", name: "Emotional Awareness", description: "Logged your daily mood on 5 different days", xpValue: 100, unlocked: false },
+    { id: "12", name: "Deep Thinker", description: "Completed 5 focus or deep work sessions", xpValue: 150, unlocked: false },
+  ];
 
   const customModalTitleId = useId();
 
@@ -72,10 +110,18 @@ export default function HabitsPage() {
   const fetchData = async (date: Date) => {
     try {
       const res = await api.get(`/habits?date=${formatDateParam(date)}`);
-      const { logs = [], customHabits = [], streaks = [], achievements = [] } = res.data.data || {};
+      const { logs = [], customHabits = [], streaks = [], achievements = [], totalXP, level, levelProgress } = res.data.data || {};
       setLogs(logs);
       setCustomHabits(customHabits);
       setAchievements(achievements);
+      if (totalXP !== undefined) {
+        setStats((prev) => ({
+          ...prev,
+          totalXP,
+          level: level ?? prev.level,
+          levelProgress: levelProgress ?? prev.levelProgress,
+        }));
+      }
 
       const streakMap: Record<string, number> = {};
       streaks.forEach((s: any) => {
@@ -93,7 +139,10 @@ export default function HabitsPage() {
     try {
       const res = await api.get("/habits/stats");
       if (res.data.data) {
-        setStats(res.data.data);
+        setStats((prev) => ({
+          ...prev,
+          ...res.data.data,
+        }));
       }
     } catch (err) {
       console.error("Failed to load habit stats:", err);
@@ -212,8 +261,8 @@ export default function HabitsPage() {
   };
 
   // Level computation: Level 1 starts at 0 XP, each 100 XP is a new level
-  const userLevel = Math.floor(stats.totalXP / 100) + 1;
-  const currentLevelXP = stats.totalXP % 100;
+  const userLevel = stats.level || Math.floor((stats.totalXP || 0) / 100) + 1;
+  const currentLevelXP = stats.levelProgress !== undefined ? stats.levelProgress : ((stats.totalXP || 0) % 100);
 
   return (
     <div className="max-w-6xl mx-auto space-y-6">
@@ -470,47 +519,64 @@ export default function HabitsPage() {
         {/* Sidebar: Achievements & Motivational Advice */}
         <div className="space-y-6">
           <div className="glass-card rounded-2xl p-6 space-y-4">
-            <div className="flex items-center gap-2">
-              <Award className="text-amber-400" size={20} />
-              <h3 className="font-semibold text-base">Wellness Achievements</h3>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Award className="text-amber-400" size={20} />
+                <h3 className="font-semibold text-base">Wellness Achievements</h3>
+              </div>
+              <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-500 dark:text-amber-300 border border-amber-500/25">
+                {(achievements.length > 0 ? achievements : fallbackAchievements).filter((a: any) => a.unlocked).length} / {(achievements.length > 0 ? achievements : fallbackAchievements).length} Unlocked
+              </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Unlock milestones through consistent daily practices.
+              Unlock milestones through consistent daily practices and earn XP for every level.
             </p>
 
-            <div className="space-y-3 pt-1">
-              {[
-                { name: "First Reflection", desc: "Wrote your first journal entry", xp: 50, unlocked: true },
-                { name: "Streak Starter", desc: "Logged 3 days consecutively", xp: 100, unlocked: Object.values(streaks).some((s) => s >= 3) },
-                { name: "Mindful Master", desc: "Maintained a 7-day habit streak", xp: 200, unlocked: Object.values(streaks).some((s) => s >= 7) },
-                { name: "Deep Thinker", desc: "Logged 5 focus/deep work blocks", xp: 150, unlocked: false },
-              ].map((ach, idx) => (
-                <div
-                  key={idx}
-                  className={cn(
-                    "p-3 rounded-xl border flex items-center gap-3 transition-colors",
-                    ach.unlocked
-                      ? "bg-white/5 border-amber-500/30"
-                      : "bg-white/[0.02] border-white/5 opacity-50"
-                  )}
-                >
+            <div className="space-y-2.5 pt-1 max-h-[500px] overflow-y-auto pr-1">
+              {(achievements.length > 0 ? achievements : fallbackAchievements).map((ach: any, idx: number) => {
+                const isUnlocked = Boolean(ach.unlocked);
+                return (
                   <div
+                    key={ach.id || idx}
                     className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center shrink-0 text-sm font-bold",
-                      ach.unlocked ? "bg-amber-400/20 text-amber-400" : "bg-white/10 text-muted-foreground"
+                      "p-3 rounded-xl border flex items-center gap-3 transition-all",
+                      isUnlocked
+                        ? "bg-amber-500/10 dark:bg-amber-500/15 border-amber-500/35 shadow-sm"
+                        : "bg-slate-100/60 dark:bg-white/[0.02] border-slate-200/60 dark:border-white/5 opacity-60"
                     )}
                   >
-                    🏆
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center justify-between">
-                      <h5 className="text-sm font-medium truncate">{ach.name}</h5>
-                      <span className="text-xs text-amber-400/90 font-medium">+{ach.xp} XP</span>
+                    <div
+                      className={cn(
+                        "w-9 h-9 rounded-xl flex items-center justify-center shrink-0 text-base font-bold shadow-sm transition-transform",
+                        isUnlocked
+                          ? "bg-gradient-to-br from-amber-400 to-amber-600 text-black shadow-amber-500/20 scale-105"
+                          : "bg-slate-200 dark:bg-white/10 text-muted-foreground"
+                      )}
+                    >
+                      {getAchievementIcon(ach.name)}
                     </div>
-                    <p className="text-xs text-muted-foreground truncate">{ach.desc}</p>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center justify-between gap-1">
+                        <h5 className="text-xs sm:text-sm font-semibold truncate flex items-center gap-1.5">
+                          <span>{ach.name}</span>
+                          {isUnlocked && (
+                            <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/20 text-amber-600 dark:text-amber-300">
+                              Unlocked
+                            </span>
+                          )}
+                        </h5>
+                        <span className={cn(
+                          "text-xs font-bold shrink-0",
+                          isUnlocked ? "text-amber-500 dark:text-amber-400" : "text-muted-foreground"
+                        )}>
+                          +{ach.xpValue || ach.xp} XP
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-muted-foreground truncate">{ach.description || ach.desc}</p>
+                    </div>
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           </div>
 
