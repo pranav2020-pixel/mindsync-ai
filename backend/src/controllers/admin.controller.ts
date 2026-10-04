@@ -114,7 +114,6 @@ export const AdminController = {
         email: true,
         role: true,
         isEmailVerified: true,
-        emailOtp: true,
         authProvider: true,
         createdAt: true,
         _count: {

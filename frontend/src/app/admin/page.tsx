@@ -7,8 +7,7 @@ import {
   Users, UserCheck, Activity, TrendingUp, Flame, BookOpen, Heart,
   CheckCircle2, MessageSquare, ShieldCheck, RefreshCw, Search,
   Sparkles, Calendar, Mail, ShieldAlert, ArrowLeft, BarChart3, Award,
-  Bug, Lightbulb, MessageSquarePlus, Clock, Trash2, CheckCircle, ExternalLink,
-  Copy, Key
+  Bug, Lightbulb, MessageSquarePlus, Clock, Trash2, CheckCircle, ExternalLink
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -47,7 +46,6 @@ interface RecentUser {
   email: string;
   role: string;
   isEmailVerified: boolean;
-  emailOtp?: string;
   authProvider: string;
   createdAt: string;
   _count: {
@@ -537,33 +535,18 @@ export default function AdminDashboardPage() {
                                   <UserCheck size={11} /> Verified
                                 </span>
                               ) : (
-                                <>
+                                <div className="flex items-center gap-1.5">
                                   <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-medium text-[10px]">
                                     Pending
                                   </span>
                                   <button
                                     onClick={() => handleManualVerifyUser(u.id, u.email)}
                                     className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-300 font-bold text-[10px] border border-emerald-500/30 transition-all active:scale-95 shadow-sm"
-                                    title="Instantly activate this user"
+                                    title="Instantly activate this user account"
                                   >
                                     Verify Now
                                   </button>
-                                </>
-                              )}
-
-                              {u.emailOtp && (
-                                <button
-                                  type="button"
-                                  onClick={() => {
-                                    navigator.clipboard.writeText(u.emailOtp!);
-                                    toast.success(`Copied OTP (${u.emailOtp}) for ${u.name}`);
-                                  }}
-                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/20 hover:bg-sky-500/35 text-sky-300 font-mono font-bold text-[10px] border border-sky-500/30 transition-all active:scale-95 shadow-sm"
-                                  title="Click to copy active login/verification OTP"
-                                >
-                                  <Copy size={10} />
-                                  <span>OTP: {u.emailOtp}</span>
-                                </button>
+                                </div>
                               )}
                             </div>
                           </td>
