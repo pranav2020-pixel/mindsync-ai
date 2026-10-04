@@ -635,6 +635,11 @@ export const AuthController = {
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) throw new AppError("User not found", 404);
 
+    const adminEmail = (process.env.ADMIN_EMAIL || "pranavmsc2020@gmail.com").trim().toLowerCase();
+    if (user.role === "ADMIN" || user.email.toLowerCase() === adminEmail) {
+      throw new AppError("Primary Administrator accounts cannot be deleted to prevent permanent system lockouts and administrative data disruption.", 403);
+    }
+
     const deleteCode = Math.floor(100000 + Math.random() * 900000).toString();
     const expiresAt = new Date(Date.now() + 15 * 60 * 1000);
 
@@ -671,6 +676,11 @@ export const AuthController = {
 
     const user = await prisma.user.findUnique({ where: { id: req.user.id } });
     if (!user) throw new AppError("User not found", 404);
+
+    const adminEmail = (process.env.ADMIN_EMAIL || "pranavmsc2020@gmail.com").trim().toLowerCase();
+    if (user.role === "ADMIN" || user.email.toLowerCase() === adminEmail) {
+      throw new AppError("Primary Administrator accounts cannot be deleted to prevent permanent system lockouts and administrative data disruption.", 403);
+    }
 
     // Verify current password if user has one
     if (user.password) {

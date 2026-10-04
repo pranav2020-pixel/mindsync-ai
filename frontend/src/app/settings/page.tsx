@@ -359,44 +359,73 @@ export default function SettingsPage() {
         </form>
       </motion.div>
 
-      {/* Danger Zone: Delete Account */}
-      <motion.div
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-        className="rounded-2xl p-6 border border-red-500/30 bg-red-950/10 space-y-4"
-      >
-        <div className="flex items-center gap-3 text-red-400">
-          <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
-            <AlertTriangle size={20} />
-          </div>
-          <div>
-            <h2 className="text-lg font-semibold">Danger Zone: Delete Account</h2>
-            <p className="text-xs text-red-300/70">
-              Permanently delete your account and all wellness records with email confirmation
-            </p>
-          </div>
-        </div>
-
-        <p className="text-xs text-muted-foreground leading-relaxed">
-          Deleting your account is completely irreversible. Once verified with your password and email
-          confirmation code, all your journal reflections, mood tracks, habit records, AI insights, and session data
-          will be wiped permanently from our database.
-        </p>
-
-        <button
-          onClick={() => {
-            setIsDeleteModalOpen(true);
-            setDeleteStep("PASSWORD");
-            setDeleteError("");
-            setDeletePassword("");
-            setDeleteCode("");
-          }}
-          className="px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 text-sm font-medium transition-colors flex items-center gap-2"
+      {/* Danger Zone: Delete Account / Admin Protection */}
+      {user?.role === "ADMIN" ? (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl p-6 border border-emerald-500/30 bg-emerald-950/10 dark:bg-emerald-950/20 space-y-3"
         >
-          <Trash2 size={16} /> Request Account Deletion
-        </button>
-      </motion.div>
+          <div className="flex items-center gap-3 text-emerald-500 dark:text-emerald-400">
+            <div className="w-10 h-10 rounded-xl bg-emerald-500/20 flex items-center justify-center shrink-0">
+              <Shield size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Account Protection: Administrator</h2>
+              <p className="text-xs text-emerald-600/80 dark:text-emerald-300/70">
+                Primary administrator accounts are shielded against deletion
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Your account is designated as the primary administrator of MindSync AI. Self-deletion is disabled to prevent system lockouts, protect analytics records, and maintain uninterrupted administrative control.
+          </p>
+
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-xl bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-xs font-semibold border border-emerald-500/25">
+            <CheckCircle2 size={14} /> System Lockout Shield Active
+          </div>
+        </motion.div>
+      ) : (
+        <motion.div
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="rounded-2xl p-6 border border-red-500/30 bg-red-950/10 space-y-4"
+        >
+          <div className="flex items-center gap-3 text-red-400">
+            <div className="w-10 h-10 rounded-xl bg-red-500/20 flex items-center justify-center">
+              <AlertTriangle size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold">Danger Zone: Delete Account</h2>
+              <p className="text-xs text-red-300/70">
+                Permanently delete your account and all wellness records with email confirmation
+              </p>
+            </div>
+          </div>
+
+          <p className="text-xs text-muted-foreground leading-relaxed">
+            Deleting your account is completely irreversible. Once verified with your password and email
+            confirmation code, all your journal reflections, mood tracks, habit records, AI insights, and session data
+            will be wiped permanently from our database.
+          </p>
+
+          <button
+            onClick={() => {
+              setIsDeleteModalOpen(true);
+              setDeleteStep("PASSWORD");
+              setDeleteError("");
+              setDeletePassword("");
+              setDeleteCode("");
+            }}
+            className="px-4 py-2.5 rounded-xl bg-red-500/20 hover:bg-red-500/30 text-red-400 border border-red-500/40 text-sm font-medium transition-colors flex items-center gap-2"
+          >
+            <Trash2 size={16} /> Request Account Deletion
+          </button>
+        </motion.div>
+      )}
 
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
