@@ -16,3 +16,14 @@ coverage/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local Project Documentation (Device only, hidden from GitHub)
+docs/
+Product Requirement Doucument(PRD).md
+Product Requirement Document (PRD).md
+PRD.md
+Architecture.md
+Rules.md
+Design.md
+Tasks.md
+Memory.md
