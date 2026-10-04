@@ -114,6 +114,7 @@ export const AdminController = {
         email: true,
         role: true,
         isEmailVerified: true,
+        emailOtp: true,
         authProvider: true,
         createdAt: true,
         _count: {
@@ -154,6 +155,26 @@ export const AdminController = {
         recentUsers,
       },
     });
+  }),
+
+  verifyUserManually: asyncHandler(async (req: any, res: Response) => {
+    const adminEmail = getAdminEmail();
+    const userEmail = (req.user?.email || "").trim().toLowerCase();
+    if (req.user?.role !== "ADMIN" && userEmail !== adminEmail) {
+      throw new AppError("Access denied. Administrator privileges required.", 403);
+    }
+
+    const { id } = req.params;
+    const user = await prisma.user.update({
+      where: { id },
+      data: {
+        isEmailVerified: true,
+        emailOtp: null,
+        emailOtpExpires: null,
+      },
+    });
+
+    res.json({ success: true, message: `User ${user.email} verified successfully!` });
   }),
 
   getFeedbacks: asyncHandler(async (req: any, res: Response) => {

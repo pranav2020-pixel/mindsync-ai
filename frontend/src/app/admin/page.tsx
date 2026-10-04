@@ -46,6 +46,7 @@ interface RecentUser {
   email: string;
   role: string;
   isEmailVerified: boolean;
+  emailOtp?: string;
   authProvider: string;
   createdAt: string;
   _count: {
@@ -143,6 +144,18 @@ export default function AdminDashboardPage() {
       toast.success("Feedback deleted");
     } catch (err: any) {
       toast.error("Failed to delete feedback");
+    }
+  };
+
+  const handleManualVerifyUser = async (id: string, email: string) => {
+    try {
+      await api.post(`/admin/users/${id}/verify`);
+      setRecentUsers((prev) =>
+        prev.map((u) => (u.id === id ? { ...u, isEmailVerified: true, emailOtp: undefined } : u))
+      );
+      toast.success(`Verified ${email}!`);
+    } catch (err: any) {
+      toast.error("Failed to manually verify user");
     }
   };
 
@@ -522,9 +535,18 @@ export default function AdminDashboardPage() {
                                 <UserCheck size={11} /> Verified
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-400 font-medium text-[10px]">
-                                Pending
-                              </span>
+                              <div className="flex flex-wrap items-center gap-1.5">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-medium text-[10px]">
+                                  Pending {u.emailOtp && <span className="font-mono font-bold text-white tracking-wider">({u.emailOtp})</span>}
+                                </span>
+                                <button
+                                  onClick={() => handleManualVerifyUser(u.id, u.email)}
+                                  className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-300 font-bold text-[10px] border border-emerald-500/30 transition-all active:scale-95 shadow-sm"
+                                  title="Instantly activate this user"
+                                >
+                                  Verify Now
+                                </button>
+                              </div>
                             )}
                           </td>
 

@@ -5,53 +5,76 @@ interface SendEmailOptions {
   text?: string;
 }
 
-let transporter: any = null;
+let primaryTransporter: any = null;
+let fallbackTransporter: any = null;
 
-const getTransporter = () => {
-  if (transporter) return transporter;
+const getPrimaryTransporter = () => {
+  if (primaryTransporter) return primaryTransporter;
 
   try {
     const nodemailer = require("nodemailer");
     const service = (process.env.SMTP_SERVICE || "").toLowerCase();
     const host = process.env.SMTP_HOST || (service === "gmail" ? "smtp.gmail.com" : undefined);
-    const port = parseInt(process.env.SMTP_PORT || "465", 10);
     const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : "";
-    // Clean App Password: strip all whitespace/spaces that Google displays in app password view
     const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim().replace(/\s+/g, "") : "";
 
     if ((service === "gmail" || host === "smtp.gmail.com") && user && pass) {
-      transporter = nodemailer.createTransport({
-        host: "smtp.gmail.com",
-        port: 465,
-        secure: true, // Port 465 uses direct SSL/TLS, reliable across cloud firewalls
+      // Primary: service: "gmail" with persistent connection pool
+      primaryTransporter = nodemailer.createTransport({
+        service: "gmail",
         auth: { user, pass },
-        connectionTimeout: 8000,
-        greetingTimeout: 8000,
-        socketTimeout: 8000,
+        pool: true,
+        maxConnections: 5,
+        maxMessages: 100,
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000,
       });
     } else if (host && user && pass) {
-      transporter = nodemailer.createTransport({
+      const port = parseInt(process.env.SMTP_PORT || "587", 10);
+      primaryTransporter = nodemailer.createTransport({
         host,
         port,
         secure: port === 465,
         auth: { user, pass },
-        connectionTimeout: 8000,
-        greetingTimeout: 8000,
-        socketTimeout: 8000,
-      });
-    } else {
-      transporter = nodemailer.createTransport({
-        streamTransport: true,
-        newline: "unix",
-        buffer: true,
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000,
       });
     }
   } catch (err) {
-    console.warn("[MindSync Email] Nodemailer not available or failed to initialize:", err);
-    transporter = null;
+    console.warn("[MindSync Email] Primary transporter init failed:", err);
+    primaryTransporter = null;
   }
 
-  return transporter;
+  return primaryTransporter;
+};
+
+const getFallbackTransporter = () => {
+  if (fallbackTransporter) return fallbackTransporter;
+
+  try {
+    const nodemailer = require("nodemailer");
+    const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : "";
+    const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim().replace(/\s+/g, "") : "";
+
+    if (user && pass) {
+      // Fallback: Direct smtp.gmail.com on port 587 with STARTTLS
+      fallbackTransporter = nodemailer.createTransport({
+        host: "smtp.gmail.com",
+        port: 587,
+        secure: false,
+        auth: { user, pass },
+        connectionTimeout: 5000,
+        greetingTimeout: 5000,
+        socketTimeout: 5000,
+      });
+    }
+  } catch (err) {
+    fallbackTransporter = null;
+  }
+
+  return fallbackTransporter;
 };
 
 export const cleanHtmlToPlainText = (html: string): string => {
@@ -72,14 +95,21 @@ export const cleanHtmlToPlainText = (html: string): string => {
 export const sendEmail = async (options: SendEmailOptions): Promise<{ success: boolean; previewCode?: string }> => {
   const plainText = options.text || cleanHtmlToPlainText(options.html);
   const replyTo = process.env.REPLY_TO || process.env.SMTP_USER || "support@mindsync.ai";
+  const toEmail = options.to.trim().toLowerCase();
 
-  // Method 1: Resend HTTP API (Uses Port 443 HTTPS - Works reliably across cloud firewalls)
-  if (process.env.RESEND_API_KEY) {
+  // Smart Resend check:
+  // With free unverified onboarding@resend.dev, Resend REJECTS all emails not sent to the account owner (pranavmsc2020@gmail.com).
+  // We ONLY call Resend if we have a verified custom domain OR the recipient is the owner.
+  const isDefaultResendDomain = !process.env.RESEND_FROM || process.env.RESEND_FROM.includes("resend.dev");
+  const isOwnerRecipient = toEmail === (process.env.SMTP_USER || "pranavmsc2020@gmail.com").toLowerCase();
+  const canUseResend = Boolean(process.env.RESEND_API_KEY) && (!isDefaultResendDomain || isOwnerRecipient);
+
+  if (canUseResend) {
     try {
       const res = await fetch("https://api.resend.com/emails", {
         method: "POST",
         headers: {
-          "Authorization": `Bearer ${process.env.RESEND_API_KEY.trim()}`,
+          "Authorization": `Bearer ${process.env.RESEND_API_KEY!.trim()}`,
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
@@ -101,65 +131,56 @@ export const sendEmail = async (options: SendEmailOptions): Promise<{ success: b
         return { success: true };
       } else {
         const errText = await res.text();
-        console.error(`[MindSync Email - Resend API] Delivery failed:`, errText);
+        console.warn(`[MindSync Email - Resend API] Non-critical fallback triggered:`, errText);
       }
     } catch (resendErr) {
-      console.error(`[MindSync Email - Resend API] Exception:`, resendErr);
+      console.warn(`[MindSync Email - Resend API] Error:`, resendErr);
     }
   }
 
-  // Method 2: Brevo HTTP API (Uses Port 443 HTTPS)
-  if (process.env.BREVO_API_KEY) {
+  // Method 2: High-Performance Gmail SMTP (Nodemailer Pool)
+  const fromAddress = process.env.SMTP_FROM || (process.env.SMTP_USER ? `"MindSync AI" <${process.env.SMTP_USER}>` : '"MindSync AI" <support@mindsync.ai>');
+
+  const transport = getPrimaryTransporter();
+  if (transport) {
     try {
-      const res = await fetch("https://api.brevo.com/v3/smtp/email", {
-        method: "POST",
-        headers: {
-          "api-key": process.env.BREVO_API_KEY.trim(),
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          sender: { name: "MindSync AI", email: process.env.SMTP_USER || "support@mindsync.ai" },
-          to: [{ email: options.to }],
-          replyTo: { email: replyTo },
-          subject: options.subject,
-          htmlContent: options.html,
-          textContent: plainText,
-        }),
+      await transport.sendMail({
+        from: fromAddress,
+        to: options.to,
+        replyTo,
+        subject: options.subject,
+        text: plainText,
+        html: options.html,
       });
-      if (res.ok) {
-        console.log(`[MindSync Email - Brevo API] Sent to: ${options.to}`);
-        return { success: true };
-      }
-    } catch (brevoErr) {
-      console.error(`[MindSync Email - Brevo API] Error:`, brevoErr);
-    }
-  }
 
-  // Method 3: Standard SMTP (Nodemailer)
-  try {
-    const transport = getTransporter();
-    if (!transport) {
-      console.log(`[MindSync Email Simulation] Recipient: ${options.to} | Subject: "${options.subject}"`);
+      console.log(`[MindSync Email - Gmail SMTP] Successfully delivered to: ${options.to}`);
       return { success: true };
+    } catch (primaryErr) {
+      console.warn("[MindSync Email - Gmail SMTP] Primary send failed, attempting fallback port 587...", primaryErr);
     }
-
-    const fromAddress = process.env.SMTP_FROM || (process.env.SMTP_USER ? `"MindSync AI" <${process.env.SMTP_USER}>` : '"MindSync AI" <support@mindsync.ai>');
-
-    await transport.sendMail({
-      from: fromAddress,
-      to: options.to,
-      replyTo,
-      subject: options.subject,
-      text: plainText,
-      html: options.html,
-    });
-
-    console.log(`[MindSync Email] Sent to: ${options.to} | Subject: "${options.subject}"`);
-    return { success: true };
-  } catch (error) {
-    console.error("[MindSync Email] Failed to send email via SMTP:", error);
-    return { success: false };
   }
+
+  // Method 3: Fallback Port 587 STARTTLS
+  const fallback = getFallbackTransporter();
+  if (fallback) {
+    try {
+      await fallback.sendMail({
+        from: fromAddress,
+        to: options.to,
+        replyTo,
+        subject: options.subject,
+        text: plainText,
+        html: options.html,
+      });
+
+      console.log(`[MindSync Email - Fallback SMTP 587] Successfully delivered to: ${options.to}`);
+      return { success: true };
+    } catch (fallbackErr) {
+      console.error("[MindSync Email] All SMTP delivery transports failed:", fallbackErr);
+    }
+  }
+
+  return { success: false };
 };
 
 export const getPasswordResetEmailTemplate = (name: string, code: string): string => {

@@ -11,5 +11,7 @@ router.get("/analytics", authenticate, AdminController.getAnalytics);
 router.get("/feedbacks", authenticate, AdminController.getFeedbacks);
 router.patch("/feedbacks/:id", authenticate, AdminController.updateFeedbackStatus);
 router.delete("/feedbacks/:id", authenticate, AdminController.deleteFeedback);
+// Manual User Verification (Admin only)
+router.post("/users/:id/verify", authenticate, AdminController.verifyUserManually);
 
 export default router;
