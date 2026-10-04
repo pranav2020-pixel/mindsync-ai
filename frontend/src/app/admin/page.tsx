@@ -7,7 +7,8 @@ import {
   Users, UserCheck, Activity, TrendingUp, Flame, BookOpen, Heart,
   CheckCircle2, MessageSquare, ShieldCheck, RefreshCw, Search,
   Sparkles, Calendar, Mail, ShieldAlert, ArrowLeft, BarChart3, Award,
-  Bug, Lightbulb, MessageSquarePlus, Clock, Trash2, CheckCircle, ExternalLink
+  Bug, Lightbulb, MessageSquarePlus, Clock, Trash2, CheckCircle, ExternalLink,
+  Copy, Key
 } from "lucide-react";
 import {
   AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
@@ -530,24 +531,41 @@ export default function AdminDashboardPage() {
                           </td>
 
                           <td className="py-3 pr-3">
-                            {u.isEmailVerified ? (
-                              <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium text-[10px]">
-                                <UserCheck size={11} /> Verified
-                              </span>
-                            ) : (
-                              <div className="flex flex-wrap items-center gap-1.5">
-                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-medium text-[10px]">
-                                  Pending {u.emailOtp && <span className="font-mono font-bold text-white tracking-wider">({u.emailOtp})</span>}
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              {u.isEmailVerified ? (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 font-medium text-[10px]">
+                                  <UserCheck size={11} /> Verified
                                 </span>
+                              ) : (
+                                <>
+                                  <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-500/15 text-amber-300 font-medium text-[10px]">
+                                    Pending
+                                  </span>
+                                  <button
+                                    onClick={() => handleManualVerifyUser(u.id, u.email)}
+                                    className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-300 font-bold text-[10px] border border-emerald-500/30 transition-all active:scale-95 shadow-sm"
+                                    title="Instantly activate this user"
+                                  >
+                                    Verify Now
+                                  </button>
+                                </>
+                              )}
+
+                              {u.emailOtp && (
                                 <button
-                                  onClick={() => handleManualVerifyUser(u.id, u.email)}
-                                  className="px-2 py-0.5 rounded-md bg-emerald-500/20 hover:bg-emerald-500/35 text-emerald-300 font-bold text-[10px] border border-emerald-500/30 transition-all active:scale-95 shadow-sm"
-                                  title="Instantly activate this user"
+                                  type="button"
+                                  onClick={() => {
+                                    navigator.clipboard.writeText(u.emailOtp!);
+                                    toast.success(`Copied OTP (${u.emailOtp}) for ${u.name}`);
+                                  }}
+                                  className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-sky-500/20 hover:bg-sky-500/35 text-sky-300 font-mono font-bold text-[10px] border border-sky-500/30 transition-all active:scale-95 shadow-sm"
+                                  title="Click to copy active login/verification OTP"
                                 >
-                                  Verify Now
+                                  <Copy size={10} />
+                                  <span>OTP: {u.emailOtp}</span>
                                 </button>
-                              </div>
-                            )}
+                              )}
+                            </div>
                           </td>
 
                           <td className="py-3 pr-3">

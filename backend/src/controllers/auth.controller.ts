@@ -7,6 +7,7 @@ import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
 import {
   sendEmail,
+  verifyMailTransporter,
   getPasswordResetEmailTemplate,
   getPasswordResetEmailText,
   getAccountDeletionEmailTemplate,
@@ -712,6 +713,7 @@ export const AuthController = {
     const to = (req.query.to as string) || "pranavmsc2020@gmail.com";
     const resendKey = process.env.RESEND_API_KEY ? process.env.RESEND_API_KEY.trim() : null;
     const smtpPass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim() : null;
+    const testSend = req.query.testSend === "true";
 
     const report: any = {
       timestamp: new Date().toISOString(),
@@ -722,9 +724,17 @@ export const AuthController = {
         hasSmtpUser: Boolean(process.env.SMTP_USER),
         smtpUser: process.env.SMTP_USER || null,
         hasSmtpPass: Boolean(smtpPass),
-        smtpPort: process.env.SMTP_PORT || "465",
+        smtpPort: process.env.SMTP_PORT || "587",
       },
     };
+
+    // Test Nodemailer SMTP Connection
+    try {
+      const verifyRes = await verifyMailTransporter();
+      report.smtpVerification = verifyRes;
+    } catch (vErr: any) {
+      report.smtpVerification = { success: false, error: vErr.message || String(vErr) };
+    }
 
     if (resendKey) {
       try {
@@ -749,6 +759,20 @@ export const AuthController = {
         };
       } catch (e: any) {
         report.resendTest = { error: e.message };
+      }
+    }
+
+    if (testSend) {
+      try {
+        const result = await sendEmail({
+          to,
+          subject: "MindSync AI - Live Delivery Test",
+          html: `<p>MindSync AI live delivery test dispatched at ${new Date().toISOString()}</p>`,
+          text: `MindSync AI live delivery test dispatched at ${new Date().toISOString()}`,
+        });
+        report.sendEmailTest = result;
+      } catch (sendErr: any) {
+        report.sendEmailTest = { success: false, error: sendErr.message || String(sendErr) };
       }
     }
 

@@ -8,38 +8,33 @@ interface SendEmailOptions {
 let primaryTransporter: any = null;
 let fallbackTransporter: any = null;
 
-const getPrimaryTransporter = () => {
+export const getPrimaryTransporter = () => {
   if (primaryTransporter) return primaryTransporter;
 
   try {
     const nodemailer = require("nodemailer");
-    const service = (process.env.SMTP_SERVICE || "").toLowerCase();
-    const host = process.env.SMTP_HOST || (service === "gmail" ? "smtp.gmail.com" : undefined);
+    const host = process.env.SMTP_HOST || "smtp.gmail.com";
+    const port = parseInt(process.env.SMTP_PORT || "587", 10);
     const user = process.env.SMTP_USER ? process.env.SMTP_USER.trim() : "";
     const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim().replace(/\s+/g, "") : "";
 
-    if ((service === "gmail" || host === "smtp.gmail.com") && user && pass) {
-      // Primary: service: "gmail" with persistent connection pool
+    if (user && pass) {
+      // Primary: High-speed pooled transport on Port 587 with STARTTLS (never port 465 which is blocked on cloud networks)
       primaryTransporter = nodemailer.createTransport({
-        service: "gmail",
+        host,
+        port: port === 465 ? 587 : port, // Force 587 if port 465 was provided in env
+        secure: false, // Port 587 uses STARTTLS
+        requireTLS: true,
         auth: { user, pass },
         pool: true,
         maxConnections: 5,
         maxMessages: 100,
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 5000,
-      });
-    } else if (host && user && pass) {
-      const port = parseInt(process.env.SMTP_PORT || "587", 10);
-      primaryTransporter = nodemailer.createTransport({
-        host,
-        port,
-        secure: port === 465,
-        auth: { user, pass },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 5000,
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 8000,
+        tls: {
+          rejectUnauthorized: false,
+        },
       });
     }
   } catch (err) {
@@ -50,7 +45,7 @@ const getPrimaryTransporter = () => {
   return primaryTransporter;
 };
 
-const getFallbackTransporter = () => {
+export const getFallbackTransporter = () => {
   if (fallbackTransporter) return fallbackTransporter;
 
   try {
@@ -59,15 +54,19 @@ const getFallbackTransporter = () => {
     const pass = process.env.SMTP_PASS ? process.env.SMTP_PASS.trim().replace(/\s+/g, "") : "";
 
     if (user && pass) {
-      // Fallback: Direct smtp.gmail.com on port 587 with STARTTLS
+      // Fallback: Direct non-pooled smtp.gmail.com on port 587 with STARTTLS
       fallbackTransporter = nodemailer.createTransport({
         host: "smtp.gmail.com",
         port: 587,
         secure: false,
+        requireTLS: true,
         auth: { user, pass },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 5000,
+        connectionTimeout: 8000,
+        greetingTimeout: 8000,
+        socketTimeout: 8000,
+        tls: {
+          rejectUnauthorized: false,
+        },
       });
     }
   } catch (err) {
@@ -75,6 +74,17 @@ const getFallbackTransporter = () => {
   }
 
   return fallbackTransporter;
+};
+
+export const verifyMailTransporter = async (): Promise<{ success: boolean; error?: string }> => {
+  const transporter = getPrimaryTransporter();
+  if (!transporter) return { success: false, error: "No transporter configured (missing SMTP_USER or SMTP_PASS)" };
+  try {
+    await transporter.verify();
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err.message || String(err) };
+  }
 };
 
 export const cleanHtmlToPlainText = (html: string): string => {
