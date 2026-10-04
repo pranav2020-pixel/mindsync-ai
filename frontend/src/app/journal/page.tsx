@@ -7,10 +7,12 @@ import {
   Lightbulb, Heart, Zap, Frown, X, Eye, ChevronDown, ChevronUp, Trash2
 } from "lucide-react";
 import api from "@/lib/api";
+import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 
 export default function JournalPage() {
+  const { user } = useAuth();
   const [entries, setEntries] = useState<any[]>([]);
   const [selectedEntry, setSelectedEntry] = useState<any>(null);
   const [readingEntry, setReadingEntry] = useState<any>(null);
@@ -28,42 +30,61 @@ export default function JournalPage() {
   const [sleepHours, setSleepHours] = useState<string>("");
   const [contentError, setContentError] = useState("");
 
-  useEffect(() => {
-    // 1. Instantly restore cached entries if available
-    try {
-      const cached = localStorage.getItem("mindsync_cached_journals");
-      if (cached) {
-        const parsed = JSON.parse(cached);
-        if (Array.isArray(parsed) && parsed.length > 0) {
-          setEntries(parsed);
-          setSelectedEntry(parsed[0]);
-          setShowAnalysis(true);
-        }
-      }
-    } catch {}
+  const userCacheKey = user?.id ? `mindsync_cached_journals_${user.id}` : null;
 
-    // 2. Fetch fresh entries from server
-    fetchEntries();
+  // Clean up any legacy shared cache on mount
+  useEffect(() => {
+    try {
+      localStorage.removeItem("mindsync_cached_journals");
+    } catch {}
   }, []);
 
+  // When user is identified, restore only their specific scoped entries and fetch fresh data
+  useEffect(() => {
+    if (!user) {
+      setEntries([]);
+      setSelectedEntry(null);
+      setShowAnalysis(false);
+      return;
+    }
+
+    if (userCacheKey) {
+      try {
+        const cached = localStorage.getItem(userCacheKey);
+        if (cached) {
+          const parsed = JSON.parse(cached);
+          if (Array.isArray(parsed) && parsed.length > 0) {
+            setEntries(parsed);
+            setSelectedEntry(parsed[0]);
+            setShowAnalysis(true);
+          }
+        }
+      } catch {}
+    }
+
+    fetchEntries();
+  }, [user?.id, userCacheKey]);
+
   const fetchEntries = async () => {
+    if (!user) return;
     try {
       const res = await api.get("/journals?limit=30");
-      const serverEntries = res.data.data || [];
+      const serverEntries = Array.isArray(res.data?.data) ? res.data.data : [];
+
+      // Server is the single source of truth for the current authenticated user
+      setEntries(serverEntries);
       if (serverEntries.length > 0) {
-        setEntries((prev) => {
-          const map = new Map<string, any>();
-          // Combine existing optimistic entries and server entries
-          prev.forEach((e) => map.set(e.id, e));
-          serverEntries.forEach((e: any) => map.set(e.id, e));
-          const merged = Array.from(map.values()).sort(
-            (a, b) => new Date(b.date || b.createdAt).getTime() - new Date(a.date || a.createdAt).getTime()
-          );
-          try {
-            localStorage.setItem("mindsync_cached_journals", JSON.stringify(merged));
-          } catch {}
-          return merged;
-        });
+        setSelectedEntry(serverEntries[0]);
+        setShowAnalysis(true);
+      } else {
+        setSelectedEntry(null);
+        setShowAnalysis(false);
+      }
+
+      if (userCacheKey) {
+        try {
+          localStorage.setItem(userCacheKey, JSON.stringify(serverEntries));
+        } catch {}
       }
     } catch (err) {
       console.warn("Could not sync journal entries from server:", err);
@@ -89,9 +110,11 @@ export default function JournalPage() {
       await api.delete(`/journals/${id}`);
       setEntries((prev) => {
         const updated = prev.filter((item) => item.id !== id);
-        try {
-          localStorage.setItem("mindsync_cached_journals", JSON.stringify(updated));
-        } catch {}
+        if (userCacheKey) {
+          try {
+            localStorage.setItem(userCacheKey, JSON.stringify(updated));
+          } catch {}
+        }
         return updated;
       });
       if (selectedEntry?.id === id) {
@@ -151,9 +174,11 @@ export default function JournalPage() {
 
       setEntries((prev) => {
         const updated = [newEntry, ...prev.filter((e) => e.id !== newEntry.id)];
-        try {
-          localStorage.setItem("mindsync_cached_journals", JSON.stringify(updated));
-        } catch {}
+        if (userCacheKey) {
+          try {
+            localStorage.setItem(userCacheKey, JSON.stringify(updated));
+          } catch {}
+        }
         return updated;
       });
 
@@ -183,9 +208,11 @@ export default function JournalPage() {
 
       setEntries((prev) => {
         const updated = [fallbackEntry, ...prev];
-        try {
-          localStorage.setItem("mindsync_cached_journals", JSON.stringify(updated));
-        } catch {}
+        if (userCacheKey) {
+          try {
+            localStorage.setItem(userCacheKey, JSON.stringify(updated));
+          } catch {}
+        }
         return updated;
       });
       setSelectedEntry(fallbackEntry);

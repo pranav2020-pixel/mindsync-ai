@@ -93,20 +93,33 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
+  const onUserAuthenticated = (newUser: any, accessToken: string, refreshToken?: string) => {
+    // Isolate user sessions: purge any cached journals or private data from previous sessions
+    try {
+      localStorage.removeItem("mindsync_cached_journals");
+      for (let i = localStorage.length - 1; i >= 0; i--) {
+        const key = localStorage.key(i);
+        if (key && (key === "mindsync_cached_journals" || (key.startsWith("mindsync_cached_journals") && !key.endsWith(newUser.id)))) {
+          localStorage.removeItem(key);
+        }
+      }
+    } catch {}
+
+    setStoredTokens(accessToken, refreshToken);
+    setUser(newUser);
+    router.push("/");
+  };
+
   const login = async (email: string, password: string) => {
     const res = await api.post("/auth/login", { email, password });
     const { accessToken, refreshToken, user } = res.data.data;
-    setStoredTokens(accessToken, refreshToken);
-    setUser(user);
-    router.push("/");
+    onUserAuthenticated(user, accessToken, refreshToken);
   };
 
   const loginWithGoogle = async (credential: string) => {
     const res = await api.post("/auth/google", { credential });
     const { accessToken, refreshToken, user } = res.data.data;
-    setStoredTokens(accessToken, refreshToken);
-    setUser(user);
-    router.push("/");
+    onUserAuthenticated(user, accessToken, refreshToken);
   };
 
   const sendEmailOtp = async (email: string, purpose: string = "Sign In") => {
@@ -117,18 +130,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const verifyEmailOtp = async (email: string, code: string) => {
     const res = await api.post("/auth/otp/verify", { email, code });
     const { accessToken, refreshToken, user } = res.data.data;
-    setStoredTokens(accessToken, refreshToken);
-    setUser(user);
-    router.push("/");
+    onUserAuthenticated(user, accessToken, refreshToken);
   };
 
   const register = async (data: any) => {
     const res = await api.post("/auth/register", data);
     if (res.data?.data?.accessToken) {
       const { accessToken, refreshToken, user } = res.data.data;
-      setStoredTokens(accessToken, refreshToken);
-      setUser(user);
-      router.push("/");
+      onUserAuthenticated(user, accessToken, refreshToken);
     }
     return res.data;
   };

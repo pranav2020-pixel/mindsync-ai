@@ -65,6 +65,15 @@ export const clearStoredTokens = () => {
   try {
     localStorage.removeItem(ACCESS_TOKEN_KEY);
     localStorage.removeItem(REFRESH_TOKEN_KEY);
+    localStorage.removeItem("mindsync_cached_journals");
+
+    // Purge any user-scoped cached journals or sensitive data
+    for (let i = localStorage.length - 1; i >= 0; i--) {
+      const key = localStorage.key(i);
+      if (key && (key.startsWith("mindsync_cached_journals") || key.startsWith("mindsync_user_"))) {
+        localStorage.removeItem(key);
+      }
+    }
   } catch (e) {
     console.warn("[AuthStorage] Could not clear localStorage:", e);
   }
