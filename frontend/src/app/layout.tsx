@@ -77,7 +77,37 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             <PwaInstaller />
             <NetworkStatusBanner />
             <SessionExpiredModal />
-            <Toaster position="top-right" />
+            <Toaster
+              position="top-center"
+              containerClassName="mindsync-toaster"
+              containerStyle={{
+                top: "calc(env(safe-area-inset-top, 0px) + 4.25rem)",
+                zIndex: 99999,
+              }}
+              toastOptions={{
+                duration: 3500,
+                className: "mindsync-toast",
+                style: {
+                  borderRadius: "14px",
+                  fontSize: "13px",
+                  fontWeight: 500,
+                  maxWidth: "92vw",
+                  boxShadow: "0 10px 30px -5px rgba(0, 0, 0, 0.4)",
+                },
+                success: {
+                  iconTheme: {
+                    primary: "#10b981",
+                    secondary: "#ffffff",
+                  },
+                },
+                error: {
+                  iconTheme: {
+                    primary: "#ef4444",
+                    secondary: "#ffffff",
+                  },
+                },
+              }}
+            />
           </ThemeProvider>
         </AuthProvider>
       </body>

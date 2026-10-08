@@ -412,7 +412,7 @@ export function Navbar() {
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  className="absolute right-0 top-12 w-56 bg-white dark:bg-slate-900 rounded-xl p-2 shadow-2xl z-50 border border-slate-200 dark:border-slate-800"
+                  className="fixed sm:absolute top-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:top-12 right-3.5 sm:right-0 w-60 sm:w-56 bg-white dark:bg-slate-900 rounded-2xl p-2 shadow-2xl z-50 border border-slate-200 dark:border-slate-800"
                 >
                   <div className="px-3 py-2 border-b border-slate-200/80 dark:border-slate-800 mb-1">
                     <p className="font-semibold text-sm text-slate-900 dark:text-white">{user?.name}</p>

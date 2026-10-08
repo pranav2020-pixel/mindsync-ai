@@ -65,7 +65,7 @@ export function NetworkStatusBanner() {
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="w-full bg-rose-600 text-white shadow-md pointer-events-auto px-4 py-2.5 flex items-center justify-center gap-2.5 text-xs sm:text-sm font-medium"
+            className="w-full bg-rose-600 text-white shadow-md pointer-events-auto px-4 pt-[calc(0.625rem+env(safe-area-inset-top,0px))] pb-2.5 flex items-center justify-center gap-2.5 text-xs sm:text-sm font-medium"
           >
             <WifiOff size={16} className="animate-pulse shrink-0" />
             <span>You are currently offline. MindSync features are running on local cache.</span>
@@ -86,7 +86,7 @@ export function NetworkStatusBanner() {
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="w-full bg-emerald-600 text-white shadow-md pointer-events-auto px-4 py-2 flex items-center justify-center gap-2 text-xs sm:text-sm font-medium"
+            className="w-full bg-emerald-600 text-white shadow-md pointer-events-auto px-4 pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2 flex items-center justify-center gap-2 text-xs sm:text-sm font-medium"
           >
             <Wifi size={16} className="shrink-0" />
             <span>Connection restored. Back online!</span>
@@ -101,7 +101,7 @@ export function NetworkStatusBanner() {
             initial={{ y: -50, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: -50, opacity: 0 }}
-            className="w-full bg-amber-600 text-white shadow-sm pointer-events-auto px-4 py-1.5 flex items-center justify-center gap-2 text-xs font-medium"
+            className="w-full bg-amber-600 text-white shadow-sm pointer-events-auto px-4 pt-[calc(0.375rem+env(safe-area-inset-top,0px))] pb-1.5 flex items-center justify-center gap-2 text-xs font-medium"
           >
             <AlertTriangle size={14} className="shrink-0" />
             <span>Slow connection detected. Cloud AI responses and charts may take longer to load.</span>
