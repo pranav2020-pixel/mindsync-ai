@@ -27,25 +27,25 @@
     --radius: 0.75rem;
   }
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --background: 0 0% 0%;                /* Pure Monolithic True Black #000000 */
+    --foreground: 0 0% 98%;               /* Pure crisp white #fafafa */
+    --card: 0 0% 4%;                      /* Monolithic neutral obsidian card #0a0a0a */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 4%;                   /* #0a0a0a */
+    --popover-foreground: 0 0% 98%;
     --primary: 201 96% 32%;
-    --primary-foreground: 222.2 47.4% 11.2%;
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --primary-foreground: 0 0% 98%;
+    --secondary: 0 0% 9%;                 /* Deep neutral surface #171717 */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 9%;                     /* #171717 */
+    --muted-foreground: 0 0% 63.9%;       /* Neutral monochrome muted #a3a3a3 */
+    --accent: 0 0% 12%;                   /* #1f1f1f */
+    --accent-foreground: 0 0% 98%;
     --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 201 96% 32%;
+    --destructive-foreground: 0 0% 98%;
+    --border: 0 0% 12%;                   /* Clean neutral border #1f1f1f */
+    --input: 0 0% 12%;
+    --ring: 0 0% 40%;
   }
 
   /* Scientifically Eye & Mood Relaxing Biophilic Forest Green Theme */
@@ -95,8 +95,8 @@
 }
 
 @layer utilities {
-  .glass { @apply bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/30 shadow-sm dark:shadow-none; }
-  .glass-card { @apply bg-white/90 dark:bg-slate-800/80 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/40 shadow-sm dark:shadow-lg; }
+  .glass { @apply bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xl border border-slate-200/80 dark:border-neutral-800/60 shadow-sm dark:shadow-none; }
+  .glass-card { @apply bg-white/90 dark:bg-neutral-900/80 backdrop-blur-lg border border-slate-200/80 dark:border-neutral-800/70 shadow-sm dark:shadow-2xl; }
   
   /* Green Theme Glass Elevation & Navigation Bars */
   .green .glass {

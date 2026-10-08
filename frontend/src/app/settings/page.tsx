@@ -268,19 +268,19 @@ export default function SettingsPage() {
               </span>
             )}
             <div className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 rounded-lg bg-primary-500/20 text-primary-400 flex items-center justify-center border border-primary-500/30">
+              <div className="w-8 h-8 rounded-lg bg-neutral-800 text-neutral-200 flex items-center justify-center border border-neutral-700">
                 <Moon size={16} />
               </div>
-              <span className="font-semibold text-sm text-foreground">Obsidian Slate</span>
+              <span className="font-semibold text-sm text-foreground">Monolithic Black</span>
             </div>
             <div className="space-y-1.5">
               <div className="flex items-center gap-1.5">
-                <span className="w-3.5 h-3.5 rounded-full bg-[#090d16] border border-slate-700" />
-                <span className="w-3.5 h-3.5 rounded-full bg-[#0284c7]" />
-                <span className="w-3.5 h-3.5 rounded-full bg-[#94a3b8]" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#000000] border border-neutral-700" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#0a0a0a] border border-neutral-800" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#a3a3a3]" />
               </div>
               <p className="text-[11px] text-muted-foreground leading-tight">
-                High-contrast night mode. Ideal for low-light environments and OLED energy efficiency.
+                Pure zero-saturation OLED true black. No bluish or violet tint for maximum contrast &amp; battery savings.
               </p>
             </div>
           </button>

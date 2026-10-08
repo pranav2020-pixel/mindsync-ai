@@ -30,7 +30,7 @@ export function BottomNav() {
   };
 
   return (
-    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-white/10 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] dark:shadow-none pb-safe">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-black/95 backdrop-blur-xl border-t border-slate-200/80 dark:border-neutral-800/80 shadow-[0_-4px_20px_rgba(0,0,0,0.03)] dark:shadow-none pb-safe">
       <div className="flex items-center justify-around px-2 py-1.5 max-w-lg mx-auto">
         {tabs.map((tab) => {
           const Icon = tab.icon;

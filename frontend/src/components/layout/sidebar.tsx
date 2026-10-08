@@ -99,7 +99,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen w-72 lg:w-64 bg-white/95 dark:bg-slate-950/90 backdrop-blur-xl border-r border-slate-200/80 dark:border-white/10 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]",
+          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen w-72 lg:w-64 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-neutral-800/80 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]",
           mobileOpen
             ? "translate-x-0 shadow-2xl pointer-events-auto visible"
             : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto invisible lg:visible"
@@ -187,7 +187,7 @@ export function Sidebar() {
             <span>Install MindSync App</span>
           </button>
 
-          <div className="rounded-2xl p-3.5 bg-slate-100/80 dark:bg-white/[0.04] border border-slate-200/70 dark:border-white/10 transition-all">
+          <div className="rounded-2xl p-3.5 bg-slate-100/80 dark:bg-neutral-900/60 border border-slate-200/70 dark:border-neutral-800/80 transition-all">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-slate-600 dark:text-muted-foreground font-semibold flex items-center gap-1.5">
                 <Flame size={14} className={streak > 0 ? "text-amber-500 fill-amber-500/20" : "text-slate-400 dark:text-muted-foreground"} />
