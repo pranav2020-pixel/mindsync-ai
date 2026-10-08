@@ -162,23 +162,57 @@
     background-color: rgba(19, 43, 29, 0.5) !important;
     border-color: rgba(34, 197, 94, 0.2) !important;
   }
-  .green aside [class*="text-primary-400"],
-  .green aside [class*="text-primary-600"],
-  .green nav [class*="text-primary-400"],
-  .green nav [class*="text-primary-600"] {
-    color: #34d399 !important;
+  /* Green Theme: Global Primary Color Harmonization (Eliminates jarring cyan/blue on dark emerald) */
+  .green [class*="text-primary-"],
+  .green .text-primary-300,
+  .green .text-primary-400,
+  .green .text-primary-500,
+  .green .text-primary-600,
+  .green .text-primary-700,
+  .green .dark\:text-primary-300,
+  .green .dark\:text-primary-400 {
+    color: #34d399 !important; /* Soft soothing mint-emerald - eliminates optic nerve strain */
   }
-  .green aside [class*="bg-primary-500/10"],
-  .green aside [class*="bg-primary-500/15"],
-  .green nav [class*="bg-primary-500/10"],
-  .green nav [class*="bg-primary-500/15"] {
+  .green [class*="hover:text-primary-"]:hover,
+  .green .hover\:text-primary-500:hover,
+  .green .hover\:text-primary-600:hover,
+  .green .dark\:hover\:text-primary-300:hover {
+    color: #6ee7b7 !important;
+  }
+  .green [class*="bg-primary-500/"],
+  .green [class*="bg-primary-50"],
+  .green .bg-primary-500\/10,
+  .green .bg-primary-500\/15,
+  .green .bg-primary-500\/20,
+  .green .dark\:bg-primary-500\/10,
+  .green .dark\:bg-primary-500\/15,
+  .green .dark\:bg-primary-500\/20 {
     background-color: rgba(16, 185, 129, 0.15) !important;
+  }
+  .green [class*="border-primary-500"],
+  .green [class*="border-primary-200"],
+  .green [class*="border-primary-300"],
+  .green .border-primary-500\/20,
+  .green .border-primary-500\/30,
+  .green .border-primary-500\/40,
+  .green .dark\:border-primary-500\/20,
+  .green .dark\:border-primary-500\/30 {
+    border-color: rgba(34, 197, 94, 0.3) !important;
+  }
+  .green [class*="hover:border-primary-500"]:hover {
+    border-color: rgba(34, 197, 94, 0.5) !important;
+  }
+  .green button[class*="bg-primary-500/15"],
+  .green a[class*="bg-primary-500/15"] {
+    background-color: rgba(16, 185, 129, 0.18) !important;
     border-color: rgba(34, 197, 94, 0.35) !important;
     color: #34d399 !important;
   }
-  .green aside [class*="border-primary-500"],
-  .green nav [class*="border-primary-500"] {
-    border-color: rgba(34, 197, 94, 0.35) !important;
+  .green button[class*="bg-primary-500/15"]:hover,
+  .green a[class*="bg-primary-500/15"]:hover,
+  .green [class*="hover:bg-primary-500"]:hover {
+    background-color: #10b981 !important;
+    color: #05130b !important;
   }
   .green #bottomNavIndicator,
   .green [class*="bg-primary-500"] {
@@ -244,23 +278,51 @@
     background-color: rgba(16, 185, 129, 0.08) !important;
     border-color: rgba(16, 185, 129, 0.22) !important;
   }
-  .green-light aside [class*="text-primary-400"],
-  .green-light aside [class*="text-primary-600"],
-  .green-light nav [class*="text-primary-400"],
-  .green-light nav [class*="text-primary-600"] {
-    color: #059669 !important;
+  /* Green Light Theme: Global Primary Color Harmonization */
+  .green-light [class*="text-primary-"],
+  .green-light .text-primary-300,
+  .green-light .text-primary-400,
+  .green-light .text-primary-500,
+  .green-light .text-primary-600 {
+    color: #059669 !important; /* Crisp botanical emerald for light theme */
   }
-  .green-light aside [class*="bg-primary-500/10"],
-  .green-light aside [class*="bg-primary-500/15"],
-  .green-light nav [class*="bg-primary-500/10"],
-  .green-light nav [class*="bg-primary-500/15"] {
+  .green-light .text-primary-700 {
+    color: #064e3b !important;
+  }
+  .green-light [class*="hover:text-primary-"]:hover,
+  .green-light .hover\:text-primary-500:hover,
+  .green-light .hover\:text-primary-600:hover {
+    color: #047857 !important;
+  }
+  .green-light [class*="bg-primary-500/"],
+  .green-light [class*="bg-primary-50"],
+  .green-light .bg-primary-500\/10,
+  .green-light .bg-primary-500\/15,
+  .green-light .bg-primary-500\/20 {
+    background-color: rgba(16, 185, 129, 0.14) !important;
+  }
+  .green-light [class*="border-primary-500"],
+  .green-light [class*="border-primary-200"],
+  .green-light [class*="border-primary-300"],
+  .green-light .border-primary-500\/20,
+  .green-light .border-primary-500\/30,
+  .green-light .border-primary-500\/40 {
+    border-color: rgba(16, 185, 129, 0.28) !important;
+  }
+  .green-light [class*="hover:border-primary-500"]:hover {
+    border-color: rgba(16, 185, 129, 0.45) !important;
+  }
+  .green-light button[class*="bg-primary-500/15"],
+  .green-light a[class*="bg-primary-500/15"] {
     background-color: rgba(16, 185, 129, 0.14) !important;
     border-color: rgba(16, 185, 129, 0.3) !important;
     color: #059669 !important;
   }
-  .green-light aside [class*="border-primary-500"],
-  .green-light nav [class*="border-primary-500"] {
-    border-color: rgba(16, 185, 129, 0.4) !important;
+  .green-light button[class*="bg-primary-500/15"]:hover,
+  .green-light a[class*="bg-primary-500/15"]:hover,
+  .green-light [class*="hover:bg-primary-500"]:hover {
+    background-color: #059669 !important;
+    color: #ffffff !important;
   }
   .green-light #bottomNavIndicator,
   .green-light [class*="bg-primary-500"] {
