@@ -20,6 +20,7 @@ import {
   Sun,
   Moon,
   Leaf,
+  Sparkles,
   Palette,
   Check,
 } from "lucide-react";
@@ -216,8 +217,8 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
-          {/* 1. Relaxing Biophilic Green */}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 pt-2">
+          {/* 1. Relaxing Biophilic Green Dark */}
           <button
             type="button"
             onClick={() => setTheme("green")}
@@ -251,7 +252,41 @@ export default function SettingsPage() {
             </div>
           </button>
 
-          {/* 2. Classic Obsidian Dark */}
+          {/* 2. Relaxing Biophilic Emerald Light (Design 1-3 Light) */}
+          <button
+            type="button"
+            onClick={() => setTheme("green-light")}
+            className={cn(
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              theme === "green-light"
+                ? "bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10"
+                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-emerald-500/40"
+            )}
+          >
+            {theme === "green-light" && (
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-600 text-white flex items-center justify-center">
+                <Check size={12} className="stroke-[3]" />
+              </span>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 flex items-center justify-center border border-emerald-500/30">
+                <Sparkles size={16} />
+              </div>
+              <span className="font-semibold text-sm text-foreground">Emerald Glass</span>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-[#f1f8f4] border border-emerald-300" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#10b981]" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#072213]" />
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                Frosted mint glassmorphism &amp; vibrant botanical emerald. Soothing daytime light therapy aesthetic.
+              </p>
+            </div>
+          </button>
+
+          {/* 3. Classic Obsidian Dark */}
           <button
             type="button"
             onClick={() => setTheme("dark")}
@@ -285,7 +320,7 @@ export default function SettingsPage() {
             </div>
           </button>
 
-          {/* 3. Daylight Pristine Light */}
+          {/* 4. Daylight Pristine Light */}
           <button
             type="button"
             onClick={() => setTheme("light")}

@@ -145,10 +145,20 @@ export function Navbar() {
         <button
           onClick={toggleTheme}
           className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
-          title={theme === "green" ? "Relaxing Green (Click to switch to Light)" : theme === "dark" ? "Dark Mode (Click to switch to Relaxing Green)" : "Light Mode (Click to switch to Dark)"}
+          title={
+            theme === "green"
+              ? "Forest Emerald Dark (Click for Emerald Glass Light)"
+              : theme === "green-light"
+              ? "Emerald Glass Light (Click for Daylight Clean)"
+              : theme === "dark"
+              ? "Monolithic Black (Click for Forest Emerald)"
+              : "Daylight Clean (Click for Monolithic Black)"
+          }
         >
           {theme === "green" ? (
             <Leaf size={18} className="text-emerald-400 animate-pulse" />
+          ) : theme === "green-light" ? (
+            <Sparkles size={18} className="text-emerald-600 animate-pulse" />
           ) : theme === "dark" ? (
             <Sun size={18} />
           ) : (

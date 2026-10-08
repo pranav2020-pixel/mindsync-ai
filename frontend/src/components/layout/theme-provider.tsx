@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 
-export type AppTheme = "dark" | "light" | "green";
+export type AppTheme = "dark" | "light" | "green" | "green-light";
 
 interface ThemeContextType {
   theme: AppTheme;
@@ -21,17 +21,19 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
 
   const applyThemeToDOM = (t: AppTheme) => {
     const root = document.documentElement;
-    root.classList.remove("dark", "green");
+    root.classList.remove("dark", "green", "green-light");
     if (t === "dark") {
       root.classList.add("dark");
     } else if (t === "green") {
       root.classList.add("dark", "green");
+    } else if (t === "green-light") {
+      root.classList.add("green-light");
     }
   };
 
   useEffect(() => {
     const saved = (localStorage.getItem("theme") as AppTheme) || "dark";
-    if (saved === "light" || saved === "dark" || saved === "green") {
+    if (saved === "light" || saved === "dark" || saved === "green" || saved === "green-light") {
       setThemeState(saved);
       applyThemeToDOM(saved);
     } else {
@@ -47,10 +49,11 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
   };
 
   const toggleTheme = () => {
-    // Cycle: dark -> green -> light -> dark
+    // Cycle: dark -> green -> green-light -> light -> dark
     let next: AppTheme = "dark";
     if (theme === "dark") next = "green";
-    else if (theme === "green") next = "light";
+    else if (theme === "green") next = "green-light";
+    else if (theme === "green-light") next = "light";
     else next = "dark";
 
     setTheme(next);
