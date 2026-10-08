@@ -98,7 +98,7 @@
   .glass { @apply bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/30 shadow-sm dark:shadow-none; }
   .glass-card { @apply bg-white/90 dark:bg-slate-800/80 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/40 shadow-sm dark:shadow-lg; }
   
-  /* Green Theme Glass Elevation */
+  /* Green Theme Glass Elevation & Navigation Bars */
   .green .glass {
     background-color: rgba(9, 26, 16, 0.75) !important;
     border-color: rgba(34, 197, 94, 0.15) !important;
@@ -110,6 +110,57 @@
   }
   .green .text-gradient {
     background-image: linear-gradient(to right, #34d399, #a3e635) !important;
+  }
+
+  /* Green Theme Sidebar & Bottom Navigation Bars */
+  .green aside {
+    background-color: #06170d !important;
+    border-right-color: rgba(34, 197, 94, 0.15) !important;
+  }
+  .green nav[class*="fixed bottom-0"] {
+    background-color: #06170d !important;
+    border-top-color: rgba(34, 197, 94, 0.15) !important;
+    box-shadow: 0 -8px 24px -4px rgba(0, 0, 0, 0.7), 0 0 16px 0 rgba(16, 185, 129, 0.08) !important;
+  }
+  .green aside [class*="bg-slate-950"],
+  .green nav [class*="bg-slate-950"] {
+    background-color: #06170d !important;
+  }
+  .green aside [class*="border-white/10"],
+  .green nav [class*="border-white/10"] {
+    border-color: rgba(34, 197, 94, 0.15) !important;
+  }
+  .green aside [class*="border-white/5"],
+  .green nav [class*="border-white/5"] {
+    border-color: rgba(34, 197, 94, 0.1) !important;
+  }
+  .green aside [class*="bg-white/[0.04]"],
+  .green aside [class*="bg-white/10"] {
+    background-color: rgba(19, 43, 29, 0.5) !important;
+    border-color: rgba(34, 197, 94, 0.2) !important;
+  }
+  .green aside [class*="text-primary-400"],
+  .green aside [class*="text-primary-600"],
+  .green nav [class*="text-primary-400"],
+  .green nav [class*="text-primary-600"] {
+    color: #34d399 !important;
+  }
+  .green aside [class*="bg-primary-500/10"],
+  .green aside [class*="bg-primary-500/15"],
+  .green nav [class*="bg-primary-500/10"],
+  .green nav [class*="bg-primary-500/15"] {
+    background-color: rgba(16, 185, 129, 0.15) !important;
+    border-color: rgba(34, 197, 94, 0.35) !important;
+    color: #34d399 !important;
+  }
+  .green aside [class*="border-primary-500"],
+  .green nav [class*="border-primary-500"] {
+    border-color: rgba(34, 197, 94, 0.35) !important;
+  }
+  .green #bottomNavIndicator,
+  .green [class*="bg-primary-500"] {
+    background-color: #10b981 !important;
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important;
   }
 
   .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-wellness-focus; }
