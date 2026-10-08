@@ -341,7 +341,56 @@
   }
 
   .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-wellness-focus; }
-  .hover-lift { @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl; }
+
+  /* Universal Interactive Hover Lift Dynamics across all 4 themes */
+  .hover-lift {
+    transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s ease !important;
+  }
+  .hover-lift:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 16px 30px -10px rgba(0, 0, 0, 0.1), 0 4px 6px -4px rgba(0, 0, 0, 0.05) !important;
+  }
+  .dark .hover-lift:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.95), 0 0 1px 1px rgba(255, 255, 255, 0.12) !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
+  }
+  .green .hover-lift:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.85), 0 0 20px 0 rgba(16, 185, 129, 0.18) !important;
+    border-color: rgba(34, 197, 94, 0.4) !important;
+  }
+  .green-light .hover-lift:hover {
+    transform: translateY(-4px) !important;
+    box-shadow: 0 20px 35px -10px rgba(16, 185, 129, 0.22), 0 0 15px 0 rgba(255, 255, 255, 0.9) !important;
+    border-color: rgba(16, 185, 129, 0.4) !important;
+  }
+
+  /* Universal Tactile Button & Link Hover/Active Feedback */
+  button:not(:disabled),
+  a:not([class*="pointer-events-none"]) {
+    transition-property: color, background-color, border-color, box-shadow, transform, opacity;
+    transition-timing-function: cubic-bezier(0.16, 1, 0.3, 1);
+    transition-duration: 200ms;
+  }
+  button:not(:disabled):active,
+  a:not([class*="pointer-events-none"]):active {
+    transform: scale(0.975);
+  }
+
+  /* Stitch Theme Grids & Backdrops */
+  .stitch-bg {
+    background-image: radial-gradient(rgba(128, 128, 128, 0.12) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .green .stitch-bg {
+    background-image: radial-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
+  .green-light .stitch-bg {
+    background-image: radial-gradient(rgba(16, 185, 129, 0.12) 1px, transparent 1px);
+    background-size: 24px 24px;
+  }
 
   /* iOS and Android Safe Area Insets */
   .pb-safe {

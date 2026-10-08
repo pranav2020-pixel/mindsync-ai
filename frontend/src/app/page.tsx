@@ -119,7 +119,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
-        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-4 sm:p-6 min-w-0">
+        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-4 sm:p-6 min-w-0 hover-lift">
           <div className="flex items-center justify-between mb-4 sm:mb-6">
             <h3 className="font-semibold text-base sm:text-lg">Weekly Mood Timeline</h3>
             <div className="flex gap-2">
@@ -141,7 +141,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        <motion.div variants={item} className="glass-card rounded-2xl p-4 sm:p-6 min-w-0">
+        <motion.div variants={item} className="glass-card rounded-2xl p-4 sm:p-6 min-w-0 hover-lift">
           <h3 className="font-semibold text-base sm:text-lg mb-4 sm:mb-6">Wellness Balance</h3>
           <div className="w-full h-64 sm:h-72 min-w-0">
             <ResponsiveContainer width="100%" height="100%">
@@ -157,7 +157,7 @@ export default function Dashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-6">
+        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-6 hover-lift">
           <div className="flex items-center gap-2 mb-4">
             <Brain className="text-wellness-focus" size={20} />
             <h3 className="font-semibold text-lg">AI Insights</h3>
@@ -184,7 +184,7 @@ export default function Dashboard() {
           </div>
         </motion.div>
 
-        <motion.div variants={item} className="glass-card rounded-2xl p-6">
+        <motion.div variants={item} className="glass-card rounded-2xl p-6 hover-lift">
           <h3 className="font-semibold text-lg mb-4 text-foreground">Quick Actions</h3>
           <div className="space-y-3">
             <QuickAction href="/journal" icon={BookOpen} label="Write Journal" desc="Capture your thoughts" color="bg-primary-500/10 text-primary-600 dark:text-primary-400" />
@@ -223,7 +223,7 @@ function StatCard({ title, value, subtitle, icon: Icon, trend, trendUp, color, b
 
 function QuickAction({ href, icon: Icon, label, desc, color }: any) {
   return (
-    <Link href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
+    <Link href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all group hover-lift-subtle border border-transparent hover:border-border">
       <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-110", color)}>
         <Icon size={18} />
       </div>

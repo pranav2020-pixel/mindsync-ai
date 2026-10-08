@@ -1012,7 +1012,7 @@ export default function AssessmentsPage() {
               return (
                 <div
                   key={item.id}
-                  className="rounded-2xl p-5 border border-border bg-card hover:border-primary-500/40 transition-all shadow-md flex flex-col justify-between space-y-4"
+                  className="rounded-2xl p-5 border border-border bg-card hover:border-primary-500/40 transition-all shadow-md flex flex-col justify-between space-y-4 hover-lift"
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
@@ -1106,8 +1106,7 @@ export default function AssessmentsPage() {
             return (
               <motion.div
                 key={a.id || idx}
-                whileHover={{ y: -4 }}
-                className="glass-card rounded-2xl p-6 flex flex-col justify-between space-y-4 border border-border hover:border-primary-500/40 transition-all shadow-md bg-card text-card-foreground"
+                className="glass-card rounded-2xl p-6 flex flex-col justify-between space-y-4 border border-border hover:border-primary-500/40 transition-all shadow-md bg-card text-card-foreground hover-lift"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">

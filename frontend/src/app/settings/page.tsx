@@ -223,7 +223,7 @@ export default function SettingsPage() {
             type="button"
             onClick={() => setTheme("green")}
             className={cn(
-              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group hover-lift-subtle",
               theme === "green"
                 ? "bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-950/40"
                 : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-emerald-500/40"
@@ -257,7 +257,7 @@ export default function SettingsPage() {
             type="button"
             onClick={() => setTheme("green-light")}
             className={cn(
-              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group hover-lift-subtle",
               theme === "green-light"
                 ? "bg-emerald-50 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-500/10"
                 : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-emerald-500/40"
@@ -291,7 +291,7 @@ export default function SettingsPage() {
             type="button"
             onClick={() => setTheme("dark")}
             className={cn(
-              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group hover-lift-subtle",
               theme === "dark"
                 ? "bg-slate-900/60 border-primary-500 ring-2 ring-primary-500/30 shadow-lg"
                 : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary-500/40"
@@ -325,7 +325,7 @@ export default function SettingsPage() {
             type="button"
             onClick={() => setTheme("light")}
             className={cn(
-              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group hover-lift-subtle",
               theme === "light"
                 ? "bg-slate-100 border-primary-600 ring-2 ring-primary-600/30 shadow-md"
                 : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary-500/40"

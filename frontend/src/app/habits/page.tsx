@@ -401,7 +401,7 @@ export default function HabitsPage() {
                   key={habit.key}
                   whileHover={{ scale: 1.005 }}
                   className={cn(
-                    "glass-card rounded-2xl p-4 flex items-center justify-between transition-all border",
+                    "glass-card rounded-2xl p-4 flex items-center justify-between transition-all border hover-lift-subtle",
                     done ? "border-emerald-500/30 bg-emerald-500/[0.04]" : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
                   )}
                 >
@@ -454,7 +454,7 @@ export default function HabitsPage() {
                   key={ch.id}
                   whileHover={{ scale: 1.005 }}
                   className={cn(
-                    "glass-card rounded-2xl p-4 flex items-center justify-between transition-all border",
+                    "glass-card rounded-2xl p-4 flex items-center justify-between transition-all border hover-lift-subtle",
                     done ? "border-emerald-500/30 bg-emerald-500/[0.04]" : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
                   )}
                 >

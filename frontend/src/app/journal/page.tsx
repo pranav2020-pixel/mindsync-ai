@@ -347,7 +347,7 @@ export default function JournalPage() {
                     initial={{ opacity: 0, y: 10 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={cn(
-                      "glass-card rounded-xl p-4 sm:p-5 cursor-pointer transition-all border shadow-sm",
+                      "glass-card rounded-xl p-4 sm:p-5 cursor-pointer transition-all border shadow-sm hover-lift-subtle",
                       isSelected
                         ? "border-primary-500 ring-2 ring-primary-500/20 bg-primary-50/40 dark:bg-primary-500/5 shadow-md"
                         : "border-slate-200/80 dark:border-white/10 hover:border-primary-500/40 hover:shadow-md"
