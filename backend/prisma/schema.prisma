@@ -44,6 +44,11 @@ enum AssessmentType {
   RESILIENCE
   SELF_ESTEEM
   WELL_BEING
+  PHQ_9
+  GAD_7
+  SWLS
+  UCLA_LONELINESS
+  PSQI
 }
 
 enum InsightType {
