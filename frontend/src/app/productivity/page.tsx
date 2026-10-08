@@ -226,17 +226,17 @@ export default function ProductivityPage() {
         {/* Left 2 Cols: Focus Timer & Quick Logging */}
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
           {/* Pomodoro Timer Card */}
-          <div className="glass-card rounded-2xl p-5 sm:p-8 text-center space-y-4 sm:space-y-6 relative overflow-hidden border border-white/10">
+          <div className="glass-card rounded-2xl p-5 sm:p-8 text-center space-y-4 sm:space-y-6 relative overflow-hidden border border-slate-200/80 dark:border-white/10">
             {/* Mode Switch Tabs */}
             <div className="flex justify-center">
-              <div className="glass-card flex flex-wrap justify-center p-1 rounded-xl gap-1 border border-white/10 max-w-full">
+              <div className="glass-card flex flex-wrap justify-center p-1 rounded-xl gap-1 border border-slate-200/80 dark:border-white/10 max-w-full">
                 <button
                   onClick={() => switchMode("pomodoro")}
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
                     mode === "pomodoro"
                       ? "bg-primary-500 text-white shadow-lg"
-                      : "text-muted-foreground hover:text-white"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Zap size={13} /> Focus (25m)
@@ -246,8 +246,8 @@ export default function ProductivityPage() {
                   className={cn(
                     "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
                     mode === "shortBreak"
-                      ? "bg-wellness-calm text-black shadow-lg"
-                      : "text-muted-foreground hover:text-white"
+                      ? "bg-wellness-calm text-slate-900 shadow-lg"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Coffee size={13} /> Break (5m)
@@ -258,7 +258,7 @@ export default function ProductivityPage() {
                     "px-3 py-1.5 rounded-lg text-xs font-semibold transition-all flex items-center gap-1.5",
                     mode === "longBreak"
                       ? "bg-wellness-sleep text-white shadow-lg"
-                      : "text-muted-foreground hover:text-white"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
                 >
                   <Coffee size={13} /> Long (15m)
@@ -286,7 +286,7 @@ export default function ProductivityPage() {
               <button
                 onClick={() => adjustMinutes(-5)}
                 disabled={isRunning}
-                className="p-2.5 rounded-xl glass-card hover:bg-white/10 text-muted-foreground disabled:opacity-30 transition-colors"
+                className="p-2.5 rounded-xl glass-card hover:bg-slate-100 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
                 title="Subtract 5 minutes"
                 aria-label="Subtract 5 minutes"
               >
@@ -298,7 +298,7 @@ export default function ProductivityPage() {
                 className={cn(
                   "px-8 py-3.5 rounded-2xl font-bold text-base flex items-center gap-2.5 transition-all transform active:scale-95 shadow-xl",
                   isRunning
-                    ? "bg-white/10 hover:bg-white/20 text-white border border-white/20"
+                    ? "bg-slate-100 dark:bg-white/10 hover:bg-slate-200 dark:hover:bg-white/20 text-foreground border border-slate-300 dark:border-white/20"
                     : "bg-primary-500 hover:bg-primary-600 text-white shadow-primary-500/20"
                 )}
               >
@@ -315,7 +315,7 @@ export default function ProductivityPage() {
 
               <button
                 onClick={resetTimer}
-                className="p-2.5 rounded-xl glass-card hover:bg-white/10 text-muted-foreground transition-colors"
+                className="p-2.5 rounded-xl glass-card hover:bg-slate-100 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground transition-colors"
                 title="Reset Timer"
                 aria-label="Reset timer"
               >
@@ -325,7 +325,7 @@ export default function ProductivityPage() {
               <button
                 onClick={() => adjustMinutes(5)}
                 disabled={isRunning}
-                className="p-2.5 rounded-xl glass-card hover:bg-white/10 text-muted-foreground disabled:opacity-30 transition-colors"
+                className="p-2.5 rounded-xl glass-card hover:bg-slate-100 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
                 title="Add 5 minutes"
                 aria-label="Add 5 minutes"
               >
@@ -412,9 +412,9 @@ export default function ProductivityPage() {
         {/* Right 1 Col: Burnout Analysis & AI Guidance */}
         <div className="space-y-6">
           {/* Burnout Risk Card */}
-          <div className="glass-card rounded-2xl p-6 space-y-4 border border-white/10">
+          <div className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200/80 dark:border-white/10">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base">Burnout Risk Meter</h3>
+              <h3 className="font-semibold text-base text-foreground">Burnout Risk Meter</h3>
               <span
                 className={cn(
                   "px-2.5 py-1 rounded-full text-xs font-semibold border flex items-center gap-1.5",
@@ -433,9 +433,9 @@ export default function ProductivityPage() {
             <div className="pt-2 space-y-2">
               <div className="flex justify-between text-xs text-muted-foreground">
                 <span>Cognitive Stress Load</span>
-                <span>{stats?.burnoutRisk === "high" ? "High" : stats?.burnoutRisk === "moderate" ? "Moderate" : "Optimal"}</span>
+                <span className="font-semibold text-foreground">{stats?.burnoutRisk === "high" ? "High" : stats?.burnoutRisk === "moderate" ? "Moderate" : "Optimal"}</span>
               </div>
-              <div className="w-full bg-white/10 rounded-full h-2 overflow-hidden">
+              <div className="w-full bg-slate-200 dark:bg-white/10 rounded-full h-2 overflow-hidden">
                 <div
                   className={cn(
                     "h-full rounded-full transition-all duration-500",

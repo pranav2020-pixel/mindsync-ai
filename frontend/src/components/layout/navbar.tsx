@@ -118,7 +118,7 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 w-full glass border-b border-white/10 pt-[env(safe-area-inset-top,0px)]">
+    <header className="sticky top-0 z-30 w-full glass border-b border-slate-200/80 dark:border-white/10 pt-[env(safe-area-inset-top,0px)]">
       <div className="h-16 flex items-center justify-between px-3.5 sm:px-6">
         <div className="flex items-center gap-2 sm:gap-3">
         <button
@@ -127,7 +127,7 @@ export function Navbar() {
               window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
             }
           }}
-          className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-white hover:bg-white/5 transition-colors"
+          className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           aria-label="Open navigation menu"
         >
           <Menu size={22} />
@@ -144,7 +144,7 @@ export function Navbar() {
       <div className="flex items-center gap-3">
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-white/5 transition-colors text-muted-foreground hover:text-white"
+          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
           title="Toggle Theme"
         >
           {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
@@ -157,7 +157,7 @@ export function Navbar() {
               setShowNotifications(!showNotifications);
               setShowProfile(false);
             }}
-            className="p-2 rounded-lg hover:bg-white/5 transition-colors relative text-muted-foreground hover:text-white"
+            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors relative text-muted-foreground hover:text-foreground"
             title="Notifications"
           >
             <Bell size={18} />
@@ -291,12 +291,12 @@ export function Navbar() {
               setShowProfile(!showProfile);
               setShowNotifications(false);
             }}
-            className="flex items-center gap-3 pl-3 pr-1 py-1 rounded-full hover:bg-white/5 transition-colors"
+            className="flex items-center gap-3 pl-3 pr-1 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           >
             <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center text-sm font-bold text-white shadow-md">
               {user?.name?.[0] || "U"}
             </div>
-            <span className="text-sm font-medium hidden sm:block">{user?.name}</span>
+            <span className="text-sm font-medium text-foreground hidden sm:block">{user?.name}</span>
           </button>
 
           <AnimatePresence>

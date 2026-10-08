@@ -77,18 +77,18 @@ export default function MoodPage() {
           <div className="grid grid-cols-2 gap-3">
             <div>
               <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1"><Moon size={12} /> Sleep (hrs)</label>
-              <input type="number" step="0.5" value={form.sleepHours} onChange={(e) => setForm({ ...form, sleepHours: Number(e.target.value) })} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none" />
+              <input type="number" step="0.5" value={form.sleepHours} onChange={(e) => setForm({ ...form, sleepHours: Number(e.target.value) })} className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors" />
             </div>
             <div>
               <label className="text-xs text-muted-foreground mb-1 block flex items-center gap-1"><Droplets size={12} /> Water (glasses)</label>
-              <input type="number" value={form.waterIntake} onChange={(e) => setForm({ ...form, waterIntake: Number(e.target.value) })} className="w-full bg-white/5 border border-white/10 rounded-lg px-3 py-2 text-sm outline-none" />
+              <input type="number" value={form.waterIntake} onChange={(e) => setForm({ ...form, waterIntake: Number(e.target.value) })} className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors" />
             </div>
           </div>
           <div className="flex gap-3">
             <ToggleButton active={form.exercise} onClick={() => setForm({ ...form, exercise: !form.exercise })} icon={Dumbbell} label="Exercise" />
             <ToggleButton active={form.socialInteraction} onClick={() => setForm({ ...form, socialInteraction: !form.socialInteraction })} icon={Users} label="Social" />
           </div>
-          <button onClick={handleSubmit} disabled={loading} className="w-full glass-card py-3 rounded-xl font-medium hover:bg-primary-500/20 transition-colors disabled:opacity-50">
+          <button onClick={handleSubmit} disabled={loading} className="w-full py-3 rounded-xl font-medium bg-primary-600 hover:bg-primary-500 text-white transition-colors disabled:opacity-50 shadow-sm">
             {loading ? "Saving..." : todayLog ? "Update Today's Mood" : "Log Mood"}
           </button>
         </div>
@@ -145,7 +145,7 @@ function MoodSlider({ icon: Icon, label, value, color, onChange }: any) {
 
 function ToggleButton({ active, onClick, icon: Icon, label }: any) {
   return (
-    <button onClick={onClick} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${active ? "bg-wellness-calm/20 text-wellness-calm border border-wellness-calm/30" : "bg-white/5 text-muted-foreground border border-white/10 hover:bg-white/10"}`}>
+    <button onClick={onClick} className={`flex-1 flex items-center justify-center gap-2 py-2.5 rounded-xl text-sm font-medium transition-all ${active ? "bg-wellness-calm/20 text-wellness-calm border border-wellness-calm/40 shadow-sm" : "bg-slate-50 dark:bg-white/5 text-muted-foreground border border-slate-200 dark:border-white/10 hover:bg-slate-100 dark:hover:bg-white/10 hover:text-foreground"}`}>
       <Icon size={16} /> {label}
     </button>
   );

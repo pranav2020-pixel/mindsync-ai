@@ -72,7 +72,7 @@ export default function ChatPage() {
               <p className="text-xs sm:text-sm mt-1 max-w-sm">Share how you are feeling, ask for advice, or just vent.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 sm:mt-6 w-full max-w-md">
                 {["I am feeling anxious today", "Help me plan my week", "I had a great day!", "Tips for better sleep"].map((suggestion) => (
-                  <button key={suggestion} onClick={() => setInput(suggestion)} className="px-3 py-2 rounded-lg bg-white/5 text-xs sm:text-sm hover:bg-white/10 transition-colors text-left">{suggestion}</button>
+                  <button key={suggestion} onClick={() => setInput(suggestion)} className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs sm:text-sm hover:bg-slate-200 dark:hover:bg-white/10 text-foreground transition-colors text-left">{suggestion}</button>
                 ))}
               </div>
             </div>
@@ -80,8 +80,8 @@ export default function ChatPage() {
           {messages.map((msg, idx) => (
             <motion.div key={msg.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-2 sm:gap-3 ${msg.role === "USER" ? "justify-end" : "justify-start"}`}>
               {msg.role === "ASSISTANT" && <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center shrink-0"><Brain size={14} className="text-white" /></div>}
-              <div className={`max-w-[85%] sm:max-w-[80%] p-3 sm:p-4 rounded-2xl text-xs sm:text-sm ${msg.role === "USER" ? "bg-primary-500/20 text-foreground rounded-br-sm" : "bg-white/5 text-foreground rounded-bl-sm"}`}>
-                {msg.role === "ASSISTANT" ? <div className="prose prose-invert prose-sm max-w-none leading-relaxed"><ReactMarkdown>{msg.content}</ReactMarkdown></div> : <p className="leading-relaxed">{msg.content}</p>}
+              <div className={`max-w-[85%] sm:max-w-[80%] p-3 sm:p-4 rounded-2xl text-xs sm:text-sm ${msg.role === "USER" ? "bg-primary-500/15 border border-primary-500/20 text-foreground rounded-br-sm" : "bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-foreground rounded-bl-sm"}`}>
+                {msg.role === "ASSISTANT" ? <div className="prose dark:prose-invert prose-sm max-w-none leading-relaxed text-foreground"><ReactMarkdown>{msg.content}</ReactMarkdown></div> : <p className="leading-relaxed">{msg.content}</p>}
               </div>
               {msg.role === "USER" && <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-wellness-focus/20 flex items-center justify-center shrink-0"><User size={14} className="text-wellness-focus" /></div>}
             </motion.div>
@@ -89,7 +89,7 @@ export default function ChatPage() {
           {loading && (
             <div className="flex gap-2 sm:gap-3">
               <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center"><Loader2 size={14} className="text-white animate-spin" /></div>
-              <div className="p-3 sm:p-4 rounded-2xl bg-white/5 rounded-bl-sm">
+              <div className="p-3 sm:p-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-bl-sm">
                 <div className="flex gap-1">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
@@ -100,10 +100,10 @@ export default function ChatPage() {
           )}
           <div ref={bottomRef} />
         </div>
-        <div className="p-2.5 sm:p-4 border-t border-white/10">
+        <div className="p-2.5 sm:p-4 border-t border-slate-200/80 dark:border-white/10">
           <div className="flex gap-2">
-            <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." rows={1} className="flex-1 bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-base sm:text-sm outline-none focus:border-primary-500 resize-none max-h-32" />
-            <button onClick={handleSend} disabled={loading || !input.trim()} className="px-4 py-2.5 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-colors disabled:opacity-50 flex items-center justify-center shrink-0"><Send size={16} /></button>
+            <textarea value={input} onChange={(e) => setInput(e.target.value)} onKeyDown={handleKeyDown} placeholder="Type your message..." rows={1} className="flex-1 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-base sm:text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors resize-none max-h-32" />
+            <button onClick={handleSend} disabled={loading || !input.trim()} className="px-4 py-2.5 rounded-xl bg-primary-500 text-white hover:bg-primary-600 transition-colors disabled:opacity-50 flex items-center justify-center shrink-0 shadow-sm"><Send size={16} /></button>
           </div>
           <p className="text-[10px] sm:text-xs text-muted-foreground mt-1.5 text-center">MindSync AI provides supportive guidance only. Not medical advice.</p>
         </div>

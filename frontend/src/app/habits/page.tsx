@@ -402,7 +402,7 @@ export default function HabitsPage() {
                   whileHover={{ scale: 1.005 }}
                   className={cn(
                     "glass-card rounded-2xl p-4 flex items-center justify-between transition-all border",
-                    done ? "border-emerald-500/30 bg-emerald-500/[0.04]" : "border-white/10 hover:border-white/20"
+                    done ? "border-emerald-500/30 bg-emerald-500/[0.04]" : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
                   )}
                 >
                   <div className="flex items-center gap-4">
@@ -411,14 +411,14 @@ export default function HabitsPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className={cn("font-medium text-base", done && "line-through text-muted-foreground")}>
+                        <h4 className={cn("font-medium text-base text-foreground", done && "line-through text-muted-foreground")}>
                           {habit.name}
                         </h4>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground font-medium">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-transparent text-muted-foreground font-medium">
                           +{habit.xp} XP
                         </span>
                         {streak > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 font-medium flex items-center gap-1">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
                             <Flame size={12} /> {streak}d
                           </span>
                         )}
@@ -433,8 +433,8 @@ export default function HabitsPage() {
                     className={cn(
                       "w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0",
                       done
-                        ? "bg-wellness-calm text-black shadow-lg shadow-emerald-500/20"
-                        : "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/10"
+                        ? "bg-wellness-calm text-slate-900 shadow-md shadow-emerald-500/20"
+                        : "bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-muted-foreground border border-slate-300 dark:border-white/10"
                     )}
                     aria-label={`Mark ${habit.name} as ${done ? "incomplete" : "complete"}`}
                   >
@@ -455,7 +455,7 @@ export default function HabitsPage() {
                   whileHover={{ scale: 1.005 }}
                   className={cn(
                     "glass-card rounded-2xl p-4 flex items-center justify-between transition-all border",
-                    done ? "border-emerald-500/30 bg-emerald-500/[0.04]" : "border-white/10 hover:border-white/20"
+                    done ? "border-emerald-500/30 bg-emerald-500/[0.04]" : "border-slate-200 dark:border-white/10 hover:border-slate-300 dark:hover:border-white/20"
                   )}
                 >
                   <div className="flex items-center gap-4">
@@ -467,18 +467,18 @@ export default function HabitsPage() {
                     </div>
                     <div>
                       <div className="flex items-center gap-2">
-                        <h4 className={cn("font-medium text-base", done && "line-through text-muted-foreground")}>
+                        <h4 className={cn("font-medium text-base text-foreground", done && "line-through text-muted-foreground")}>
                           {ch.name}
                         </h4>
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-white/5 text-muted-foreground font-medium">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-transparent text-muted-foreground font-medium">
                           +10 XP
                         </span>
                         {streaks[ch.id] > 0 && (
-                          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-400 font-medium flex items-center gap-1">
+                          <span className="text-xs px-2 py-0.5 rounded-full bg-orange-500/10 text-orange-600 dark:text-orange-400 font-medium flex items-center gap-1">
                             <Flame size={12} /> {streaks[ch.id]}d
                           </span>
                         )}
-                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-400 font-medium">
+                        <span className="text-xs px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 font-medium">
                           {ch.targetPerDay} {ch.unit || "goal"}
                         </span>
                       </div>
@@ -502,8 +502,8 @@ export default function HabitsPage() {
                       className={cn(
                         "w-10 h-10 rounded-xl flex items-center justify-center transition-all shrink-0",
                         done
-                          ? "bg-wellness-calm text-black shadow-lg shadow-emerald-500/20"
-                          : "bg-white/5 hover:bg-white/10 text-muted-foreground border border-white/10"
+                          ? "bg-wellness-calm text-slate-900 shadow-md shadow-emerald-500/20"
+                          : "bg-slate-100 dark:bg-white/5 hover:bg-slate-200 dark:hover:bg-white/10 text-muted-foreground border border-slate-300 dark:border-white/10"
                       )}
                       aria-label={`Mark ${ch.name} as ${done ? "incomplete" : "complete"}`}
                     >
@@ -605,16 +605,16 @@ export default function HabitsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="glass-card rounded-2xl p-6 w-full max-w-md space-y-4 border border-white/20 shadow-2xl relative"
+              className="bg-card text-card-foreground rounded-2xl p-6 w-full max-w-md space-y-4 border border-slate-200 dark:border-white/10 shadow-2xl relative"
             >
-              <div className="flex items-center justify-between border-b border-white/10 pb-3">
-                <h3 id={customModalTitleId} className="font-semibold text-lg flex items-center gap-2">
-                  <Plus size={18} className="text-primary-400" />
+              <div className="flex items-center justify-between border-b border-slate-200 dark:border-white/10 pb-3">
+                <h3 id={customModalTitleId} className="font-semibold text-lg flex items-center gap-2 text-foreground">
+                  <Plus size={18} className="text-primary-500" />
                   Create Custom Habit
                 </h3>
                 <button
                   onClick={() => setShowModal(false)}
-                  className="p-1 text-muted-foreground hover:text-white transition-colors rounded-lg"
+                  className="p-1 text-muted-foreground hover:text-foreground transition-colors rounded-lg"
                   aria-label="Close modal"
                 >
                   <X size={18} />
@@ -630,7 +630,7 @@ export default function HabitsPage() {
                     value={customForm.name}
                     onChange={(e) => setCustomForm({ ...customForm, name: e.target.value })}
                     placeholder="e.g. Evening Walk, Read Fiction..."
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   />
                 </div>
 
@@ -641,7 +641,7 @@ export default function HabitsPage() {
                     value={customForm.description}
                     onChange={(e) => setCustomForm({ ...customForm, description: e.target.value })}
                     placeholder="e.g. 20 minutes without screens"
-                    className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   />
                 </div>
 
@@ -654,7 +654,7 @@ export default function HabitsPage() {
                       max={100}
                       value={customForm.targetPerDay}
                       onChange={(e) => setCustomForm({ ...customForm, targetPerDay: Number(e.target.value) })}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                     />
                   </div>
                   <div>
@@ -664,7 +664,7 @@ export default function HabitsPage() {
                       value={customForm.unit}
                       onChange={(e) => setCustomForm({ ...customForm, unit: e.target.value })}
                       placeholder="times, mins, glasses"
-                      className="w-full bg-white/5 border border-white/10 rounded-xl px-3.5 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                     />
                   </div>
                 </div>
@@ -678,8 +678,8 @@ export default function HabitsPage() {
                         key={c}
                         onClick={() => setCustomForm({ ...customForm, color: c })}
                         className={cn(
-                          "w-7 h-7 rounded-full transition-transform",
-                          customForm.color === c ? "scale-125 ring-2 ring-white" : "hover:scale-110"
+                          "w-7 h-7 rounded-full transition-transform border border-black/10 dark:border-white/10",
+                          customForm.color === c ? "scale-125 ring-2 ring-primary-500 shadow-md" : "hover:scale-110"
                         )}
                         style={{ backgroundColor: c }}
                         aria-label={`Choose color ${c}`}
@@ -688,18 +688,18 @@ export default function HabitsPage() {
                   </div>
                 </div>
 
-                <div className="flex justify-end gap-3 pt-3 border-t border-white/10">
+                <div className="flex justify-end gap-3 pt-3 border-t border-slate-200 dark:border-white/10">
                   <button
                     type="button"
                     onClick={() => setShowModal(false)}
-                    className="px-4 py-2 rounded-xl text-sm font-medium hover:bg-white/5 transition-colors"
+                    className="px-4 py-2 rounded-xl text-sm font-medium hover:bg-slate-100 dark:hover:bg-white/5 text-muted-foreground hover:text-foreground transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
                     disabled={submittingCustom || !customForm.name.trim()}
-                    className="px-5 py-2 rounded-xl text-sm font-medium bg-primary-500 hover:bg-primary-600 text-white transition-colors disabled:opacity-50"
+                    className="px-5 py-2 rounded-xl text-sm font-medium bg-primary-600 hover:bg-primary-700 text-white transition-colors disabled:opacity-50 shadow-sm"
                   >
                     {submittingCustom ? "Creating..." : "Create Habit"}
                   </button>

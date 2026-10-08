@@ -164,10 +164,10 @@ export default function Dashboard() {
           </div>
           <div className="space-y-3">
             {insights.length > 0 ? insights.map((insight: any) => (
-              <div key={insight.id} className="p-4 rounded-xl bg-white/5 border border-white/5 hover:border-primary-500/30 transition-colors">
+              <div key={insight.id} className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 hover:border-primary-500/30 transition-colors">
                 <div className="flex items-start justify-between">
                   <div>
-                    <h4 className="font-medium text-sm">{insight.title}</h4>
+                    <h4 className="font-medium text-sm text-foreground">{insight.title}</h4>
                     <p className="text-sm text-muted-foreground mt-1">{insight.description}</p>
                   </div>
                   <span className={cn("px-2 py-1 rounded-full text-xs font-medium", insight.confidence > 0.7 ? "bg-wellness-calm/10 text-wellness-calm" : "bg-wellness-energy/10 text-wellness-energy")}>
@@ -185,9 +185,9 @@ export default function Dashboard() {
         </motion.div>
 
         <motion.div variants={item} className="glass-card rounded-2xl p-6">
-          <h3 className="font-semibold text-lg mb-4">Quick Actions</h3>
+          <h3 className="font-semibold text-lg mb-4 text-foreground">Quick Actions</h3>
           <div className="space-y-3">
-            <QuickAction href="/journal" icon={BookOpen} label="Write Journal" desc="Capture your thoughts" color="bg-primary-500/10 text-primary-400" />
+            <QuickAction href="/journal" icon={BookOpen} label="Write Journal" desc="Capture your thoughts" color="bg-primary-500/10 text-primary-600 dark:text-primary-400" />
             <QuickAction href="/mood" icon={Heart} label="Log Mood" desc="How are you feeling?" color="bg-wellness-calm/10 text-wellness-calm" />
             <QuickAction href="/chat" icon={Brain} label="AI Chat" desc="Talk to your coach" color="bg-wellness-focus/10 text-wellness-focus" />
             <QuickAction href="/habits" icon={Calendar} label="Track Habits" desc="Build consistency" color="bg-wellness-energy/10 text-wellness-energy" />
@@ -212,7 +212,7 @@ function StatCard({ title, value, subtitle, icon: Icon, trend, trendUp, color, b
       </div>
       <div className="mt-4">
         <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold">{value}</span>
+          <span className="text-2xl font-bold text-foreground">{value}</span>
           <span className="text-sm text-muted-foreground">{subtitle}</span>
         </div>
         <p className="text-sm text-muted-foreground mt-1">{title}</p>
@@ -223,12 +223,12 @@ function StatCard({ title, value, subtitle, icon: Icon, trend, trendUp, color, b
 
 function QuickAction({ href, icon: Icon, label, desc, color }: any) {
   return (
-    <Link href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-white/5 transition-colors group">
+    <Link href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-colors group">
       <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-110", color)}>
         <Icon size={18} />
       </div>
       <div className="flex-1">
-        <p className="font-medium text-sm">{label}</p>
+        <p className="font-medium text-sm text-foreground">{label}</p>
         <p className="text-xs text-muted-foreground">{desc}</p>
       </div>
     </Link>

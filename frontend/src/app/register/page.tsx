@@ -218,7 +218,7 @@ export default function RegisterPage() {
                     type="text"
                     value={form.name}
                     onChange={(e) => setForm({ ...form, name: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                     placeholder="Your name"
                     required
                   />
@@ -233,7 +233,7 @@ export default function RegisterPage() {
                     type="email"
                     value={form.email}
                     onChange={(e) => setForm({ ...form, email: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                     placeholder="you@gmail.com"
                     required
                   />
@@ -251,7 +251,7 @@ export default function RegisterPage() {
                     type={showPassword ? "text" : "password"}
                     value={form.password}
                     onChange={(e) => setForm({ ...form, password: e.target.value })}
-                    className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-12 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                     placeholder="Min 6 characters"
                     required
                     minLength={6}
@@ -259,7 +259,7 @@ export default function RegisterPage() {
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-white px-1.5 py-0.5 rounded transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
                   >
                     {showPassword ? "Hide" : "Show"}
                   </button>
@@ -286,12 +286,12 @@ export default function RegisterPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-medium text-muted-foreground">
-                  6-Digit Code sent to <strong className="text-white">{form.email}</strong>
+                  6-Digit Code sent to <strong className="text-foreground">{form.email}</strong>
                 </label>
                 <button
                   type="button"
                   onClick={() => { setStep("FORM"); setError(""); }}
-                  className="text-xs text-primary-400 hover:underline"
+                  className="text-xs text-primary-500 dark:text-primary-400 hover:underline"
                 >
                   Edit email
                 </button>
@@ -303,7 +303,7 @@ export default function RegisterPage() {
                   maxLength={6}
                   value={otpCode}
                   onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-center text-lg tracking-widest font-mono outline-none focus:border-primary-500 transition-colors"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-center text-lg tracking-widest font-mono text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   placeholder="000000"
                   autoFocus
                   required

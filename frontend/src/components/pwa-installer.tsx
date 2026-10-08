@@ -225,36 +225,36 @@ export function PwaInstaller() {
 
                 {isIOS ? (
                   <div className="w-full space-y-3.5 text-left text-xs">
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                      <div className="p-2 rounded-lg bg-primary-500/20 text-primary-400 font-bold">
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                      <div className="p-2 rounded-lg bg-primary-500/20 text-primary-500 dark:text-primary-400 font-bold">
                         1
                       </div>
                       <div className="flex-1">
-                        <p className="text-white font-medium">Tap Share in Safari</p>
+                        <p className="text-foreground font-semibold">Tap Share in Safari</p>
                         <p className="text-muted-foreground flex items-center gap-1 mt-0.5">
-                          Tap the <Share2 size={13} className="text-primary-400 inline" /> Share icon at the bottom of the screen.
+                          Tap the <Share2 size={13} className="text-primary-500 dark:text-primary-400 inline" /> Share icon at the bottom of the screen.
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                      <div className="p-2 rounded-lg bg-primary-500/20 text-primary-400 font-bold">
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                      <div className="p-2 rounded-lg bg-primary-500/20 text-primary-500 dark:text-primary-400 font-bold">
                         2
                       </div>
                       <div className="flex-1">
-                        <p className="text-white font-medium">Add to Home Screen</p>
+                        <p className="text-foreground font-semibold">Add to Home Screen</p>
                         <p className="text-muted-foreground flex items-center gap-1 mt-0.5">
-                          Scroll down and tap <PlusSquare size={13} className="text-primary-400 inline" /> <strong>Add to Home Screen</strong>.
+                          Scroll down and tap <PlusSquare size={13} className="text-primary-500 dark:text-primary-400 inline" /> <strong>Add to Home Screen</strong>.
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                      <div className="p-2 rounded-lg bg-primary-500/20 text-primary-400 font-bold">
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                      <div className="p-2 rounded-lg bg-primary-500/20 text-primary-500 dark:text-primary-400 font-bold">
                         3
                       </div>
                       <div className="flex-1">
-                        <p className="text-white font-medium">Tap &apos;Add&apos;</p>
+                        <p className="text-foreground font-semibold">Tap &apos;Add&apos;</p>
                         <p className="text-muted-foreground mt-0.5">
                           Confirm by tapping <strong>Add</strong> in the top-right corner.
                         </p>
@@ -263,20 +263,20 @@ export function PwaInstaller() {
                   </div>
                 ) : (
                   <div className="w-full space-y-3 text-left text-xs">
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                      <Monitor size={18} className="text-primary-400 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                      <Monitor size={18} className="text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-white font-medium">Desktop (Chrome / Edge)</p>
+                        <p className="text-foreground font-semibold">Desktop (Chrome / Edge)</p>
                         <p className="text-muted-foreground mt-0.5">
                           Click the <strong>Install</strong> icon in the address bar (next to the bookmark star), or open the browser menu &gt; <strong>Install MindSync AI</strong>.
                         </p>
                       </div>
                     </div>
 
-                    <div className="flex items-start gap-3 p-3 rounded-xl bg-white/5 border border-white/10">
-                      <Smartphone size={18} className="text-primary-400 flex-shrink-0 mt-0.5" />
+                    <div className="flex items-start gap-3 p-3 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10">
+                      <Smartphone size={18} className="text-primary-500 dark:text-primary-400 flex-shrink-0 mt-0.5" />
                       <div>
-                        <p className="text-white font-medium">Android</p>
+                        <p className="text-foreground font-semibold">Android</p>
                         <p className="text-muted-foreground mt-0.5">
                           Tap the three dots (⋮) in Chrome and select <strong>Install App</strong> or <strong>Add to Home screen</strong>.
                         </p>

@@ -219,7 +219,7 @@ export default function LoginPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   placeholder="you@example.com"
                   required
                 />
@@ -229,7 +229,7 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-medium text-muted-foreground">Password</label>
-                <Link href="/forgot-password" className="text-xs text-primary-400 hover:underline">
+                <Link href="/forgot-password" className="text-xs text-primary-500 dark:text-primary-400 hover:underline">
                   Forgot password?
                 </Link>
               </div>
@@ -239,14 +239,14 @@ export default function LoginPage() {
                   type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-12 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-12 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   placeholder="••••••••"
                   required
                 />
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-white px-1.5 py-0.5 rounded transition-colors"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground px-1.5 py-0.5 rounded transition-colors"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -276,7 +276,7 @@ export default function LoginPage() {
                       type="email"
                       value={otpEmail}
                       onChange={(e) => setOtpEmail(e.target.value)}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-500 transition-colors"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                       placeholder="you@gmail.com"
                       required
                     />
@@ -304,12 +304,12 @@ export default function LoginPage() {
                 <div>
                   <div className="flex items-center justify-between mb-1.5">
                     <label className="text-xs font-medium text-muted-foreground">
-                      6-Digit Code sent to <strong className="text-white">{otpEmail}</strong>
+                      6-Digit Code sent to <strong className="text-foreground">{otpEmail}</strong>
                     </label>
                     <button
                       type="button"
                       onClick={() => { setOtpStep("REQUEST"); setError(""); }}
-                      className="text-xs text-primary-400 hover:underline"
+                      className="text-xs text-primary-500 dark:text-primary-400 hover:underline"
                     >
                       Change
                     </button>
@@ -321,7 +321,7 @@ export default function LoginPage() {
                       maxLength={6}
                       value={otpCode}
                       onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, ""))}
-                      className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-center text-lg tracking-widest font-mono outline-none focus:border-primary-500 transition-colors"
+                      className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-center text-lg tracking-widest font-mono text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                       placeholder="000000"
                       autoFocus
                       required

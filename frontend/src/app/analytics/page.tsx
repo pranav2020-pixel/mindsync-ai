@@ -203,7 +203,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           {/* Chart 1: Sleep vs. Mood Correlation */}
-          <div className="glass-card rounded-2xl p-6 space-y-4 border border-white/10">
+          <div className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200 dark:border-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-base flex items-center gap-2">
@@ -256,7 +256,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Chart 2: Stress vs. Energy Breakdown */}
-          <div className="glass-card rounded-2xl p-6 space-y-4 border border-white/10">
+          <div className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200 dark:border-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-base flex items-center gap-2">
@@ -293,9 +293,9 @@ export default function AnalyticsPage() {
         {/* Right 1 Col: AI Discoveries & Report Export */}
         <div className="space-y-6">
           {/* AI Discoveries Feed */}
-          <div className="glass-card rounded-2xl p-6 space-y-4 border border-white/10">
+          <div className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200 dark:border-white/10">
             <div className="flex items-center justify-between">
-              <h3 className="font-semibold text-base flex items-center gap-2">
+              <h3 className="font-semibold text-base flex items-center gap-2 text-foreground">
                 <Sparkles size={18} className="text-wellness-energy" />
                 AI Discovered Patterns
               </h3>
@@ -314,20 +314,20 @@ export default function AnalyticsPage() {
                     className={cn(
                       "p-4 rounded-xl border space-y-2 transition-all",
                       ins.isPinned
-                        ? "bg-primary-500/10 border-primary-500/30"
-                        : "bg-white/5 border-white/5 hover:border-white/10"
+                        ? "bg-primary-500/10 border-primary-500/30 text-foreground"
+                        : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/5 hover:border-slate-300 dark:hover:border-white/10 text-foreground"
                     )}
                   >
                     <div className="flex items-start justify-between gap-2">
-                      <h4 className="text-sm font-semibold leading-tight">{ins.title}</h4>
+                      <h4 className="text-sm font-semibold leading-tight text-foreground">{ins.title}</h4>
                       <div className="flex items-center gap-1.5 shrink-0">
                         <button
                           onClick={() => handleTogglePin(ins.id)}
                           className={cn(
                             "p-1 rounded transition-colors",
                             ins.isPinned
-                              ? "text-primary-400 bg-primary-500/20"
-                              : "text-muted-foreground hover:text-white"
+                              ? "text-primary-600 dark:text-primary-400 bg-primary-500/20"
+                              : "text-muted-foreground hover:text-foreground"
                           )}
                           title="Pin Insight"
                         >
@@ -360,10 +360,10 @@ export default function AnalyticsPage() {
           </div>
 
           {/* Monthly Wellness Report Export Card */}
-          <div className="glass-card rounded-2xl p-6 space-y-4 border border-white/10">
+          <div className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200 dark:border-white/10">
             <div className="flex items-center gap-2">
-              <FileText size={18} className="text-primary-400" />
-              <h3 className="font-semibold text-base">Wellness Reports Center</h3>
+              <FileText size={18} className="text-primary-600 dark:text-primary-400" />
+              <h3 className="font-semibold text-base text-foreground">Wellness Reports Center</h3>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
               Export comprehensive monthly summaries combining psychological wellness, habit streaks, and cognitive flow.
@@ -376,8 +376,8 @@ export default function AnalyticsPage() {
                 className={cn(
                   "flex-1 py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all",
                   reportFormat === "PDF"
-                    ? "bg-primary-500/20 border-primary-500 text-white"
-                    : "bg-white/5 border-white/10 text-muted-foreground hover:text-white"
+                    ? "bg-primary-600 text-white border-primary-600 shadow-sm"
+                    : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-muted-foreground hover:text-foreground"
                 )}
               >
                 <FileText size={14} /> PDF Summary
@@ -387,8 +387,8 @@ export default function AnalyticsPage() {
                 className={cn(
                   "flex-1 py-2 px-3 rounded-xl text-xs font-semibold border flex items-center justify-center gap-1.5 transition-all",
                   reportFormat === "CSV"
-                    ? "bg-primary-500/20 border-primary-500 text-white"
-                    : "bg-white/5 border-white/10 text-muted-foreground hover:text-white"
+                    ? "bg-primary-600 text-white border-primary-600 shadow-sm"
+                    : "bg-slate-100 dark:bg-white/5 border-slate-200 dark:border-white/10 text-muted-foreground hover:text-foreground"
                 )}
               >
                 <FileSpreadsheet size={14} /> CSV Data
@@ -398,7 +398,7 @@ export default function AnalyticsPage() {
             <button
               onClick={handleGenerateReport}
               disabled={generatingReport}
-              className="w-full py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-lg shadow-primary-500/20"
+              className="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-primary-500/20"
             >
               <Download size={16} />
               {generatingReport ? "Generating Document..." : `Download ${reportFormat} Report`}
@@ -406,7 +406,7 @@ export default function AnalyticsPage() {
 
             {/* Previous Reports History */}
             {reports.length > 0 && (
-              <div className="pt-2 border-t border-white/10 space-y-2">
+              <div className="pt-2 border-t border-slate-200 dark:border-white/10 space-y-2">
                 <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
                   Recent Exports
                 </span>
@@ -414,10 +414,10 @@ export default function AnalyticsPage() {
                   {reports.slice(0, 4).map((r) => (
                     <div
                       key={r.id}
-                      className="p-2 rounded-lg bg-white/5 text-xs flex items-center justify-between text-muted-foreground"
+                      className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 text-xs flex items-center justify-between text-muted-foreground"
                     >
-                      <span className="truncate max-w-[170px]">{r.title}</span>
-                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-white/10 uppercase font-mono">
+                      <span className="truncate max-w-[170px] text-foreground">{r.title}</span>
+                      <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-foreground uppercase font-mono">
                         {r.format}
                       </span>
                     </div>

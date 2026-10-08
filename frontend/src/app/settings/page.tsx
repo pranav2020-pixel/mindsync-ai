@@ -152,34 +152,34 @@ export default function SettingsPage() {
       <motion.div
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
-        className="glass-card rounded-2xl p-6 border border-white/10 space-y-4"
+        className="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-white/10 space-y-4"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-500 dark:text-primary-400 flex items-center justify-center">
             <User size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Profile Overview</h2>
+            <h2 className="text-lg font-semibold text-foreground">Profile Overview</h2>
             <p className="text-xs text-muted-foreground">Your account credentials and status</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
             <p className="text-xs text-muted-foreground">Full Name</p>
-            <p className="text-sm font-medium">{user?.name || "User"}</p>
+            <p className="text-sm font-semibold text-foreground">{user?.name || "User"}</p>
           </div>
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
             <p className="text-xs text-muted-foreground">Email Address</p>
-            <p className="text-sm font-medium">{user?.email || "Unknown"}</p>
+            <p className="text-sm font-semibold text-foreground">{user?.email || "Unknown"}</p>
           </div>
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
             <p className="text-xs text-muted-foreground">Account Role</p>
-            <p className="text-sm font-medium">{user?.role || "USER"}</p>
+            <p className="text-sm font-semibold text-foreground">{user?.role || "USER"}</p>
           </div>
-          <div className="p-4 rounded-xl bg-white/5 border border-white/10 space-y-1">
+          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
             <p className="text-xs text-muted-foreground">Active Streak</p>
-            <p className="text-sm font-medium text-amber-400">{user?.streak ?? 0} days</p>
+            <p className="text-sm font-bold text-amber-600 dark:text-amber-400">{user?.streak ?? 0} days</p>
           </div>
         </div>
       </motion.div>
@@ -189,14 +189,14 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
-        className="glass-card rounded-2xl p-6 border border-white/10 space-y-6"
+        className="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-white/10 space-y-6"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-500 dark:text-primary-400 flex items-center justify-center">
             <Shield size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Change Password</h2>
+            <h2 className="text-lg font-semibold text-foreground">Change Password</h2>
             <p className="text-xs text-muted-foreground">Update your password to keep your account safe</p>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function SettingsPage() {
                 type="password"
                 value={currentPassword}
                 onChange={(e) => setCurrentPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-500"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
                 placeholder="••••••••"
                 required
               />
@@ -225,7 +225,7 @@ export default function SettingsPage() {
                 type="password"
                 value={newPassword}
                 onChange={(e) => setNewPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-500"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
                 placeholder="Min 6 characters"
                 required
                 minLength={6}
@@ -241,7 +241,7 @@ export default function SettingsPage() {
                 type="password"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary-500"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
                 placeholder="Re-enter new password"
                 required
                 minLength={6}
@@ -252,7 +252,7 @@ export default function SettingsPage() {
           <button
             type="submit"
             disabled={passwordLoading}
-            className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-medium text-sm transition-colors disabled:opacity-50 flex items-center gap-2"
+            className="px-5 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white font-medium text-sm transition-colors disabled:opacity-50 flex items-center gap-2 shadow-sm"
           >
             {passwordLoading ? <Loader2 size={16} className="animate-spin" /> : "Update Password"}
           </button>
@@ -264,14 +264,14 @@ export default function SettingsPage() {
         initial={{ opacity: 0, y: 10 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.15 }}
-        className="glass-card rounded-2xl p-6 space-y-5"
+        className="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-white/10 space-y-5"
       >
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-400 flex items-center justify-center">
+          <div className="w-10 h-10 rounded-xl bg-amber-500/15 text-amber-500 dark:text-amber-400 flex items-center justify-center">
             <MessageSquarePlus size={20} />
           </div>
           <div>
-            <h2 className="text-lg font-semibold">Report Issues & Suggestions</h2>
+            <h2 className="text-lg font-semibold text-foreground">Report Issues & Suggestions</h2>
             <p className="text-xs text-muted-foreground">
               Send bug reports or product suggestions directly to the MindSync creator
             </p>
@@ -287,8 +287,8 @@ export default function SettingsPage() {
                 onClick={() => setFeedbackType("BUG")}
                 className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                   feedbackType === "BUG"
-                    ? "bg-rose-500/20 text-rose-300 border-rose-500/50 shadow-sm"
-                    : "bg-white/5 text-muted-foreground border-white/10 hover:text-white"
+                    ? "bg-rose-500/15 text-rose-700 dark:text-rose-300 border-rose-500/50 shadow-sm"
+                    : "bg-slate-50 dark:bg-white/5 text-muted-foreground border-slate-200 dark:border-white/10 hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/10"
                 }`}
               >
                 <Bug size={14} /> Bug / Issue
@@ -298,8 +298,8 @@ export default function SettingsPage() {
                 onClick={() => setFeedbackType("SUGGESTION")}
                 className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                   feedbackType === "SUGGESTION"
-                    ? "bg-amber-500/20 text-amber-300 border-amber-500/50 shadow-sm"
-                    : "bg-white/5 text-muted-foreground border-white/10 hover:text-white"
+                    ? "bg-amber-500/20 text-amber-700 dark:text-amber-300 border-amber-500/60 shadow-sm"
+                    : "bg-slate-50 dark:bg-white/5 text-muted-foreground border-slate-200 dark:border-white/10 hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/10"
                 }`}
               >
                 <Lightbulb size={14} /> Suggestion
@@ -309,8 +309,8 @@ export default function SettingsPage() {
                 onClick={() => setFeedbackType("FEEDBACK")}
                 className={`py-2 px-3 rounded-xl text-xs font-semibold flex items-center justify-center gap-1.5 border transition-all ${
                   feedbackType === "FEEDBACK"
-                    ? "bg-indigo-500/20 text-indigo-300 border-indigo-500/50 shadow-sm"
-                    : "bg-white/5 text-muted-foreground border-white/10 hover:text-white"
+                    ? "bg-indigo-500/15 text-indigo-700 dark:text-indigo-300 border-indigo-500/50 shadow-sm"
+                    : "bg-slate-50 dark:bg-white/5 text-muted-foreground border-slate-200 dark:border-white/10 hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/10"
                 }`}
               >
                 <MessageSquarePlus size={14} /> Feedback
@@ -324,7 +324,7 @@ export default function SettingsPage() {
               type="text"
               value={feedbackTitle}
               onChange={(e) => setFeedbackTitle(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary-500 text-white placeholder-muted-foreground"
+              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
               placeholder={feedbackType === "BUG" ? "e.g., Streak count reset on mobile app" : "e.g., Add dark mode OLED theme or weekly PDF summary"}
               required
             />
@@ -336,7 +336,7 @@ export default function SettingsPage() {
               rows={3}
               value={feedbackDesc}
               onChange={(e) => setFeedbackDesc(e.target.value)}
-              className="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary-500 text-white placeholder-muted-foreground resize-none"
+              className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all resize-none"
               placeholder={feedbackType === "BUG" ? "Describe what happened, what device you're using, and steps to reproduce..." : "Explain how this feature would help your wellness or productivity journey..."}
               required
             />
@@ -344,7 +344,7 @@ export default function SettingsPage() {
 
           <div className="flex items-center justify-between pt-1">
             <span className="text-[11px] text-muted-foreground">
-              Submitted from <span className="text-white font-medium">{user?.email}</span>
+              Submitted from <span className="text-foreground font-semibold">{user?.email}</span>
             </span>
 
             <button
@@ -435,12 +435,12 @@ export default function SettingsPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 0.95 }}
-              className="w-full max-w-md glass-card rounded-2xl p-6 border border-red-500/40 bg-slate-900 shadow-2xl space-y-4"
+              className="w-full max-w-md glass-card rounded-2xl p-6 border border-red-500/40 bg-card text-card-foreground shadow-2xl space-y-4"
             >
-              <div className="flex items-center gap-3 text-red-400 border-b border-white/10 pb-4">
+              <div className="flex items-center gap-3 text-red-500 dark:text-red-400 border-b border-border pb-4">
                 <AlertTriangle size={24} />
                 <div>
-                  <h3 className="text-base font-bold">Confirm Account Deletion</h3>
+                  <h3 className="text-base font-bold text-foreground">Confirm Account Deletion</h3>
                   <p className="text-xs text-muted-foreground">Two-step verification required</p>
                 </div>
               </div>
@@ -452,14 +452,14 @@ export default function SettingsPage() {
                   </p>
 
                   {deleteError && (
-                    <p className="text-xs text-red-400 text-center">{deleteError}</p>
+                    <p className="text-xs text-red-500 text-center font-medium">{deleteError}</p>
                   )}
 
                   <div className="flex justify-end gap-3 pt-2">
                     <button
                       type="button"
                       onClick={() => setIsDeleteModalOpen(false)}
-                      className="px-4 py-2 rounded-xl text-xs hover:bg-white/5 transition-colors"
+                      className="px-4 py-2 rounded-xl text-xs hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Cancel
                     </button>
@@ -479,7 +479,7 @@ export default function SettingsPage() {
                   </p>
 
                   {process.env.NODE_ENV === "development" && deleteDevCode && (
-                    <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 text-center">
+                    <div className="p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-700 dark:text-amber-300 text-center">
                       <strong>Test Code:</strong> <span className="font-mono text-sm tracking-widest">{deleteDevCode}</span>
                     </div>
                   )}
@@ -492,7 +492,7 @@ export default function SettingsPage() {
                         type="password"
                         value={deletePassword}
                         onChange={(e) => setDeletePassword(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-red-500"
+                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-red-500 focus:bg-white dark:focus:bg-white/10 transition-all"
                         placeholder="Enter password"
                         required
                       />
@@ -508,7 +508,7 @@ export default function SettingsPage() {
                         maxLength={6}
                         value={deleteCode}
                         onChange={(e) => setDeleteCode(e.target.value)}
-                        className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm font-mono tracking-widest outline-none focus:border-red-500"
+                        className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-2.5 text-sm font-mono tracking-widest text-foreground placeholder:text-muted-foreground outline-none focus:border-red-500 focus:bg-white dark:focus:bg-white/10 transition-all"
                         placeholder="123456"
                         required
                       />
@@ -516,14 +516,14 @@ export default function SettingsPage() {
                   </div>
 
                   {deleteError && (
-                    <p className="text-xs text-red-400 text-center">{deleteError}</p>
+                    <p className="text-xs text-red-500 text-center font-medium">{deleteError}</p>
                   )}
 
                   <div className="flex justify-end gap-3 pt-2">
                     <button
                       type="button"
                       onClick={() => setIsDeleteModalOpen(false)}
-                      className="px-4 py-2 rounded-xl text-xs hover:bg-white/5 transition-colors"
+                      className="px-4 py-2 rounded-xl text-xs hover:bg-muted text-muted-foreground hover:text-foreground transition-colors"
                     >
                       Cancel
                     </button>

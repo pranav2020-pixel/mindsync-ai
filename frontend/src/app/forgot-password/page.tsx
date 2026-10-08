@@ -110,7 +110,7 @@ export default function ForgotPasswordPage() {
                   type="email"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-primary-500"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   placeholder="you@example.com"
                   required
                 />
@@ -134,13 +134,13 @@ export default function ForgotPasswordPage() {
         ) : (
           <form onSubmit={handleResetPassword} className="space-y-4">
             {successMessage && (
-              <div className="p-3 bg-primary-500/10 border border-primary-500/20 rounded-xl text-xs text-primary-300">
+              <div className="p-3 bg-primary-500/10 border border-primary-500/20 rounded-xl text-xs text-primary-600 dark:text-primary-300">
                 {successMessage}
               </div>
             )}
 
             {process.env.NODE_ENV === "development" && devCode && (
-              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-300 text-center">
+              <div className="p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-xs text-amber-700 dark:text-amber-300 text-center">
                 <strong>Quick Test Code:</strong> <span className="font-mono text-sm tracking-widest">{devCode}</span>
               </div>
             )}
@@ -154,7 +154,7 @@ export default function ForgotPasswordPage() {
                   maxLength={6}
                   value={code}
                   onChange={(e) => setCode(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm font-mono tracking-widest outline-none focus:border-primary-500"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm font-mono tracking-widest text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   placeholder="123456"
                   required
                 />
@@ -169,7 +169,7 @@ export default function ForgotPasswordPage() {
                   type={showPassword ? "text" : "password"}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-12 py-3 text-sm outline-none focus:border-primary-500"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-12 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   placeholder="Min 6 characters"
                   required
                   minLength={6}
@@ -177,7 +177,7 @@ export default function ForgotPasswordPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-white px-1 py-0.5 rounded"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-muted-foreground hover:text-foreground px-1 py-0.5 rounded transition-colors"
                 >
                   {showPassword ? "Hide" : "Show"}
                 </button>
@@ -192,7 +192,7 @@ export default function ForgotPasswordPage() {
                   type={showPassword ? "text" : "password"}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  className="w-full bg-white/5 border border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm outline-none focus:border-primary-500"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-10 pr-4 py-3 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-colors"
                   placeholder="Re-enter new password"
                   required
                   minLength={6}
