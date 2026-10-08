@@ -11,6 +11,7 @@ import {
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { EmptyState, NoSearchResults } from "@/components/ui-states/ui-states-catalog";
 
 interface Option {
   label: string;
@@ -1088,84 +1089,91 @@ export default function AssessmentsPage() {
       </div>
 
       {/* Assessment Cards Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {filteredAssessments.map((a, idx) => {
-          // Check if there is a match in history
-          const matchingHistory = history.find(
-            (h) => h.assessmentId === a.id || h.assessment?.type === a.type || h.assessment?.name === a.name
-          );
-          const latestResult = matchingHistory || (a.results && a.results.length > 0 ? a.results[0] : null);
+      {filteredAssessments.length === 0 ? (
+        <NoSearchResults
+          query={activeCategoryFilter !== "ALL" ? activeCategoryFilter : undefined}
+          onClear={() => setActiveCategoryFilter("ALL")}
+        />
+      ) : (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {filteredAssessments.map((a, idx) => {
+            // Check if there is a match in history
+            const matchingHistory = history.find(
+              (h) => h.assessmentId === a.id || h.assessment?.type === a.type || h.assessment?.name === a.name
+            );
+            const latestResult = matchingHistory || (a.results && a.results.length > 0 ? a.results[0] : null);
 
-          return (
-            <motion.div
-              key={a.id || idx}
-              whileHover={{ y: -4 }}
-              className="glass-card rounded-2xl p-6 flex flex-col justify-between space-y-4 border border-border hover:border-primary-500/40 transition-all shadow-md bg-card text-card-foreground"
-            >
-              <div className="space-y-3">
-                <div className="flex items-center justify-between">
-                  <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold uppercase tracking-wider border border-primary-500/20">
-                    {a.badgeCategory}
-                  </span>
-                  <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock size={12} />
-                    <span>~{a.estimatedMinutes} mins</span>
-                  </div>
-                </div>
-
-                <div>
-                  <h3 className="font-bold text-base sm:text-lg leading-snug text-foreground">{a.name}</h3>
-                  {a.target && (
-                    <span className="text-[11px] text-primary-500 font-medium block mt-0.5">
-                      Target: {a.target}
+            return (
+              <motion.div
+                key={a.id || idx}
+                whileHover={{ y: -4 }}
+                className="glass-card rounded-2xl p-6 flex flex-col justify-between space-y-4 border border-border hover:border-primary-500/40 transition-all shadow-md bg-card text-card-foreground"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold uppercase tracking-wider border border-primary-500/20">
+                      {a.badgeCategory}
                     </span>
-                  )}
-                </div>
-
-                <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
-                  {a.description}
-                </p>
-              </div>
-
-              <div className="space-y-4 pt-3 border-t border-border">
-                <div className="flex items-center justify-between text-xs">
-                  <span className="text-muted-foreground flex items-center gap-1">
-                    <Layers size={13} /> {a._count?.questions || a.questions?.length || 10} Questions
-                  </span>
-
-                  {latestResult ? (
-                    <div className="flex items-center gap-2">
-                      <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
-                        <CheckCircle2 size={13} /> Score: {latestResult.totalScore}
-                      </span>
-                      <button
-                        onClick={() => {
-                          setSelectedHistoryItem(latestResult);
-                          setIsHistoryModalOpen(true);
-                        }}
-                        className="text-[11px] text-primary-500 hover:underline font-semibold"
-                      >
-                        Responses
-                      </button>
+                    <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                      <Clock size={12} />
+                      <span>~{a.estimatedMinutes} mins</span>
                     </div>
-                  ) : (
-                    <span className="text-muted-foreground text-[11px]">Ready to begin</span>
-                  )}
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base sm:text-lg leading-snug text-foreground">{a.name}</h3>
+                    {a.target && (
+                      <span className="text-[11px] text-primary-500 font-medium block mt-0.5">
+                        Target: {a.target}
+                      </span>
+                    )}
+                  </div>
+
+                  <p className="text-xs text-muted-foreground leading-relaxed line-clamp-3">
+                    {a.description}
+                  </p>
                 </div>
 
-                <button
-                  onClick={() => startAssessment(a)}
-                  disabled={loading}
-                  className="w-full py-2.5 rounded-xl bg-primary-500/15 hover:bg-primary-500 text-primary-600 dark:text-primary-300 hover:text-white font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 border border-primary-500/30 hover:border-transparent active:scale-95"
-                >
-                  {latestResult ? "Retake Assessment" : "Begin Assessment"}
-                  <ChevronRight size={16} />
-                </button>
-              </div>
-            </motion.div>
-          );
-        })}
-      </div>
+                <div className="space-y-4 pt-3 border-t border-border">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-muted-foreground flex items-center gap-1">
+                      <Layers size={13} /> {a._count?.questions || a.questions?.length || 10} Questions
+                    </span>
+
+                    {latestResult ? (
+                      <div className="flex items-center gap-2">
+                        <span className="font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                          <CheckCircle2 size={13} /> Score: {latestResult.totalScore}
+                        </span>
+                        <button
+                          onClick={() => {
+                            setSelectedHistoryItem(latestResult);
+                            setIsHistoryModalOpen(true);
+                          }}
+                          className="text-[11px] text-primary-500 hover:underline font-semibold"
+                        >
+                          Responses
+                        </button>
+                      </div>
+                    ) : (
+                      <span className="text-muted-foreground text-[11px]">Ready to begin</span>
+                    )}
+                  </div>
+
+                  <button
+                    onClick={() => startAssessment(a)}
+                    disabled={loading}
+                    className="w-full py-2.5 rounded-xl bg-primary-500/15 hover:bg-primary-500 text-primary-600 dark:text-primary-300 hover:text-white font-semibold text-xs sm:text-sm transition-all flex items-center justify-center gap-2 border border-primary-500/30 hover:border-transparent active:scale-95"
+                  >
+                    {latestResult ? "Retake Assessment" : "Begin Assessment"}
+                    <ChevronRight size={16} />
+                  </button>
+                </div>
+              </motion.div>
+            );
+          })}
+        </div>
+      )}
 
       {/* Informative Principles Card */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">

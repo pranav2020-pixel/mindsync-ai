@@ -7,6 +7,8 @@ import { Sidebar } from "@/components/layout/sidebar";
 import { Navbar } from "@/components/layout/navbar";
 import { BottomNav } from "@/components/layout/bottom-nav";
 import { PwaInstaller } from "@/components/pwa-installer";
+import { NetworkStatusBanner } from "@/components/ui-states/network-status-banner";
+import { SessionExpiredModal } from "@/components/ui-states/session-expired-modal";
 import { Toaster } from "react-hot-toast";
 
 const inter = Inter({ subsets: ["latin"] });
@@ -73,6 +75,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
             <BottomNav />
             <PwaInstaller />
+            <NetworkStatusBanner />
+            <SessionExpiredModal />
             <Toaster position="top-right" />
           </ThemeProvider>
         </AuthProvider>

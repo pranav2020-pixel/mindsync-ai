@@ -83,13 +83,15 @@ api.interceptors.response.use(
       if (!refreshToken) {
         isRefreshing = false;
         clearStoredTokens();
-        if (
-          typeof window !== "undefined" &&
-          window.location.pathname !== "/login" &&
-          window.location.pathname !== "/register" &&
-          window.location.pathname !== "/forgot-password"
-        ) {
-          window.location.href = "/login";
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("mindsync:session-expired"));
+          if (
+            window.location.pathname !== "/login" &&
+            window.location.pathname !== "/register" &&
+            window.location.pathname !== "/forgot-password"
+          ) {
+            // Keep on page briefly so user sees the session-expired modal or prompt
+          }
         }
         return Promise.reject(error);
       }
@@ -110,13 +112,8 @@ api.interceptors.response.use(
       } catch (refreshErr) {
         processQueue(refreshErr, null);
         clearStoredTokens();
-        if (
-          typeof window !== "undefined" &&
-          window.location.pathname !== "/login" &&
-          window.location.pathname !== "/register" &&
-          window.location.pathname !== "/forgot-password"
-        ) {
-          window.location.href = "/login";
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("mindsync:session-expired"));
         }
         return Promise.reject(refreshErr);
       } finally {
