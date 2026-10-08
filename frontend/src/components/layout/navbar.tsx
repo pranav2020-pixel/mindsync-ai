@@ -10,7 +10,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "./theme-provider";
 import { cn } from "@/lib/utils";
 import {
-  Sun, Moon, Bell, LogOut, User, Settings, Check, Trash2,
+  Sun, Moon, Leaf, Bell, LogOut, User, Settings, Check, Trash2,
   Shield, FileText, Sparkles, Inbox, Menu, X
 } from "lucide-react";
 
@@ -145,9 +145,15 @@ export function Navbar() {
         <button
           onClick={toggleTheme}
           className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
-          title="Toggle Theme"
+          title={theme === "green" ? "Relaxing Green (Click to switch to Light)" : theme === "dark" ? "Dark Mode (Click to switch to Relaxing Green)" : "Light Mode (Click to switch to Dark)"}
         >
-          {theme === "dark" ? <Sun size={18} /> : <Moon size={18} />}
+          {theme === "green" ? (
+            <Leaf size={18} className="text-emerald-400 animate-pulse" />
+          ) : theme === "dark" ? (
+            <Sun size={18} />
+          ) : (
+            <Moon size={18} />
+          )}
         </button>
 
         {/* Notifications Popover */}

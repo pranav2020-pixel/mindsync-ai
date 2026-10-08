@@ -17,13 +17,21 @@ import {
   Lightbulb,
   MessageSquarePlus,
   Send,
+  Sun,
+  Moon,
+  Leaf,
+  Palette,
+  Check,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
+import { useTheme } from "@/components/layout/theme-provider";
+import { cn } from "@/lib/utils";
 import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 
 export default function SettingsPage() {
   const { user, logout } = useAuth();
+  const { theme, setTheme } = useTheme();
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -181,6 +189,135 @@ export default function SettingsPage() {
             <p className="text-xs text-muted-foreground">Active Streak</p>
             <p className="text-sm font-bold text-amber-600 dark:text-amber-400">{user?.streak ?? 0} days</p>
           </div>
+        </div>
+      </motion.div>
+
+      {/* Appearance & Color Therapy Theme Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.05 }}
+        className="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-white/10 space-y-4"
+      >
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+            <Palette size={20} />
+          </div>
+          <div>
+            <div className="flex items-center gap-2">
+              <h2 className="text-lg font-semibold text-foreground">Theme & Visual Atmosphere</h2>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 uppercase tracking-wider">
+                Mood Relaxing
+              </span>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Scientifically engineered palettes to reduce digital eye strain, calm autonomic stress, and enhance flow.
+            </p>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2">
+          {/* 1. Relaxing Biophilic Green */}
+          <button
+            type="button"
+            onClick={() => setTheme("green")}
+            className={cn(
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              theme === "green"
+                ? "bg-emerald-950/40 border-emerald-500 ring-2 ring-emerald-500/30 shadow-lg shadow-emerald-950/40"
+                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-emerald-500/40"
+            )}
+          >
+            {theme === "green" && (
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-emerald-500 text-slate-950 flex items-center justify-center">
+                <Check size={12} className="stroke-[3]" />
+              </span>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/20 text-emerald-400 flex items-center justify-center border border-emerald-500/30">
+                <Leaf size={16} />
+              </div>
+              <span className="font-semibold text-sm text-foreground">Forest Emerald</span>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-[#05130b] border border-emerald-500/40" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#18b368]" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#8ebfa4]" />
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                Deep biophilic moss &amp; sage tones. Scientifically proven to soothe optic nerves &amp; lower cortisol.
+              </p>
+            </div>
+          </button>
+
+          {/* 2. Classic Obsidian Dark */}
+          <button
+            type="button"
+            onClick={() => setTheme("dark")}
+            className={cn(
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              theme === "dark"
+                ? "bg-slate-900/60 border-primary-500 ring-2 ring-primary-500/30 shadow-lg"
+                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary-500/40"
+            )}
+          >
+            {theme === "dark" && (
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary-500 text-white flex items-center justify-center">
+                <Check size={12} className="stroke-[3]" />
+              </span>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-primary-500/20 text-primary-400 flex items-center justify-center border border-primary-500/30">
+                <Moon size={16} />
+              </div>
+              <span className="font-semibold text-sm text-foreground">Obsidian Slate</span>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-[#090d16] border border-slate-700" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#0284c7]" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#94a3b8]" />
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                High-contrast night mode. Ideal for low-light environments and OLED energy efficiency.
+              </p>
+            </div>
+          </button>
+
+          {/* 3. Daylight Pristine Light */}
+          <button
+            type="button"
+            onClick={() => setTheme("light")}
+            className={cn(
+              "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group",
+              theme === "light"
+                ? "bg-slate-100 border-primary-600 ring-2 ring-primary-600/30 shadow-md"
+                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary-500/40"
+            )}
+          >
+            {theme === "light" && (
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary-600 text-white flex items-center justify-center">
+                <Check size={12} className="stroke-[3]" />
+              </span>
+            )}
+            <div className="flex items-center gap-2 mb-3">
+              <div className="w-8 h-8 rounded-lg bg-amber-500/15 text-amber-600 flex items-center justify-center border border-amber-500/30">
+                <Sun size={16} />
+              </div>
+              <span className="font-semibold text-sm text-foreground">Daylight Clean</span>
+            </div>
+            <div className="space-y-1.5">
+              <div className="flex items-center gap-1.5">
+                <span className="w-3.5 h-3.5 rounded-full bg-white border border-slate-300" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#0284c7]" />
+                <span className="w-3.5 h-3.5 rounded-full bg-[#64748b]" />
+              </div>
+              <p className="text-[11px] text-muted-foreground leading-tight">
+                Crisp high-contrast daytime reading mode with slate boundaries and anti-glare shadows.
+              </p>
+            </div>
+          </button>
         </div>
       </motion.div>
 

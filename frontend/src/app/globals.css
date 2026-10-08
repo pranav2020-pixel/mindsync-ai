@@ -47,6 +47,29 @@
     --input: 217.2 32.6% 17.5%;
     --ring: 201 96% 32%;
   }
+
+  /* Scientifically Eye & Mood Relaxing Biophilic Forest Green Theme */
+  .dark.green {
+    --background: 155 45% 4%;            /* Deep relaxing obsidian emerald #05130b */
+    --foreground: 142 65% 96%;           /* Soft soothing light sage #edfcf2 */
+    --card: 155 42% 6.5%;                /* Calming dark forest moss #091a10 */
+    --card-foreground: 142 65% 96%;
+    --popover: 155 42% 6.5%;
+    --popover-foreground: 142 65% 96%;
+    --primary: 152 76% 40%;              /* Vibrant rejuvenating biophilic emerald #18b368 */
+    --primary-foreground: 155 90% 5%;
+    --secondary: 155 35% 12%;            /* Deep pine accent #132b1d */
+    --secondary-foreground: 142 65% 96%;
+    --muted: 155 30% 12%;
+    --muted-foreground: 150 25% 68%;     /* Relaxing soft sage green text #8ebfa4 */
+    --accent: 155 35% 15%;
+    --accent-foreground: 142 65% 96%;
+    --destructive: 0 62.8% 30.6%;
+    --destructive-foreground: 210 40% 98%;
+    --border: 155 35% 14%;               /* Subtle pine card borders #173623 */
+    --input: 155 35% 14%;
+    --ring: 152 76% 40%;
+  }
 }
 
 @layer base {
@@ -74,6 +97,21 @@
 @layer utilities {
   .glass { @apply bg-white/80 dark:bg-slate-900/70 backdrop-blur-xl border border-slate-200/80 dark:border-slate-700/30 shadow-sm dark:shadow-none; }
   .glass-card { @apply bg-white/90 dark:bg-slate-800/80 backdrop-blur-lg border border-slate-200/80 dark:border-slate-700/40 shadow-sm dark:shadow-lg; }
+  
+  /* Green Theme Glass Elevation */
+  .green .glass {
+    background-color: rgba(9, 26, 16, 0.75) !important;
+    border-color: rgba(34, 197, 94, 0.15) !important;
+  }
+  .green .glass-card {
+    background-color: rgba(11, 31, 20, 0.85) !important;
+    border-color: rgba(34, 197, 94, 0.2) !important;
+    box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 0 20px 0 rgba(16, 185, 129, 0.05) !important;
+  }
+  .green .text-gradient {
+    background-image: linear-gradient(to right, #34d399, #a3e635) !important;
+  }
+
   .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-wellness-focus; }
   .hover-lift { @apply transition-all duration-300 hover:-translate-y-1 hover:shadow-xl; }
 
