@@ -147,12 +147,12 @@ export function Navbar() {
           className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
           title={
             theme === "green"
-              ? "Forest Emerald Dark (Click for Emerald Glass Light)"
+              ? "Forest Emerald Dark (Active) - Click for Emerald Glass Light"
               : theme === "green-light"
-              ? "Emerald Glass Light (Click for Daylight Clean)"
-              : theme === "dark"
-              ? "Monolithic Black (Click for Forest Emerald)"
-              : "Daylight Clean (Click for Monolithic Black)"
+              ? "Emerald Glass Light (Active) - Click for Daylight Clean"
+              : theme === "light"
+              ? "Daylight Clean (Active) - Click for Monolithic Black"
+              : "Monolithic Black (Active) - Click for Forest Emerald"
           }
         >
           {theme === "green" ? (
@@ -160,9 +160,9 @@ export function Navbar() {
           ) : theme === "green-light" ? (
             <Sparkles size={18} className="text-emerald-600 animate-pulse" />
           ) : theme === "dark" ? (
-            <Sun size={18} />
+            <Moon size={18} className="text-neutral-300" />
           ) : (
-            <Moon size={18} />
+            <Sun size={18} className="text-amber-500" />
           )}
         </button>
 
