@@ -44,7 +44,7 @@ export function BottomNav() {
                 "flex flex-col items-center justify-center py-1 px-2.5 rounded-xl transition-all relative",
                 isActive
                   ? "text-primary-600 dark:text-primary-400 font-semibold"
-                  : "text-slate-500 hover:text-slate-900 dark:text-muted-foreground dark:hover:text-foreground"
+                  : "text-muted-foreground hover:text-foreground"
               )}
             >
               {isActive && (
@@ -69,7 +69,7 @@ export function BottomNav() {
         {/* More Menu Drawer Trigger */}
         <button
           onClick={handleOpenMenu}
-          className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-slate-500 hover:text-slate-900 dark:text-muted-foreground dark:hover:text-foreground transition-all"
+          className="flex flex-col items-center justify-center py-1 px-2.5 rounded-xl text-muted-foreground hover:text-foreground transition-all"
         >
           <div className="p-1 rounded-lg">
             <Menu size={20} />

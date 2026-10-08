@@ -23,14 +23,89 @@ export function Navbar() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
 
+  const [isVisible, setIsVisible] = useState(true);
+  const lastScrollYRef = useRef(0);
+  const tickingRef = useRef(false);
+
   const notificationRef = useRef<HTMLDivElement>(null);
   const profileRef = useRef<HTMLDivElement>(null);
 
-  // Automatically close dropdowns whenever user switches to a different section
+  // Automatically close dropdowns and reset visibility whenever user switches to a different section
   useEffect(() => {
     setShowNotifications(false);
     setShowProfile(false);
+    setIsVisible(true);
+    lastScrollYRef.current = 0;
   }, [pathname]);
+
+  // Instagram-style scroll-aware header: hide on scroll down, show on scroll up
+  useEffect(() => {
+    const deltaThreshold = 8;
+    const topThreshold = 45;
+
+    const handleScroll = (e?: Event) => {
+      if (tickingRef.current) return;
+
+      const target = e?.target;
+      const isMainScroll =
+        !target ||
+        target === document ||
+        target === window ||
+        target === document.documentElement ||
+        target === document.body ||
+        (target instanceof HTMLElement && target.tagName.toLowerCase() === "main");
+
+      // Ignore scrolls occurring in nested sub-containers (e.g. popover modals, selection lists)
+      if (!isMainScroll) return;
+
+      tickingRef.current = true;
+      requestAnimationFrame(() => {
+        let currentScrollY = 0;
+        if (target && target instanceof HTMLElement && target.tagName.toLowerCase() === "main" && target.scrollTop > 0) {
+          currentScrollY = target.scrollTop;
+        } else {
+          currentScrollY = window.scrollY || document.documentElement.scrollTop || document.body.scrollTop || 0;
+        }
+
+        // Avoid negative values from iOS momentum/overscroll bounce
+        const safeScrollY = Math.max(0, currentScrollY);
+
+        // Near top of screen: always visible
+        if (safeScrollY <= topThreshold) {
+          setIsVisible(true);
+          lastScrollYRef.current = safeScrollY;
+          tickingRef.current = false;
+          return;
+        }
+
+        const delta = safeScrollY - lastScrollYRef.current;
+
+        if (Math.abs(delta) >= deltaThreshold) {
+          if (delta > 0 && safeScrollY > topThreshold) {
+            // Scrolling down -> hide navbar
+            setIsVisible((prev) => {
+              if (prev) {
+                setShowNotifications(false);
+                setShowProfile(false);
+              }
+              return false;
+            });
+          } else if (delta < 0) {
+            // Scrolling up -> show navbar
+            setIsVisible(true);
+          }
+          lastScrollYRef.current = safeScrollY;
+        }
+
+        tickingRef.current = false;
+      });
+    };
+
+    window.addEventListener("scroll", handleScroll, { passive: true, capture: true });
+    return () => {
+      window.removeEventListener("scroll", handleScroll, { capture: true });
+    };
+  }, []);
 
   // Click outside, escape key, and mobile sidebar trigger handlers
   useEffect(() => {
@@ -59,6 +134,7 @@ export function Navbar() {
     const handleDrawerOpen = () => {
       setShowNotifications(false);
       setShowProfile(false);
+      setIsVisible(true);
     };
 
     if (showNotifications || showProfile) {
@@ -118,7 +194,13 @@ export function Navbar() {
   }
 
   return (
-    <header className="sticky top-0 z-30 w-full glass border-b border-slate-200/80 dark:border-white/10 pt-[env(safe-area-inset-top,0px)]">
+    <header
+      className={cn(
+        "sticky top-0 z-30 w-full glass border-b border-slate-200/80 dark:border-white/10 pt-[env(safe-area-inset-top,0px)]",
+        "transition-transform duration-300 ease-in-out will-change-transform",
+        isVisible ? "translate-y-0" : "-translate-y-full"
+      )}
+    >
       <div className="h-16 flex items-center justify-between px-3.5 sm:px-6">
         <div className="flex items-center gap-2 sm:gap-3">
         <button
@@ -127,7 +209,7 @@ export function Navbar() {
               window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
             }
           }}
-          className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+          className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
           aria-label="Open navigation menu"
         >
           <Menu size={22} />
@@ -144,7 +226,7 @@ export function Navbar() {
       <div className="flex items-center gap-3">
         <button
           onClick={toggleTheme}
-          className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors text-muted-foreground hover:text-foreground"
+          className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
           title={
             theme === "green"
               ? "Forest Emerald Dark (Active) - Click for Emerald Glass Light"
@@ -173,7 +255,7 @@ export function Navbar() {
               setShowNotifications(!showNotifications);
               setShowProfile(false);
             }}
-            className="p-2 rounded-lg hover:bg-slate-100 dark:hover:bg-white/5 transition-colors relative text-muted-foreground hover:text-foreground"
+            className="p-2 rounded-lg hover:bg-muted transition-colors relative text-muted-foreground hover:text-foreground"
             title="Notifications"
           >
             <Bell size={18} />

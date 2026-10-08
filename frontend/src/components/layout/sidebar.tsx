@@ -144,10 +144,10 @@ export function Sidebar() {
                   "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all",
                   isActive
                     ? "bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 border border-primary-500/20 dark:border-primary-500/30 shadow-sm"
-                    : "text-slate-600 hover:bg-slate-100/80 hover:text-slate-900 dark:text-muted-foreground dark:hover:bg-white/5 dark:hover:text-foreground"
+                    : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
                 )}
               >
-                <Icon size={18} className={isActive ? "text-primary-600 dark:text-primary-400" : "text-slate-400 dark:text-muted-foreground"} />
+                <Icon size={18} className={isActive ? "text-primary-600 dark:text-primary-400" : "text-muted-foreground"} />
                 {item.name}
               </Link>
             );

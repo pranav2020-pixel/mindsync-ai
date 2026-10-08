@@ -719,57 +719,68 @@ export default function AssessmentsPage() {
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="glass-card rounded-2xl p-6 sm:p-8 space-y-6 border border-border shadow-2xl bg-card text-card-foreground"
+          className="glass-card rounded-2xl p-6 sm:p-8 space-y-6 border border-border shadow-2xl bg-card text-card-foreground hover-lift-subtle"
         >
-          <div className="flex items-center justify-between border-b border-border pb-4">
+          {/* Header & Score Callout */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
             <div>
-              <span className="text-xs uppercase tracking-wider text-emerald-500 font-semibold flex items-center gap-1.5">
-                <CheckCircle2 size={14} /> Evaluation Completed
+              <span className="text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 mb-1">
+                <CheckCircle2 size={16} className="text-emerald-500" /> Evaluation Completed • Clinical T-Score Calibrated
               </span>
-              <h2 className="text-2xl font-bold mt-1 text-foreground">{activeAssessment.name}</h2>
+              <h2 className="text-2xl font-bold text-foreground">{activeAssessment.name}</h2>
               {activeAssessment.target && (
-                <p className="text-xs text-muted-foreground mt-0.5">Target: {activeAssessment.target}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Clinical Focus: {activeAssessment.target}</p>
               )}
             </div>
-            <div className="text-right bg-primary-500/10 px-4 py-2 rounded-xl border border-primary-500/20">
-              <span className="text-xs text-muted-foreground block font-medium">Overall Score</span>
-              <span className="text-3xl font-extrabold text-primary-600 dark:text-primary-400">{result.totalScore}</span>
+            <div className="flex items-center gap-3">
+              <div className="text-right bg-primary-500/10 px-5 py-3 rounded-2xl border border-primary-500/20 shadow-sm">
+                <span className="text-[11px] text-muted-foreground block font-semibold uppercase tracking-wider">Overall Score</span>
+                <span className="text-3xl font-extrabold text-primary-600 dark:text-primary-400 font-mono">{result.totalScore}</span>
+              </div>
             </div>
           </div>
 
-          {/* AI Clinical Summary */}
-          <div className="p-5 rounded-xl bg-primary-500/10 border border-primary-500/20 space-y-2">
-            <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-semibold text-sm">
-              <Sparkles size={16} />
-              MindSync AI Synthesis
+          {/* AI Clinical Synthesis Box (Sora / Gemini Co-pilot) */}
+          <div className="p-5 rounded-2xl bg-primary-500/10 border border-primary-500/25 space-y-2.5 shadow-sm">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-bold text-sm">
+                <Sparkles size={16} />
+                <span>MindSync AI Clinical Synthesis</span>
+              </div>
+              <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-600 dark:text-primary-300">
+                Cognitive Co-Pilot
+              </span>
             </div>
-            <p className="text-sm leading-relaxed italic text-foreground/90">
+            <p className="text-sm leading-relaxed italic text-foreground/90 font-medium">
               &ldquo;{result.aiInterpretation}&rdquo;
             </p>
           </div>
 
-          {/* Sub-Scale Breakdown */}
+          {/* Sub-Scale & Dimension Breakdown */}
           {result.scores && Object.keys(result.scores).length > 0 && (
             <div className="space-y-3">
-              <h4 className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                <BarChart2 size={16} className="text-primary-500" />
-                Sub-Scale & Dimension Breakdown
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold flex items-center gap-2 text-foreground">
+                  <BarChart2 size={16} className="text-primary-500" />
+                  Sub-Scale & Dimension Breakdown
+                </h4>
+                <span className="text-xs text-muted-foreground font-medium">Domain Weightings</span>
+              </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {Object.entries(result.scores).map(([category, score]: [string, any]) => (
-                  <div key={category} className="p-3.5 rounded-xl bg-muted/40 border border-border">
+                  <div key={category} className="p-3.5 rounded-xl bg-card border border-border shadow-sm">
                     <div className="flex justify-between text-xs mb-1.5">
                       <span className="capitalize font-semibold text-muted-foreground">
                         {category.replace(/_/g, " ")}
                       </span>
-                      <span className="font-bold text-foreground">
+                      <span className="font-bold text-foreground font-mono">
                         {typeof score === "number" ? score.toFixed(1) : score}
                       </span>
                     </div>
-                    <div className="w-full bg-border rounded-full h-2 overflow-hidden">
+                    <div className="w-full bg-slate-200/70 dark:bg-neutral-800/80 rounded-full h-2 overflow-hidden border border-border/50">
                       <div
-                        className="bg-gradient-to-r from-primary-500 to-indigo-500 h-full rounded-full transition-all duration-500"
-                        style={{ width: `${Math.min(100, (Number(score) / 5) * 100)}%` }}
+                        className="bg-gradient-to-r from-primary-500 to-emerald-400 h-full rounded-full transition-all duration-500 shadow-sm"
+                        style={{ width: `${Math.min(100, Math.max(5, (Number(score) / 5) * 100))}%` }}
                       />
                     </div>
                   </div>
@@ -781,21 +792,24 @@ export default function AssessmentsPage() {
           {/* Detailed Question Responses Preview */}
           {result.answers && Array.isArray(result.answers) && result.answers.length > 0 && (
             <div className="space-y-3 pt-3 border-t border-border">
-              <h4 className="text-sm font-semibold flex items-center gap-2 text-foreground">
-                <FileText size={16} className="text-primary-500" />
-                Your Recorded Responses ({result.answers.length})
-              </h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-bold flex items-center gap-2 text-foreground">
+                  <FileText size={16} className="text-primary-500" />
+                  Recorded Item Breakdown ({result.answers.length} Questions)
+                </h4>
+                <span className="text-[11px] text-muted-foreground">Audit Log</span>
+              </div>
               <div className="max-h-64 overflow-y-auto space-y-2 pr-1 scrollbar-thin">
                 {result.answers.map((ans: any, idx: number) => (
                   <div
                     key={ans.questionId || idx}
-                    className="p-3 rounded-xl bg-muted/30 border border-border flex items-center justify-between text-xs gap-3"
+                    className="p-3 rounded-xl bg-card border border-border flex items-center justify-between text-xs gap-3 shadow-sm hover:border-primary-500/30 transition-colors"
                   >
                     <div className="flex-1">
-                      <span className="font-semibold text-primary-600 dark:text-primary-400 mr-1.5">Q{idx + 1}.</span>
-                      <span className="text-foreground">{ans.questionText}</span>
+                      <span className="font-bold text-primary-600 dark:text-primary-400 mr-1.5">Q{idx + 1}.</span>
+                      <span className="text-foreground font-medium">{ans.questionText}</span>
                     </div>
-                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
+                    <span className="px-2.5 py-1 rounded-lg bg-emerald-500/10 border border-emerald-500/25 text-emerald-600 dark:text-emerald-400 font-semibold shrink-0">
                       {ans.label}
                     </span>
                   </div>
@@ -804,6 +818,7 @@ export default function AssessmentsPage() {
             </div>
           )}
 
+          {/* Action Footer */}
           <div className="pt-4 border-t border-border flex flex-col sm:flex-row justify-between items-start sm:items-center gap-3">
             <p className="text-xs text-muted-foreground">
               Evaluations are intended for personal cognitive reflection, not medical diagnosis.
@@ -814,13 +829,13 @@ export default function AssessmentsPage() {
                   setSelectedHistoryItem(result);
                   setIsHistoryModalOpen(true);
                 }}
-                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-card border border-border hover:border-primary-500/40 text-foreground font-medium text-xs sm:text-sm transition-colors shadow-sm"
+                className="flex-1 sm:flex-none px-4 py-2.5 rounded-xl bg-card border border-border hover:border-primary-500/40 text-foreground font-semibold text-xs sm:text-sm transition-colors shadow-sm hover-press"
               >
                 Open in Full History
               </button>
               <button
                 onClick={exitAssessment}
-                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 font-medium text-sm text-white transition-colors shadow-md"
+                className="flex-1 sm:flex-none px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 font-bold text-sm text-white transition-colors shadow-md hover-press"
               >
                 Return to Catalog
               </button>
@@ -838,27 +853,46 @@ export default function AssessmentsPage() {
     const answered = answers[currentQ.id] !== undefined;
 
     return (
-      <div className="max-w-2xl mx-auto space-y-6">
-        <div className="flex items-center justify-between">
-          <button
-            onClick={exitAssessment}
-            className="text-xs text-muted-foreground hover:text-foreground flex items-center gap-1 transition-colors"
-          >
-            <ArrowLeft size={14} /> Exit Test
-          </button>
-          <span className="text-xs font-medium text-primary-500">
-            Question {currentIndex + 1} of {questions.length}
-          </span>
+      <div className="max-w-3xl mx-auto space-y-6">
+        {/* Runner Navigation & Clinical Context Bar */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-muted-foreground">
+            <button
+              onClick={exitAssessment}
+              className="hover:text-foreground flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-card border border-border hover:border-primary-500/40 transition-colors shadow-sm"
+            >
+              <ArrowLeft size={14} /> Exit Test
+            </button>
+            <span className="text-border">/</span>
+            <span className="text-muted-foreground truncate">{activeAssessment.badgeCategory}</span>
+            <span className="text-border">/</span>
+            <span className="text-foreground font-semibold truncate">{activeAssessment.name}</span>
+          </div>
+
+          <div className="flex items-center gap-2 self-end sm:self-auto">
+            <span className="px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20 font-bold">
+              Est. {activeAssessment.estimatedMinutes} mins
+            </span>
+            <span className="px-2 py-0.5 rounded-full bg-muted border border-border text-foreground font-medium">
+              Item {currentIndex + 1} of {questions.length}
+            </span>
+          </div>
         </div>
 
         {/* Progress bar */}
-        <div className="w-full bg-border rounded-full h-1.5 overflow-hidden">
-          <motion.div
-            className="bg-primary-500 h-full rounded-full"
-            initial={{ width: 0 }}
-            animate={{ width: `${progress}%` }}
-            transition={{ duration: 0.3 }}
-          />
+        <div className="space-y-1.5">
+          <div className="flex justify-between text-xs text-muted-foreground font-medium">
+            <span>Assessment Progress</span>
+            <span className="text-primary-600 dark:text-primary-400 font-bold">{progress}% Completed</span>
+          </div>
+          <div className="w-full bg-muted rounded-full h-2.5 overflow-hidden p-0.5 border border-border">
+            <motion.div
+              className="bg-gradient-to-r from-primary-500 via-emerald-400 to-teal-400 h-full rounded-full shadow-sm"
+              initial={{ width: 0 }}
+              animate={{ width: `${progress}%` }}
+              transition={{ duration: 0.3 }}
+            />
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
@@ -868,25 +902,34 @@ export default function AssessmentsPage() {
             animate={{ opacity: 1, x: 0 }}
             exit={{ opacity: 0, x: -20 }}
             transition={{ duration: 0.2 }}
-            className="glass-card rounded-2xl p-6 sm:p-8 space-y-6 border border-border shadow-2xl bg-card text-card-foreground"
+            className="glass-card rounded-2xl p-6 sm:p-8 space-y-6 border border-border shadow-2xl bg-card text-card-foreground hover-lift-subtle"
           >
             <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[11px] uppercase tracking-wider text-primary-600 dark:text-primary-400 font-semibold px-2 py-0.5 rounded bg-primary-500/10 border border-primary-500/20">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[11px] uppercase tracking-wider text-primary-600 dark:text-primary-400 font-bold px-2.5 py-0.5 rounded-full bg-primary-500/10 border border-primary-500/20">
                   {activeAssessment.name}
                 </span>
                 {currentQ.category && (
-                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-0.5 rounded bg-muted border border-border">
+                  <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold px-2 py-0.5 rounded-full bg-muted border border-border">
                     {currentQ.category.replace(/_/g, " ")}
                   </span>
                 )}
+                {currentQ.reverseScored && (
+                  <span className="text-[10px] uppercase tracking-wider text-amber-600 dark:text-amber-400 font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 border border-amber-500/20">
+                    Reverse Scored
+                  </span>
+                )}
               </div>
-              <h3 className="text-xl font-semibold mt-3 leading-relaxed text-foreground">
+              <h3 className="text-xl sm:text-2xl font-bold mt-3 leading-relaxed text-foreground">
                 {currentQ.question}
               </h3>
+              <p className="text-xs text-muted-foreground mt-1">
+                Select the statement that most accurately reflects your recent experience:
+              </p>
             </div>
 
-            <div className="space-y-2.5">
+            {/* Option Radio Cards */}
+            <div className="space-y-3">
               {currentQ.options.map((opt) => {
                 const isSelected = answers[currentQ.id] === opt.value;
                 return (
@@ -894,51 +937,72 @@ export default function AssessmentsPage() {
                     key={opt.value}
                     onClick={() => handleSelectOption(currentQ.id, opt.value)}
                     className={cn(
-                      "w-full p-4 rounded-xl text-left text-sm font-medium transition-all flex items-center justify-between border",
+                      "w-full p-4 rounded-xl text-left text-sm font-medium transition-all flex items-center justify-between border hover-press",
                       isSelected
-                        ? "bg-primary-500/20 border-primary-500 text-foreground shadow-md"
-                        : "bg-muted/30 border-border hover:border-primary-500/30 text-muted-foreground hover:text-foreground"
+                        ? "bg-primary-500/15 border-primary-500 text-foreground ring-2 ring-primary-500/30 shadow-md"
+                        : "bg-card/80 border-border hover:border-primary-500/40 text-muted-foreground hover:text-foreground"
                     )}
                   >
-                    <span>{opt.label}</span>
-                    <div
-                      className={cn(
-                        "w-4 h-4 rounded-full border flex items-center justify-center transition-colors",
-                        isSelected ? "border-primary-500 bg-primary-500" : "border-border"
-                      )}
-                    >
-                      {isSelected && <div className="w-1.5 h-1.5 rounded-full bg-white" />}
+                    <div className="flex items-center gap-3">
+                      <div
+                        className={cn(
+                          "w-5 h-5 rounded-full border flex items-center justify-center transition-colors shrink-0",
+                          isSelected
+                            ? "border-primary-500 bg-primary-500 text-white shadow-sm"
+                            : "border-muted-foreground/40 bg-transparent"
+                        )}
+                      >
+                        {isSelected && <Check size={12} className="stroke-[3]" />}
+                      </div>
+                      <span className={cn("text-sm", isSelected ? "font-bold text-foreground" : "text-foreground/90")}>
+                        {opt.label}
+                      </span>
                     </div>
+
+                    <span className={cn(
+                      "text-xs px-2 py-0.5 rounded-md font-mono shrink-0",
+                      isSelected
+                        ? "bg-primary-500/20 text-primary-600 dark:text-primary-300 font-bold"
+                        : "bg-muted text-muted-foreground"
+                    )}>
+                      Score: {opt.value}
+                    </span>
                   </button>
                 );
               })}
             </div>
 
-            <div className="pt-4 border-t border-border flex justify-between items-center">
-              <button
-                onClick={handlePrev}
-                disabled={currentIndex === 0}
-                className="px-4 py-2 rounded-xl text-sm font-medium text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:text-muted-foreground flex items-center gap-1.5 transition-colors"
-              >
-                <ArrowLeft size={16} /> Previous
-              </button>
+            {/* Runner Navigation Footer */}
+            <div className="pt-4 border-t border-border flex flex-col sm:flex-row justify-between items-center gap-3">
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <button
+                  onClick={handlePrev}
+                  disabled={currentIndex === 0}
+                  className="px-4 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground disabled:opacity-30 disabled:hover:text-muted-foreground flex items-center gap-1.5 transition-colors border border-border bg-card shadow-sm"
+                >
+                  <ArrowLeft size={16} /> Previous
+                </button>
+                <span className="text-xs text-muted-foreground hidden sm:inline-block">
+                  🔒 End-to-End HIPAA / Local Encrypted
+                </span>
+              </div>
 
               {currentIndex === questions.length - 1 ? (
                 <button
                   onClick={handleSubmit}
                   disabled={!answered || submitting}
-                  className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-medium text-sm flex items-center gap-2 transition-colors shadow-lg"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg hover-press"
                 >
                   <Sparkles size={16} className={submitting ? "animate-spin" : ""} />
-                  {submitting ? "Analyzing..." : "Submit for AI Synthesis"}
+                  {submitting ? "Analyzing Responses..." : "Submit for AI Clinical Synthesis"}
                 </button>
               ) : (
                 <button
                   onClick={handleNext}
                   disabled={!answered}
-                  className="px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-medium text-sm flex items-center gap-1.5 transition-colors shadow-lg"
+                  className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-1.5 transition-all shadow-lg hover-press"
                 >
-                  Next <ArrowRight size={16} />
+                  Next Question <ArrowRight size={16} />
                 </button>
               )}
             </div>

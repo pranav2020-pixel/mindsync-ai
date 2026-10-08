@@ -220,6 +220,31 @@
     background-color: #10b981 !important;
     color: #05130b !important;
   }
+  /* Green Theme: Solid Primary Elements Harmonization (Eliminates jarring cyan/blue on solid buttons and tags) */
+  .green .bg-primary-500,
+  .green .bg-primary-600,
+  .green [class~="bg-primary-500"],
+  .green [class~="bg-primary-600"] {
+    background-color: #10b981 !important;
+  }
+  .green button[class~="bg-primary-500"],
+  .green button[class~="bg-primary-600"],
+  .green a[class~="bg-primary-500"],
+  .green a[class~="bg-primary-600"] {
+    color: #05130b !important;
+  }
+  .green [class~="border-primary-500"],
+  .green [class~="border-primary-600"] {
+    border-color: #10b981 !important;
+  }
+  .green button[class~="bg-primary-500"]:hover,
+  .green button[class~="bg-primary-600"]:hover,
+  .green a[class~="bg-primary-500"]:hover,
+  .green a[class~="bg-primary-600"]:hover,
+  .green [class*="hover:bg-primary-600"]:hover {
+    background-color: #34d399 !important;
+    color: #05130b !important;
+  }
   .green #bottomNavIndicator {
     background-color: #10b981 !important;
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important;
@@ -333,6 +358,31 @@
   .green-light a[class*="bg-primary-500/15"]:hover,
   .green-light [class*="hover:bg-primary-500"]:hover {
     background-color: #059669 !important;
+    color: #ffffff !important;
+  }
+  /* Green Light Theme: Solid Primary Elements Harmonization (Eliminates jarring cyan/blue on light mint theme) */
+  .green-light .bg-primary-500,
+  .green-light .bg-primary-600,
+  .green-light [class~="bg-primary-500"],
+  .green-light [class~="bg-primary-600"] {
+    background-color: #059669 !important;
+  }
+  .green-light button[class~="bg-primary-500"],
+  .green-light button[class~="bg-primary-600"],
+  .green-light a[class~="bg-primary-500"],
+  .green-light a[class~="bg-primary-600"] {
+    color: #ffffff !important;
+  }
+  .green-light [class~="border-primary-500"],
+  .green-light [class~="border-primary-600"] {
+    border-color: #059669 !important;
+  }
+  .green-light button[class~="bg-primary-500"]:hover,
+  .green-light button[class~="bg-primary-600"]:hover,
+  .green-light a[class~="bg-primary-500"]:hover,
+  .green-light a[class~="bg-primary-600"]:hover,
+  .green-light [class*="hover:bg-primary-600"]:hover {
+    background-color: #047857 !important;
     color: #ffffff !important;
   }
   .green-light #bottomNavIndicator {
