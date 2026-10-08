@@ -115,7 +115,7 @@ export default function Dashboard() {
         <StatCard title="Today's Mood" value={stats?.mood?.avgMood || "7.2"} subtitle="/ 10" icon={Heart} trend="+0.3" trendUp={true} color="text-wellness-calm" bgColor="bg-wellness-calm/10" />
         <StatCard title="Stress Level" value={stats?.mood?.avgStress || "4.1"} subtitle="/ 10" icon={Activity} trend="-0.5" trendUp={true} color="text-wellness-stress" bgColor="bg-wellness-stress/10" />
         <StatCard title="Energy" value={stats?.mood?.avgEnergy || "6.8"} subtitle="/ 10" icon={Zap} trend="+1.2" trendUp={true} color="text-wellness-energy" bgColor="bg-wellness-energy/10" />
-        <StatCard title="Journal Streak" value={stats?.journal?.currentStreak?.toString() || "5"} subtitle="days" icon={BookOpen} trend="Keep it up!" trendUp={true} color="text-primary-400" bgColor="bg-primary-500/10" />
+        <StatCard title="Journal Streak" value={stats?.journal?.currentStreak?.toString() || "5"} subtitle="days" icon={BookOpen} trend="Keep it up!" trendUp={true} color="text-primary-600 dark:text-primary-400" bgColor="bg-primary-500/10" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">

@@ -163,6 +163,7 @@
     border-color: rgba(34, 197, 94, 0.2) !important;
   }
   /* Green Theme: Global Primary Color Harmonization (Eliminates jarring cyan/blue on dark emerald) */
+  /* Green Theme: Global Primary Color Harmonization (Eliminates jarring cyan/blue on dark emerald) */
   .green [class*="text-primary-"],
   .green .text-primary-300,
   .green .text-primary-400,
@@ -170,14 +171,17 @@
   .green .text-primary-600,
   .green .text-primary-700,
   .green .dark\:text-primary-300,
-  .green .dark\:text-primary-400 {
+  .green .dark\:text-primary-400,
+  .green svg[class*="text-primary-"] {
     color: #34d399 !important; /* Soft soothing mint-emerald - eliminates optic nerve strain */
+    stroke: #34d399 !important;
   }
   .green [class*="hover:text-primary-"]:hover,
   .green .hover\:text-primary-500:hover,
   .green .hover\:text-primary-600:hover,
   .green .dark\:hover\:text-primary-300:hover {
     color: #6ee7b7 !important;
+    stroke: #6ee7b7 !important;
   }
   .green [class*="bg-primary-500/"],
   .green [class*="bg-primary-50"],
@@ -187,7 +191,8 @@
   .green .dark\:bg-primary-500\/10,
   .green .dark\:bg-primary-500\/15,
   .green .dark\:bg-primary-500\/20 {
-    background-color: rgba(16, 185, 129, 0.15) !important;
+    background-color: rgba(16, 185, 129, 0.12) !important;
+    box-shadow: none !important;
   }
   .green [class*="border-primary-500"],
   .green [class*="border-primary-200"],
@@ -207,6 +212,7 @@
     background-color: rgba(16, 185, 129, 0.18) !important;
     border-color: rgba(34, 197, 94, 0.35) !important;
     color: #34d399 !important;
+    box-shadow: none !important;
   }
   .green button[class*="bg-primary-500/15"]:hover,
   .green a[class*="bg-primary-500/15"]:hover,
@@ -214,8 +220,7 @@
     background-color: #10b981 !important;
     color: #05130b !important;
   }
-  .green #bottomNavIndicator,
-  .green [class*="bg-primary-500"] {
+  .green #bottomNavIndicator {
     background-color: #10b981 !important;
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important;
   }
@@ -283,23 +288,28 @@
   .green-light .text-primary-300,
   .green-light .text-primary-400,
   .green-light .text-primary-500,
-  .green-light .text-primary-600 {
+  .green-light .text-primary-600,
+  .green-light svg[class*="text-primary-"] {
     color: #059669 !important; /* Crisp botanical emerald for light theme */
+    stroke: #059669 !important;
   }
   .green-light .text-primary-700 {
     color: #064e3b !important;
+    stroke: #064e3b !important;
   }
   .green-light [class*="hover:text-primary-"]:hover,
   .green-light .hover\:text-primary-500:hover,
   .green-light .hover\:text-primary-600:hover {
     color: #047857 !important;
+    stroke: #047857 !important;
   }
   .green-light [class*="bg-primary-500/"],
   .green-light [class*="bg-primary-50"],
   .green-light .bg-primary-500\/10,
   .green-light .bg-primary-500\/15,
   .green-light .bg-primary-500\/20 {
-    background-color: rgba(16, 185, 129, 0.14) !important;
+    background-color: rgba(16, 185, 129, 0.12) !important;
+    box-shadow: none !important;
   }
   .green-light [class*="border-primary-500"],
   .green-light [class*="border-primary-200"],
@@ -317,6 +327,7 @@
     background-color: rgba(16, 185, 129, 0.14) !important;
     border-color: rgba(16, 185, 129, 0.3) !important;
     color: #059669 !important;
+    box-shadow: none !important;
   }
   .green-light button[class*="bg-primary-500/15"]:hover,
   .green-light a[class*="bg-primary-500/15"]:hover,
@@ -324,8 +335,7 @@
     background-color: #059669 !important;
     color: #ffffff !important;
   }
-  .green-light #bottomNavIndicator,
-  .green-light [class*="bg-primary-500"] {
+  .green-light #bottomNavIndicator {
     background-color: #10b981 !important;
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;
   }
