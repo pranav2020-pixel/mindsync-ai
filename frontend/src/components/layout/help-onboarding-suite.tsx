@@ -25,7 +25,11 @@ import { Avatar3DRenderer } from "./avatar-3d-renderer";
 const getOnboardingStorageKey = (userId: string) => `mindsync_onboarding_completed_v2_${userId}`;
 const PENDING_FULL_TOUR_KEY = "mindsync_pending_full_tour_user";
 const STEP_MEMORY_STORAGE_KEY = "mindsync_freddy_last_step_v2";
+const TOUR_OPEN_STORAGE_KEY = "mindsync_freddy_tour_open_v2";
 const FREDDY_AVATAR_ID = "avatar-4fe2d1bd-cf46-4e5e-a62d-d6b60be519ed";
+
+// Routes that live inside the "More" drawer on viewports < 1024px
+const MOBILE_DRAWER_ROUTES = new Set(["/productivity", "/assessments", "/analytics", "/settings"]);
 
 interface FreddyTourStep {
   id: string;
@@ -50,7 +54,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Here on your Dashboard, you see your daily wellness score, active streak, and quick stats.",
     sequenceId: "excited",
     navSelectors: ['aside a[href="/"]', 'nav a[href="/"]'],
-    insideSelectors: ["main h1", "main .glass-card"],
+    insideSelectors: ["main h1", "main .glass-card", "main > div"],
   },
   {
     id: "journal-editor",
@@ -61,7 +65,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Write your thoughts freely here—every entry is locked with AES-256 encryption.",
     sequenceId: "thinking",
     navSelectors: ['aside a[href="/journal"]', 'nav a[href="/journal"]'],
-    insideSelectors: ["main textarea", "main form"],
+    insideSelectors: ["main textarea", "main form", "main .glass-card", "main h1"],
   },
   {
     id: "journal-save",
@@ -72,7 +76,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Set your mood sliders and tap Save to get gentle AI emotional reflection.",
     sequenceId: "happy",
     navSelectors: ['aside a[href="/journal"]', 'nav a[href="/journal"]'],
-    insideSelectors: ['main form button[type="submit"]', "main form input[type='range']"],
+    insideSelectors: ['main form button[type="submit"]', "main form input[type='range']", "main form", "main .glass-card"],
   },
   {
     id: "mood-checkin",
@@ -83,7 +87,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Slide from 1 to 10 to log how you feel along with sleep, water, and exercise.",
     sequenceId: "happy",
     navSelectors: ['aside a[href="/mood"]', 'nav a[href="/mood"]'],
-    insideSelectors: ["main input[type='range']", "main .glass-card"],
+    insideSelectors: ["main input[type='range']", "main .glass-card", "main h1", "main > div"],
   },
   {
     id: "habits-rituals",
@@ -94,7 +98,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Check off daily habits here to build streaks and level up your Wellness Rank!",
     sequenceId: "celebrate",
     navSelectors: ['aside a[href="/habits"]', 'nav a[href="/habits"]'],
-    insideSelectors: ["main .glass-card"],
+    insideSelectors: ["main .glass-card", "main h1", "main > div"],
   },
   {
     id: "productivity-timer",
@@ -105,7 +109,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Start a calm 25-minute Pomodoro timer whenever you want distraction-free focus.",
     sequenceId: "working",
     navSelectors: ['aside a[href="/productivity"]', 'nav a[href="/productivity"]'],
-    insideSelectors: ["main .glass-card", "main button"],
+    insideSelectors: ["main .glass-card", "main button", "main h1", "main > div"],
   },
   {
     id: "assessments-suite",
@@ -116,7 +120,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Tap any science-backed checkup card here to test your stress, sleep, or well-being.",
     sequenceId: "curious",
     navSelectors: ['aside a[href="/assessments"]', 'nav a[href="/assessments"]'],
-    insideSelectors: ["main .glass-card", "main h1"],
+    insideSelectors: ["main .glass-card", "main h1", "main > div"],
   },
   {
     id: "chat-companion",
@@ -127,7 +131,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Send a message here anytime you want a friendly, supportive listener.",
     sequenceId: "listening",
     navSelectors: ['aside a[href="/chat"]', 'nav a[href="/chat"]'],
-    insideSelectors: ["main textarea", "main input", "main form"],
+    insideSelectors: ["main .glass-card", "main h1", "main form", "main > div"],
   },
   {
     id: "analytics-trends",
@@ -138,7 +142,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "See how your sleep, habits, and mood connect over time with clear visual charts.",
     sequenceId: "curious",
     navSelectors: ['aside a[href="/analytics"]', 'nav a[href="/analytics"]'],
-    insideSelectors: ["main .glass-card", "main h1"],
+    insideSelectors: ["main .glass-card", "main h1", "main > div"],
   },
   {
     id: "settings-profile",
@@ -149,7 +153,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     text: "Update your circular photo, @username, or switch between 4 themes here. Enjoy MindSync!",
     sequenceId: "celebrate",
     navSelectors: ['aside a[href="/settings"]', 'nav a[href="/settings"]'],
-    insideSelectors: ["main .glass-card", "main h1"],
+    insideSelectors: ["main .glass-card", "main h1", "main > div"],
   },
 ];
 
@@ -182,7 +186,7 @@ export function HelpAndOnboardingSuite() {
 
   const [mounted, setMounted] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
-  const [tourMode, setTourMode] = useState<"section" | "full">("section");
+  const [tourMode, setTourMode] = useState<"section" | "full">("full");
   const [tourStep, setTourStep] = useState(0);
   const [isMobileView, setIsMobileView] = useState(false);
   const [freddyPos, setFreddyPos] = useState<{ x: number; y: number }>({ x: 24, y: 120 });
@@ -207,9 +211,6 @@ export function HelpAndOnboardingSuite() {
   const isAuthPage =
     pathname === "/login" || pathname === "/register" || pathname === "/forgot-password";
 
-  const currentStep = FREDDY_STEPS[tourStep] || FREDDY_STEPS[0];
-  const isWaitingForSectionClick = tourOpen && pathname !== currentStep.route;
-
   // Helper: find the best step index for a given route (using memory if available)
   const getStepForRoute = useCallback((targetRoute: string): number => {
     const remembered = sectionMemoryRef.current[targetRoute];
@@ -223,6 +224,19 @@ export function HelpAndOnboardingSuite() {
     const firstMatch = FREDDY_STEPS.findIndex((s) => s.route === targetRoute);
     return firstMatch >= 0 ? firstMatch : 0;
   }, []);
+
+  // Synchronous route adaptation: if pathname just changed on this render frame,
+  // immediately resolve the matching step so there is zero 1-frame lag!
+  let effectiveTourStep = tourStep;
+  if (prevPathnameRef.current !== pathname) {
+    const matchedIdx = FREDDY_STEPS.findIndex((s) => s.route === pathname);
+    if (matchedIdx >= 0) {
+      effectiveTourStep = matchedIdx;
+    }
+  }
+
+  const currentStep = FREDDY_STEPS[effectiveTourStep] || FREDDY_STEPS[0];
+  const isWaitingForSectionClick = tourOpen && pathname !== currentStep.route;
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -241,10 +255,19 @@ export function HelpAndOnboardingSuite() {
         setTourStep(parsed);
       }
     }
+    const savedOpen = sessionStorage.getItem(TOUR_OPEN_STORAGE_KEY);
+    if (savedOpen === "true") {
+      setTourOpen(true);
+    }
     setMounted(true);
   }, []);
 
-  // Save current step in sectionMemoryRef & sessionStorage whenever tourStep changes
+  // Persist tourOpen & tourStep in sessionStorage so route transitions or mobile remounts never drop the tour
+  useEffect(() => {
+    if (!mounted || typeof window === "undefined") return;
+    sessionStorage.setItem(TOUR_OPEN_STORAGE_KEY, tourOpen ? "true" : "false");
+  }, [tourOpen, mounted]);
+
   useEffect(() => {
     const step = FREDDY_STEPS[tourStep];
     if (step && pathname === step.route) {
@@ -256,20 +279,42 @@ export function HelpAndOnboardingSuite() {
   }, [tourStep, pathname]);
 
   // CRITICAL: Whenever the user clicks ANY section in the Sidebar or BottomNav (pathname changes),
-  // Freddy immediately remembers & switches to explaining that newly opened section!
+  // Freddy immediately switches to explaining that newly opened section and closes any mobile drawer!
   useEffect(() => {
     if (prevPathnameRef.current !== pathname) {
       prevPathnameRef.current = pathname;
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("close-mobile-sidebar"));
+      }
       const firstMatchForNewRoute = FREDDY_STEPS.findIndex((s) => s.route === pathname);
       if (firstMatchForNewRoute >= 0) {
-        // Always start at the first explanation step of the newly entered section
         sectionMemoryRef.current[pathname] = firstMatchForNewRoute;
         setTourStep(firstMatchForNewRoute);
       }
     }
   }, [pathname]);
 
-  // 1. Tapping Freddy in the corner: Explain the CURRENT section you are in!
+  // Capture clicks on any Sidebar or BottomNav link so even clicking the current active section
+  // immediately syncs Freddy to that section and continues the tour without closing!
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const handleNavLinkClick = (e: MouseEvent) => {
+      const target = e.target as HTMLElement | null;
+      const anchor = target?.closest?.("aside a[href], nav a[href]") as HTMLAnchorElement | null;
+      if (!anchor) return;
+      const href = anchor.getAttribute("href");
+      if (!href) return;
+      const matchIdx = FREDDY_STEPS.findIndex((s) => s.route === href);
+      if (matchIdx >= 0) {
+        sectionMemoryRef.current[href] = matchIdx;
+        setTourStep(matchIdx);
+      }
+    };
+    document.addEventListener("click", handleNavLinkClick, true);
+    return () => document.removeEventListener("click", handleNavLinkClick, true);
+  }, []);
+
+  // 1. Tapping Freddy in the corner: Explain the CURRENT section & allow continuing the tour!
   const openSectionGuide = useCallback(() => {
     tourOpenedAtRef.current = Date.now();
     setHelpOpen(false);
@@ -278,6 +323,9 @@ export function HelpAndOnboardingSuite() {
     setTourMode("section");
     setTourStep(stepIdx);
     setTourOpen(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(TOUR_OPEN_STORAGE_KEY, "true");
+    }
   }, [pathname, getStepForRoute]);
 
   // 2. Clicking "3D Tour" in top Navbar or Help Center: Start Full App Tour!
@@ -289,11 +337,17 @@ export function HelpAndOnboardingSuite() {
     setTourMode("full");
     setTourStep(stepIdx);
     setTourOpen(true);
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(TOUR_OPEN_STORAGE_KEY, "true");
+    }
   }, [pathname, getStepForRoute]);
 
   const completeTour = useCallback(() => {
-    if (typeof window !== "undefined" && user?.id) {
-      localStorage.setItem(getOnboardingStorageKey(user.id), "true");
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(TOUR_OPEN_STORAGE_KEY, "false");
+      if (user?.id) {
+        localStorage.setItem(getOnboardingStorageKey(user.id), "true");
+      }
       localStorage.removeItem(PENDING_FULL_TOUR_KEY);
     }
     setTourOpen(false);
@@ -303,6 +357,20 @@ export function HelpAndOnboardingSuite() {
   const goToStep = useCallback((nextIdx: number) => {
     const clamped = Math.max(0, Math.min(FREDDY_STEPS.length - 1, nextIdx));
     setTourStep(clamped);
+
+    // On mobile & tablet (< 1024px), if the next step requires a route inside the "More" drawer
+    // (/productivity, /assessments, /analytics, /settings) and we're not on that route yet,
+    // automatically open the mobile sidebar drawer so the user immediately sees the "Click here" pointer!
+    if (typeof window !== "undefined" && window.innerWidth < 1024) {
+      const targetStep = FREDDY_STEPS[clamped];
+      if (
+        targetStep &&
+        window.location.pathname !== targetStep.route &&
+        MOBILE_DRAWER_ROUTES.has(targetStep.route)
+      ) {
+        window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
+      }
+    }
   }, []);
 
   // Measure target element (either the nav button in "Click here" mode, or the feature inside the section)
@@ -312,10 +380,14 @@ export function HelpAndOnboardingSuite() {
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const mobile = vw < 640;
+      const isBelowDesktop = vw < 1024;
       setIsMobileView(mobile);
+
+      const currentRestingX = Math.max(16, vw - (mobile ? 80 : 88));
+      const currentRestingY = Math.max(80, vh - (mobile ? 148 : 88));
       setRestingPos({
-        x: Math.max(16, vw - (mobile ? 80 : 88)),
-        y: Math.max(80, vh - (mobile ? 148 : 88)),
+        x: currentRestingX,
+        y: currentRestingY,
       });
 
       const step = FREDDY_STEPS[stepIndex] || FREDDY_STEPS[0];
@@ -329,7 +401,7 @@ export function HelpAndOnboardingSuite() {
           const nodes = document.querySelectorAll(sel);
           for (let i = 0; i < nodes.length; i++) {
             const r = nodes[i].getBoundingClientRect();
-            if (r.width > 12 && r.height > 12 && r.right > 8 && r.left < vw - 8) {
+            if (r.width > 12 && r.height > 12 && r.right > 8 && r.left >= -4 && r.left < vw - 8) {
               foundEl = nodes[i];
               break;
             }
@@ -337,7 +409,7 @@ export function HelpAndOnboardingSuite() {
           if (foundEl) break;
         }
 
-        if (!foundEl && vw < 1024) {
+        if (!foundEl && isBelowDesktop) {
           const moreBtn = document.querySelector("nav button");
           if (moreBtn) {
             const r = moreBtn.getBoundingClientRect();
@@ -352,7 +424,7 @@ export function HelpAndOnboardingSuite() {
           const nodes = document.querySelectorAll(sel);
           for (let i = 0; i < nodes.length; i++) {
             const r = nodes[i].getBoundingClientRect();
-            if (r.width > 16 && r.height > 16) {
+            if (r.width > 20 && r.height > 16) {
               foundEl = nodes[i];
               break;
             }
@@ -366,7 +438,7 @@ export function HelpAndOnboardingSuite() {
       if (foundEl && shouldScrollIntoView && !waitingForClick) {
         const rectBefore = foundEl.getBoundingClientRect();
         const topSafe = mobile ? 76 : 80;
-        const bottomSafe = mobile ? vh - 96 : vh - 60;
+        const bottomSafe = isBelowDesktop ? vh - 96 : vh - 60;
         if (rectBefore.top < topSafe || rectBefore.bottom > bottomSafe) {
           try {
             foundEl.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
@@ -384,7 +456,9 @@ export function HelpAndOnboardingSuite() {
       const totalUnitHeight = mobile ? 114 : 120;
 
       const topSafeBound = mobile ? 70 : 68;
-      const bottomSafeBound = mobile ? vh - totalUnitHeight - 82 : vh - totalUnitHeight - 20;
+      const bottomSafeBound = isBelowDesktop
+        ? vh - totalUnitHeight - 84
+        : vh - totalUnitHeight - 24;
 
       if (foundRect && foundRect.width > 12 && foundRect.height > 12) {
         const isNavTarget = waitingForClick;
@@ -395,7 +469,10 @@ export function HelpAndOnboardingSuite() {
         const spotTop = Math.max(isNavTarget ? 4 : topSafeBound - 4, foundRect.top - pad);
         const maxSpotHeight = isNavTarget
           ? foundRect.height + pad * 2
-          : Math.min(foundRect.height + pad * 2, vh - spotTop - (mobile ? 82 : 24));
+          : Math.min(
+              foundRect.height + pad * 2,
+              Math.min(240, vh - spotTop - (isBelowDesktop ? 86 : 32))
+            );
 
         setSpotlight({
           top: Math.round(spotTop),
@@ -404,60 +481,96 @@ export function HelpAndOnboardingSuite() {
           height: Math.round(Math.max(32, maxSpotHeight)),
         });
 
-        if (mobile) {
+        let finalX = 24;
+        let finalY = 120;
+
+        if (isBottomBarItem) {
+          // BottomNav item on Mobile or Tablet (< 1024px): always place Freddy above the "Click here ↓" pointer
           setBubbleSide("right");
           const idealX = foundRect.left + foundRect.width * 0.5 - totalUnitWidth * 0.5;
-          const clampedX = Math.max(10, Math.min(vw - totalUnitWidth - 10, idealX));
+          finalX = Math.max(10, Math.min(vw - totalUnitWidth - 10, idealX));
+          finalY = Math.max(topSafeBound, Math.min(bottomSafeBound, foundRect.top - totalUnitHeight - 46));
+        } else if (mobile) {
+          setBubbleSide("right");
+          const idealX = foundRect.left + foundRect.width * 0.5 - totalUnitWidth * 0.5;
+          finalX = Math.max(10, Math.min(vw - totalUnitWidth - 10, idealX));
 
-          const spaceBelow = vh - 82 - (spotTop + maxSpotHeight);
+          const spaceBelow = vh - 84 - (spotTop + maxSpotHeight);
           const spaceAbove = spotTop - topSafeBound;
 
-          let targetY: number;
-          if (isBottomBarItem) {
-            targetY = foundRect.top - totalUnitHeight - 44;
-          } else if (spaceBelow >= totalUnitHeight + 10 || spaceBelow >= spaceAbove) {
-            targetY = Math.min(bottomSafeBound, spotTop + maxSpotHeight + 10);
+          if (isNavTarget) {
+            // Pointing at a link inside the open mobile drawer
+            finalY =
+              spaceBelow >= totalUnitHeight + 8
+                ? Math.min(bottomSafeBound, spotTop + maxSpotHeight + 10)
+                : Math.max(topSafeBound, spotTop - totalUnitHeight - 10);
+          } else if (spaceBelow >= totalUnitHeight + 12 && spotTop + maxSpotHeight + 12 < vh * 0.58) {
+            finalY = spotTop + maxSpotHeight + 12;
+          } else if (spaceAbove >= totalUnitHeight + 12) {
+            finalY = spotTop - totalUnitHeight - 12;
           } else {
-            targetY = Math.max(topSafeBound, spotTop - totalUnitHeight - 10);
+            finalY = Math.max(topSafeBound + 8, Math.min(vh * 0.42, spotTop + 12));
           }
-
-          setFreddyPos({
-            x: Math.round(clampedX),
-            y: Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, targetY))),
-          });
+        } else if (isNavTarget) {
+          // Desktop Sidebar or Tablet Drawer link
+          const pointerGap = 118;
+          const spaceRight = vw - foundRect.right;
+          setBubbleSide("right");
+          if (spaceRight >= totalUnitWidth + pointerGap + 12) {
+            finalX = foundRect.right + pointerGap;
+          } else {
+            finalX = Math.max(16, Math.min(vw - totalUnitWidth - 16, foundRect.right + 16));
+          }
+          finalY = foundRect.top + foundRect.height * 0.5 - totalUnitHeight * 0.5;
         } else {
-          const pointerGap = isNavTarget ? 120 : 14;
+          // Desktop / Tablet INSIDE a section:
+          // Keep Freddy near the upper-left / center-left of the active workspace card
+          // so he NEVER drifts into the bottom-right resting corner!
+          setBubbleSide("right");
           const spaceRight = vw - foundRect.right;
           const spaceLeft = foundRect.left;
 
-          let targetX: number;
-          let targetY = foundRect.top + Math.min(foundRect.height * 0.5, 80) - totalUnitHeight * 0.5;
-
-          if (spaceRight >= totalUnitWidth + pointerGap + 12) {
-            targetX = foundRect.right + pointerGap;
+          if (spaceRight >= totalUnitWidth + 24) {
+            finalX = foundRect.right + 14;
             setBubbleSide("right");
-          } else if (spaceLeft >= totalUnitWidth + 20) {
-            targetX = foundRect.left - totalUnitWidth - 14;
+          } else if (spaceLeft >= totalUnitWidth + 24) {
+            finalX = foundRect.left - totalUnitWidth - 14;
             setBubbleSide("left");
           } else {
-            targetX = Math.max(20, Math.min(vw - totalUnitWidth - 20, foundRect.right - totalUnitWidth - 12));
-            targetY =
-              foundRect.top > topSafeBound + totalUnitHeight + 14
-                ? foundRect.top - totalUnitHeight - 12
-                : Math.min(bottomSafeBound, foundRect.top + 14);
-            setBubbleSide("right");
+            // Full-width card inside <main>: place Freddy comfortably near the left/upper side of the card
+            finalX = Math.max(
+              20,
+              Math.min(vw - totalUnitWidth - 140, foundRect.left + 20)
+            );
           }
 
-          setFreddyPos({
-            x: Math.round(Math.max(14, Math.min(vw - totalUnitWidth - 14, targetX))),
-            y: Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, targetY))),
-          });
+          const spaceAbove = spotTop - topSafeBound;
+          const spaceBelow = bottomSafeBound - (spotTop + maxSpotHeight);
+
+          if (spaceAbove >= totalUnitHeight + 12) {
+            finalY = spotTop - totalUnitHeight - 10;
+          } else if (spaceBelow >= 20 && spotTop + maxSpotHeight + 12 <= vh * 0.52) {
+            finalY = spotTop + maxSpotHeight + 12;
+          } else {
+            finalY = Math.max(topSafeBound + 8, Math.min(vh * 0.36, spotTop + 14));
+          }
         }
+
+        finalX = Math.round(Math.max(10, Math.min(vw - totalUnitWidth - 10, finalX)));
+        finalY = Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, finalY)));
+
+        // Explicit Anti-Resting-Corner Guard: while tourOpen is true, never let Freddy's
+        // tour position collide with his bottom-right resting corner!
+        if (Math.abs(finalX - currentRestingX) < 120 && Math.abs(finalY - currentRestingY) < 120) {
+          finalY = Math.round(Math.max(topSafeBound + 12, Math.min(vh * 0.32, currentRestingY - totalUnitHeight - 60)));
+        }
+
+        setFreddyPos({ x: finalX, y: finalY });
       } else {
         setSpotlight(null);
         setBubbleSide("right");
-        const fallbackX = Math.max(10, Math.min(vw - totalUnitWidth - 10, (vw - totalUnitWidth) * 0.5));
-        const fallbackY = mobile ? Math.max(topSafeBound + 12, vh * 0.25) : 110;
+        const fallbackX = Math.max(14, Math.min(vw - totalUnitWidth - 14, mobile ? (vw - totalUnitWidth) * 0.5 : 300));
+        const fallbackY = mobile ? Math.max(topSafeBound + 12, vh * 0.24) : 112;
         setFreddyPos({
           x: Math.round(fallbackX),
           y: Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, fallbackY))),
@@ -474,23 +587,25 @@ export function HelpAndOnboardingSuite() {
       }
       rafPendingRef.current = requestAnimationFrame(() => {
         rafPendingRef.current = null;
-        measureAndPosition(tourStep, shouldScroll);
+        measureAndPosition(effectiveTourStep, shouldScroll);
       });
     },
-    [measureAndPosition, tourStep]
+    [measureAndPosition, effectiveTourStep]
   );
 
   useEffect(() => {
     if (!tourOpen) return;
 
-    measureAndPosition(tourStep, true);
-    const t1 = setTimeout(() => measureAndPosition(tourStep, true), 140);
-    const t2 = setTimeout(() => measureAndPosition(tourStep, false), 360);
+    measureAndPosition(effectiveTourStep, true);
+    const t1 = setTimeout(() => measureAndPosition(effectiveTourStep, true), 90);
+    const t2 = setTimeout(() => measureAndPosition(effectiveTourStep, false), 240);
+    const t3 = setTimeout(() => measureAndPosition(effectiveTourStep, false), 500);
+    const t4 = setTimeout(() => measureAndPosition(effectiveTourStep, false), 900);
 
     const onViewportChange = () => schedulePositionUpdate(false);
     const onDrawerToggle = () => {
-      setTimeout(() => measureAndPosition(tourStep, false), 180);
-      setTimeout(() => measureAndPosition(tourStep, false), 350);
+      setTimeout(() => measureAndPosition(effectiveTourStep, false), 150);
+      setTimeout(() => measureAndPosition(effectiveTourStep, false), 340);
     };
 
     window.addEventListener("resize", onViewportChange, { passive: true });
@@ -499,9 +614,25 @@ export function HelpAndOnboardingSuite() {
     window.addEventListener("close-mobile-sidebar", onDrawerToggle);
     window.addEventListener("toggle-mobile-sidebar", onDrawerToggle);
 
+    // Observe <main> DOM changes so sections that load data asynchronously from the API
+    // (/mood, /habits, /assessments, /analytics, /journal) immediately position Freddy when ready
+    let observer: MutationObserver | null = null;
+    const mainEl = typeof document !== "undefined" ? document.querySelector("main") : null;
+    if (mainEl && typeof MutationObserver !== "undefined") {
+      observer = new MutationObserver(() => {
+        schedulePositionUpdate(false);
+      });
+      observer.observe(mainEl, { childList: true, subtree: true });
+    }
+
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      clearTimeout(t3);
+      clearTimeout(t4);
+      if (observer) {
+        observer.disconnect();
+      }
       if (rafPendingRef.current !== null) {
         cancelAnimationFrame(rafPendingRef.current);
       }
@@ -511,7 +642,7 @@ export function HelpAndOnboardingSuite() {
       window.removeEventListener("close-mobile-sidebar", onDrawerToggle);
       window.removeEventListener("toggle-mobile-sidebar", onDrawerToggle);
     };
-  }, [tourOpen, tourStep, pathname, measureAndPosition, schedulePositionUpdate]);
+  }, [tourOpen, effectiveTourStep, pathname, measureAndPosition, schedulePositionUpdate]);
 
   useEffect(() => {
     if (tourOpen || typeof window === "undefined") return;
@@ -544,6 +675,7 @@ export function HelpAndOnboardingSuite() {
         localStorage.removeItem(PENDING_FULL_TOUR_KEY);
         localStorage.setItem(userKey, "true");
         sessionStorage.removeItem(STEP_MEMORY_STORAGE_KEY);
+        sessionStorage.setItem(TOUR_OPEN_STORAGE_KEY, "true");
         sectionMemoryRef.current = {};
         tourOpenedAtRef.current = Date.now();
         setHelpOpen(false);
@@ -590,15 +722,15 @@ export function HelpAndOnboardingSuite() {
       if (tourOpen) {
         if (e.key === "ArrowRight") {
           e.preventDefault();
-          if (tourStep < FREDDY_STEPS.length - 1) {
-            goToStep(tourStep + 1);
+          if (effectiveTourStep < FREDDY_STEPS.length - 1) {
+            goToStep(effectiveTourStep + 1);
           } else {
             completeTour();
           }
         } else if (e.key === "ArrowLeft") {
           e.preventDefault();
-          if (tourStep > 0) {
-            goToStep(tourStep - 1);
+          if (effectiveTourStep > 0) {
+            goToStep(effectiveTourStep - 1);
           }
         }
         return;
@@ -618,7 +750,7 @@ export function HelpAndOnboardingSuite() {
       window.removeEventListener("mindsync:start-tour", handleStartTour);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [tourOpen, tourStep, helpOpen, completeTour, goToStep, startFullTour]);
+  }, [tourOpen, effectiveTourStep, helpOpen, completeTour, goToStep, startFullTour]);
 
   if (isAuthPage || !mounted) return null;
 
@@ -633,9 +765,15 @@ export function HelpAndOnboardingSuite() {
     router.push(currentStep.route);
   };
 
-  // Check if there is another step inside the SAME section (e.g. Journal step 1 -> Journal step 2)
-  const nextStepObj = tourStep < FREDDY_STEPS.length - 1 ? FREDDY_STEPS[tourStep + 1] : null;
-  const hasMoreInCurrentSection = Boolean(nextStepObj && nextStepObj.route === currentStep.route);
+  // Advance to the next step across the tour (only completing after the final step)
+  const handleAdvanceTour = () => {
+    setTourMode("full");
+    if (effectiveTourStep < FREDDY_STEPS.length - 1) {
+      goToStep(effectiveTourStep + 1);
+    } else {
+      completeTour();
+    }
+  };
 
   const activeX = tourOpen ? freddyPos.x : restingPos.x;
   const activeY = tourOpen ? freddyPos.y : restingPos.y;
@@ -661,7 +799,7 @@ export function HelpAndOnboardingSuite() {
               exit={{ opacity: 0, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 260, damping: 28 }}
               className={cn(
-                "fixed z-50 rounded-2xl pointer-events-none",
+                "fixed z-[70] rounded-2xl pointer-events-none",
                 isWaitingForSectionClick
                   ? "ring-2 ring-emerald-400 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.45)] animate-pulse"
                   : "ring-2 ring-primary-500 bg-primary-500/[0.06] shadow-[0_0_24px_rgba(16,185,129,0.28)]"
@@ -688,7 +826,10 @@ export function HelpAndOnboardingSuite() {
                         opacity: 1,
                         scale: 1,
                         top: spotlight.top + spotlight.height * 0.5 - 14,
-                        left: spotlight.left + spotlight.width + 6,
+                        left: Math.min(
+                          (typeof window !== "undefined" ? window.innerWidth : 1200) - 96,
+                          spotlight.left + spotlight.width + 6
+                        ),
                         x: [0, -6, 0],
                       }
                 }
@@ -699,7 +840,7 @@ export function HelpAndOnboardingSuite() {
                   x: { repeat: Infinity, duration: 1.1, ease: "easeInOut" },
                   y: { repeat: Infinity, duration: 1.1, ease: "easeInOut" },
                 }}
-                className="fixed z-50 pointer-events-auto px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold tracking-tight flex items-center gap-1 shadow-[0_0_20px_rgba(16,185,129,0.65)] whitespace-nowrap touch-manipulation"
+                className="fixed z-[70] pointer-events-auto px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold tracking-tight flex items-center gap-1 shadow-[0_0_20px_rgba(16,185,129,0.65)] whitespace-nowrap touch-manipulation"
               >
                 {pointerMode === "down" ? (
                   <>
@@ -733,7 +874,7 @@ export function HelpAndOnboardingSuite() {
             mass: 0.8,
           }}
           className={cn(
-            "fixed top-0 left-0 z-50 flex items-center gap-2 pointer-events-none",
+            "fixed top-0 left-0 z-[70] flex items-center gap-2 pointer-events-none",
             tourOpen && bubbleSide === "left" && "flex-row-reverse"
           )}
         >
@@ -782,7 +923,6 @@ export function HelpAndOnboardingSuite() {
               interactiveGaze={true}
               onClick={() => {
                 if (!tourOpen) {
-                  // Clicking Freddy in the corner immediately explains the current section!
                   openSectionGuide();
                   return;
                 }
@@ -791,31 +931,25 @@ export function HelpAndOnboardingSuite() {
                 }
                 if (isWaitingForSectionClick) {
                   handleEnterCurrentSection();
-                } else if (hasMoreInCurrentSection || tourMode === "full") {
-                  if (tourStep < FREDDY_STEPS.length - 1) {
-                    goToStep(tourStep + 1);
-                  } else {
-                    completeTour();
-                  }
                 } else {
-                  completeTour();
+                  handleAdvanceTour();
                 }
               }}
               title={
                 tourOpen
                   ? isWaitingForSectionClick
                     ? `Click "${currentStep.sectionLabel}" to open section`
-                    : "Freddy · Tap to continue"
+                    : "Freddy · Tap to continue tour"
                   : "Tap Freddy to explain this section"
               }
             />
           </motion.div>
 
-          {/* Clean Minimalist Speech Bubble (No button inside bubble) */}
+          {/* Clean Minimalist Speech Bubble */}
           <AnimatePresence mode="wait">
             {tourOpen && (
               <motion.div
-                key={`${currentStep.id}-${isWaitingForSectionClick ? "nav" : "inside"}-${tourMode}`}
+                key={`${currentStep.id}-${isWaitingForSectionClick ? "nav" : "inside"}`}
                 initial={{ opacity: 0, y: 4, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.96 }}
@@ -834,9 +968,7 @@ export function HelpAndOnboardingSuite() {
                   >
                     {isWaitingForSectionClick
                       ? `Open ${currentStep.sectionLabel}`
-                      : tourMode === "full"
-                      ? `${currentStep.sectionLabel} · ${tourStep + 1}/${FREDDY_STEPS.length}`
-                      : `${currentStep.sectionLabel} Guide`}
+                      : `${currentStep.sectionLabel} · ${effectiveTourStep + 1}/${FREDDY_STEPS.length}`}
                   </span>
                   <button
                     type="button"
@@ -862,48 +994,30 @@ export function HelpAndOnboardingSuite() {
                   </p>
                 </div>
 
-                {/* Bottom Controls: Context-Aware for Section Guide vs Full Tour */}
+                {/* Bottom Controls: Step Dots + Back / Next / Skip */}
                 <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-border/60">
-                  {tourMode === "full" ? (
-                    <div className="flex items-center gap-1">
-                      {FREDDY_STEPS.map((s, idx) => (
-                        <button
-                          key={s.id}
-                          type="button"
-                          onClick={() => goToStep(idx)}
-                          aria-label={`Step ${idx + 1}`}
-                          className={cn(
-                            "h-1.5 rounded-full transition-all touch-manipulation",
-                            idx === tourStep
-                              ? "w-3 bg-primary-500"
-                              : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                          )}
-                        />
-                      ))}
-                    </div>
-                  ) : (
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setTourMode("full");
-                        if (tourStep < FREDDY_STEPS.length - 1) {
-                          goToStep(tourStep + 1);
-                        } else {
-                          goToStep(0);
-                        }
-                      }}
-                      className="text-[10px] font-semibold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-0.5 touch-manipulation"
-                    >
-                      Next section
-                      <ChevronRight size={11} />
-                    </button>
-                  )}
+                  <div className="flex items-center gap-1">
+                    {FREDDY_STEPS.map((s, idx) => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => goToStep(idx)}
+                        aria-label={`Step ${idx + 1}`}
+                        className={cn(
+                          "h-1.5 rounded-full transition-all touch-manipulation",
+                          idx === effectiveTourStep
+                            ? "w-3 bg-primary-500"
+                            : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                        )}
+                      />
+                    ))}
+                  </div>
 
                   <div className="flex items-center gap-1 shrink-0">
-                    {tourMode === "full" && tourStep > 0 && (
+                    {effectiveTourStep > 0 && (
                       <button
                         type="button"
-                        onClick={() => goToStep(tourStep - 1)}
+                        onClick={() => goToStep(effectiveTourStep - 1)}
                         className="min-h-[28px] px-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 flex items-center justify-center touch-manipulation"
                         aria-label="Previous step"
                       >
@@ -914,30 +1028,15 @@ export function HelpAndOnboardingSuite() {
                     {isWaitingForSectionClick ? (
                       <button
                         type="button"
-                        onClick={() => {
-                          if (tourStep < FREDDY_STEPS.length - 1) {
-                            goToStep(tourStep + 1);
-                          } else {
-                            completeTour();
-                          }
-                        }}
+                        onClick={handleAdvanceTour}
                         className="min-h-[28px] px-2 py-0.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors touch-manipulation"
                       >
                         Skip
                       </button>
-                    ) : hasMoreInCurrentSection ? (
+                    ) : effectiveTourStep < FREDDY_STEPS.length - 1 ? (
                       <button
                         type="button"
-                        onClick={() => goToStep(tourStep + 1)}
-                        className="min-h-[28px] px-3 py-1 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[11px] font-bold flex items-center gap-0.5 shadow-sm transition-all active:scale-95 touch-manipulation"
-                      >
-                        Next
-                        <ChevronRight size={12} />
-                      </button>
-                    ) : tourMode === "full" && tourStep < FREDDY_STEPS.length - 1 ? (
-                      <button
-                        type="button"
-                        onClick={() => goToStep(tourStep + 1)}
+                        onClick={handleAdvanceTour}
                         className="min-h-[28px] px-3 py-1 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[11px] font-bold flex items-center gap-0.5 shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
                         Next
@@ -949,7 +1048,7 @@ export function HelpAndOnboardingSuite() {
                         onClick={completeTour}
                         className="min-h-[28px] px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
-                        Got it
+                        Finish
                       </button>
                     )}
                   </div>
