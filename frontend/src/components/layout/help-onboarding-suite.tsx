@@ -23,6 +23,7 @@ import { cn } from "@/lib/utils";
 import { Avatar3DRenderer } from "./avatar-3d-renderer";
 
 const ONBOARDING_STORAGE_KEY = "mindsync_onboarding_completed_v1";
+const STEP_MEMORY_STORAGE_KEY = "mindsync_freddy_last_step_v2";
 const FREDDY_AVATAR_ID = "avatar-4fe2d1bd-cf46-4e5e-a62d-d6b60be519ed";
 
 interface FreddyTourStep {
@@ -37,13 +38,14 @@ interface FreddyTourStep {
   insideSelectors: string[];
 }
 
+// Ordered to match the exact Sidebar navigation sequence
 const FREDDY_STEPS: FreddyTourStep[] = [
   {
     id: "dashboard-overview",
     sectionLabel: "Dashboard",
     route: "/",
     navPrompt: 'Click "Dashboard" to open your daily home overview.',
-    title: "Hi, I'm Freddy! 👋",
+    title: "Daily Wellness Snapshot",
     text: "Here on your Dashboard, you see your daily wellness score, active streak, and quick stats.",
     sequenceId: "excited",
     navSelectors: ['aside a[href="/"]', 'nav a[href="/"]'],
@@ -127,6 +129,17 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     insideSelectors: ["main textarea", "main input", "main form"],
   },
   {
+    id: "analytics-trends",
+    sectionLabel: "Analytics",
+    route: "/analytics",
+    navPrompt: 'Click "Analytics" to view your mood & habit trends.',
+    title: "Wellness Trends & Charts",
+    text: "See how your sleep, habits, and mood connect over time with clear visual charts.",
+    sequenceId: "curious",
+    navSelectors: ['aside a[href="/analytics"]', 'nav a[href="/analytics"]'],
+    insideSelectors: ["main .glass-card", "main h1"],
+  },
+  {
     id: "settings-profile",
     sectionLabel: "Settings",
     route: "/settings",
@@ -168,6 +181,7 @@ export function HelpAndOnboardingSuite() {
 
   const [mounted, setMounted] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
+  const [tourMode, setTourMode] = useState<"section" | "full">("section");
   const [tourStep, setTourStep] = useState(0);
   const [isMobileView, setIsMobileView] = useState(false);
   const [freddyPos, setFreddyPos] = useState<{ x: number; y: number }>({ x: 24, y: 120 });
@@ -184,13 +198,29 @@ export function HelpAndOnboardingSuite() {
 
   const rafPendingRef = useRef<number | null>(null);
   const tourOpenedAtRef = useRef<number>(0);
+  const prevPathnameRef = useRef<string>(pathname);
+  // Remembers the last step index for each route so Freddy always remembers his place
+  const sectionMemoryRef = useRef<Record<string, number>>({});
 
   const isAuthPage =
     pathname === "/login" || pathname === "/register" || pathname === "/forgot-password";
 
   const currentStep = FREDDY_STEPS[tourStep] || FREDDY_STEPS[0];
-  // Interactive mode: if user is not on the step's route yet, point directly at the nav button with "Click here"
   const isWaitingForSectionClick = tourOpen && pathname !== currentStep.route;
+
+  // Helper: find the best step index for a given route (using memory if available)
+  const getStepForRoute = useCallback((targetRoute: string): number => {
+    const remembered = sectionMemoryRef.current[targetRoute];
+    if (
+      typeof remembered === "number" &&
+      FREDDY_STEPS[remembered] &&
+      FREDDY_STEPS[remembered].route === targetRoute
+    ) {
+      return remembered;
+    }
+    const firstMatch = FREDDY_STEPS.findIndex((s) => s.route === targetRoute);
+    return firstMatch >= 0 ? firstMatch : 0;
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -202,16 +232,62 @@ export function HelpAndOnboardingSuite() {
       x: Math.max(16, vw - (mobile ? 80 : 88)),
       y: Math.max(80, vh - (mobile ? 148 : 88)),
     });
+    const savedStep = sessionStorage.getItem(STEP_MEMORY_STORAGE_KEY);
+    if (savedStep !== null) {
+      const parsed = Number(savedStep);
+      if (!Number.isNaN(parsed) && parsed >= 0 && parsed < FREDDY_STEPS.length) {
+        setTourStep(parsed);
+      }
+    }
     setMounted(true);
   }, []);
 
-  const startFreshTour = useCallback(() => {
+  // Save current step in sectionMemoryRef & sessionStorage whenever tourStep changes
+  useEffect(() => {
+    const step = FREDDY_STEPS[tourStep];
+    if (step && pathname === step.route) {
+      sectionMemoryRef.current[step.route] = tourStep;
+    }
+    if (typeof window !== "undefined") {
+      sessionStorage.setItem(STEP_MEMORY_STORAGE_KEY, String(tourStep));
+    }
+  }, [tourStep, pathname]);
+
+  // CRITICAL: Whenever the user clicks ANY section in the Sidebar or BottomNav (pathname changes),
+  // Freddy immediately remembers & switches to explaining that newly opened section!
+  useEffect(() => {
+    if (prevPathnameRef.current !== pathname) {
+      prevPathnameRef.current = pathname;
+      const firstMatchForNewRoute = FREDDY_STEPS.findIndex((s) => s.route === pathname);
+      if (firstMatchForNewRoute >= 0) {
+        // Always start at the first explanation step of the newly entered section
+        sectionMemoryRef.current[pathname] = firstMatchForNewRoute;
+        setTourStep(firstMatchForNewRoute);
+      }
+    }
+  }, [pathname]);
+
+  // 1. Tapping Freddy in the corner: Explain the CURRENT section you are in!
+  const openSectionGuide = useCallback(() => {
     tourOpenedAtRef.current = Date.now();
     setHelpOpen(false);
     setIdleWave(false);
-    setTourStep(0);
+    const stepIdx = getStepForRoute(pathname);
+    setTourMode("section");
+    setTourStep(stepIdx);
     setTourOpen(true);
-  }, []);
+  }, [pathname, getStepForRoute]);
+
+  // 2. Clicking "3D Tour" in top Navbar or Help Center: Start Full App Tour!
+  const startFullTour = useCallback(() => {
+    tourOpenedAtRef.current = Date.now();
+    setHelpOpen(false);
+    setIdleWave(false);
+    const stepIdx = getStepForRoute(pathname);
+    setTourMode("full");
+    setTourStep(stepIdx);
+    setTourOpen(true);
+  }, [pathname, getStepForRoute]);
 
   const completeTour = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -246,7 +322,6 @@ export function HelpAndOnboardingSuite() {
       let usingMoreMenuFallback = false;
 
       if (waitingForClick) {
-        // 1. Look for visible navigation button for this route (Sidebar or BottomNav)
         for (const sel of step.navSelectors) {
           const nodes = document.querySelectorAll(sel);
           for (let i = 0; i < nodes.length; i++) {
@@ -259,7 +334,6 @@ export function HelpAndOnboardingSuite() {
           if (foundEl) break;
         }
 
-        // 2. On mobile (<1024px), if the link is inside the closed "More" drawer, highlight the BottomNav "More" button
         if (!foundEl && vw < 1024) {
           const moreBtn = document.querySelector("nav button");
           if (moreBtn) {
@@ -271,7 +345,6 @@ export function HelpAndOnboardingSuite() {
           }
         }
       } else {
-        // Inside the section: locate the active feature control inside the page
         for (const sel of step.insideSelectors) {
           const nodes = document.querySelectorAll(sel);
           for (let i = 0; i < nodes.length; i++) {
@@ -303,7 +376,7 @@ export function HelpAndOnboardingSuite() {
       const foundRect = foundEl ? foundEl.getBoundingClientRect() : null;
 
       const freddySize = mobile ? 76 : 96;
-      const bubbleWidth = mobile ? Math.min(226, vw - freddySize - 26) : 238;
+      const bubbleWidth = mobile ? Math.min(226, vw - freddySize - 26) : 242;
       const totalUnitWidth = freddySize + 8 + bubbleWidth;
       const totalUnitHeight = mobile ? 114 : 120;
 
@@ -338,7 +411,6 @@ export function HelpAndOnboardingSuite() {
 
           let targetY: number;
           if (isBottomBarItem) {
-            // Leave room for the "Click here ↓" pointer badge right above the BottomNav icon
             targetY = foundRect.top - totalUnitHeight - 44;
           } else if (spaceBelow >= totalUnitHeight + 10 || spaceBelow >= spaceAbove) {
             targetY = Math.min(bottomSafeBound, spotTop + maxSpotHeight + 10);
@@ -351,7 +423,6 @@ export function HelpAndOnboardingSuite() {
             y: Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, targetY))),
           });
         } else {
-          // On Desktop: if waiting for nav click, leave 118px gap on the right of the sidebar item for the "← Click here" pointer arrow
           const pointerGap = isNavTarget ? 120 : 14;
           const spaceRight = vw - foundRect.right;
           const spaceLeft = foundRect.left;
@@ -406,7 +477,6 @@ export function HelpAndOnboardingSuite() {
     [measureAndPosition, tourStep]
   );
 
-  // Reposition Freddy when tour opens, step changes, or user clicks into the target route
   useEffect(() => {
     if (!tourOpen) return;
 
@@ -440,7 +510,6 @@ export function HelpAndOnboardingSuite() {
     };
   }, [tourOpen, tourStep, pathname, measureAndPosition, schedulePositionUpdate]);
 
-  // Keep resting position updated on window resize when tour is closed
   useEffect(() => {
     if (tourOpen || typeof window === "undefined") return;
     const onResize = () => {
@@ -463,11 +532,11 @@ export function HelpAndOnboardingSuite() {
     const hasCompleted = localStorage.getItem(ONBOARDING_STORAGE_KEY);
     if (!hasCompleted) {
       const timer = setTimeout(() => {
-        startFreshTour();
+        startFullTour();
       }, 900);
       return () => clearTimeout(timer);
     }
-  }, [user, isAuthPage, startFreshTour]);
+  }, [user, isAuthPage, startFullTour]);
 
   // Global event listeners & keyboard navigation
   useEffect(() => {
@@ -480,7 +549,7 @@ export function HelpAndOnboardingSuite() {
     };
 
     const handleStartTour = () => {
-      startFreshTour();
+      startFullTour();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -529,7 +598,7 @@ export function HelpAndOnboardingSuite() {
       window.removeEventListener("mindsync:start-tour", handleStartTour);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [tourOpen, tourStep, helpOpen, completeTour, goToStep, startFreshTour]);
+  }, [tourOpen, tourStep, helpOpen, completeTour, goToStep, startFullTour]);
 
   if (isAuthPage || !mounted) return null;
 
@@ -543,6 +612,10 @@ export function HelpAndOnboardingSuite() {
     }
     router.push(currentStep.route);
   };
+
+  // Check if there is another step inside the SAME section (e.g. Journal step 1 -> Journal step 2)
+  const nextStepObj = tourStep < FREDDY_STEPS.length - 1 ? FREDDY_STEPS[tourStep + 1] : null;
+  const hasMoreInCurrentSection = Boolean(nextStepObj && nextStepObj.route === currentStep.route);
 
   const activeX = tourOpen ? freddyPos.x : restingPos.x;
   const activeY = tourOpen ? freddyPos.y : restingPos.y;
@@ -669,7 +742,7 @@ export function HelpAndOnboardingSuite() {
                   exit={{ opacity: 0, x: 6, scale: 0.95 }}
                   className="pointer-events-none hidden sm:block absolute right-full mr-2.5 top-1/2 -translate-y-1/2 bg-card/95 text-card-foreground backdrop-blur-xl px-3 py-1.5 rounded-xl border border-border/80 shadow-lg text-[11px] font-medium whitespace-nowrap"
                 >
-                  Tap Freddy for a guided tour!
+                  Tap to explain this section!
                 </motion.div>
               )}
             </AnimatePresence>
@@ -689,7 +762,8 @@ export function HelpAndOnboardingSuite() {
               interactiveGaze={true}
               onClick={() => {
                 if (!tourOpen) {
-                  startFreshTour();
+                  // Clicking Freddy in the corner immediately explains the current section!
+                  openSectionGuide();
                   return;
                 }
                 if (Date.now() - tourOpenedAtRef.current < 600) {
@@ -697,8 +771,12 @@ export function HelpAndOnboardingSuite() {
                 }
                 if (isWaitingForSectionClick) {
                   handleEnterCurrentSection();
-                } else if (tourStep < FREDDY_STEPS.length - 1) {
-                  goToStep(tourStep + 1);
+                } else if (hasMoreInCurrentSection || tourMode === "full") {
+                  if (tourStep < FREDDY_STEPS.length - 1) {
+                    goToStep(tourStep + 1);
+                  } else {
+                    completeTour();
+                  }
                 } else {
                   completeTour();
                 }
@@ -707,8 +785,8 @@ export function HelpAndOnboardingSuite() {
                 tourOpen
                   ? isWaitingForSectionClick
                     ? `Click "${currentStep.sectionLabel}" to open section`
-                    : "Freddy · Tap for next step"
-                  : "Tap Freddy for a guided tour"
+                    : "Freddy · Tap to continue"
+                  : "Tap Freddy to explain this section"
               }
             />
           </motion.div>
@@ -717,12 +795,12 @@ export function HelpAndOnboardingSuite() {
           <AnimatePresence mode="wait">
             {tourOpen && (
               <motion.div
-                key={`${currentStep.id}-${isWaitingForSectionClick ? "nav" : "inside"}`}
+                key={`${currentStep.id}-${isWaitingForSectionClick ? "nav" : "inside"}-${tourMode}`}
                 initial={{ opacity: 0, y: 4, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.96 }}
                 transition={{ duration: 0.15 }}
-                className="pointer-events-auto relative w-[min(226px,calc(100vw-102px))] sm:w-[238px] bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-border/80 space-y-1.5"
+                className="pointer-events-auto relative w-[min(226px,calc(100vw-102px))] sm:w-[242px] bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-border/80 space-y-1.5"
               >
                 {/* Top Header: Section Badge + Close Button */}
                 <div className="flex items-center justify-between gap-1.5">
@@ -735,13 +813,15 @@ export function HelpAndOnboardingSuite() {
                     )}
                   >
                     {isWaitingForSectionClick
-                      ? `Open ${currentStep.sectionLabel} · ${tourStep + 1}/${FREDDY_STEPS.length}`
-                      : `${currentStep.sectionLabel} · ${tourStep + 1}/${FREDDY_STEPS.length}`}
+                      ? `Open ${currentStep.sectionLabel}`
+                      : tourMode === "full"
+                      ? `${currentStep.sectionLabel} · ${tourStep + 1}/${FREDDY_STEPS.length}`
+                      : `${currentStep.sectionLabel} Guide`}
                   </span>
                   <button
                     type="button"
                     onClick={completeTour}
-                    aria-label="End tour"
+                    aria-label="Close Freddy guide"
                     className="p-1 -mr-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors touch-manipulation"
                   >
                     <X size={13} />
@@ -762,27 +842,45 @@ export function HelpAndOnboardingSuite() {
                   </p>
                 </div>
 
-                {/* Bottom Bar: Step Dots + Back / Skip / Next */}
+                {/* Bottom Controls: Context-Aware for Section Guide vs Full Tour */}
                 <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-border/60">
-                  <div className="flex items-center gap-1">
-                    {FREDDY_STEPS.map((s, idx) => (
-                      <button
-                        key={s.id}
-                        type="button"
-                        onClick={() => goToStep(idx)}
-                        aria-label={`Step ${idx + 1}`}
-                        className={cn(
-                          "h-1.5 rounded-full transition-all touch-manipulation",
-                          idx === tourStep
-                            ? "w-3.5 bg-primary-500"
-                            : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                        )}
-                      />
-                    ))}
-                  </div>
+                  {tourMode === "full" ? (
+                    <div className="flex items-center gap-1">
+                      {FREDDY_STEPS.map((s, idx) => (
+                        <button
+                          key={s.id}
+                          type="button"
+                          onClick={() => goToStep(idx)}
+                          aria-label={`Step ${idx + 1}`}
+                          className={cn(
+                            "h-1.5 rounded-full transition-all touch-manipulation",
+                            idx === tourStep
+                              ? "w-3 bg-primary-500"
+                              : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
+                          )}
+                        />
+                      ))}
+                    </div>
+                  ) : (
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setTourMode("full");
+                        if (tourStep < FREDDY_STEPS.length - 1) {
+                          goToStep(tourStep + 1);
+                        } else {
+                          goToStep(0);
+                        }
+                      }}
+                      className="text-[10px] font-semibold text-primary-600 dark:text-primary-400 hover:underline flex items-center gap-0.5 touch-manipulation"
+                    >
+                      Next section
+                      <ChevronRight size={11} />
+                    </button>
+                  )}
 
                   <div className="flex items-center gap-1 shrink-0">
-                    {tourStep > 0 && (
+                    {tourMode === "full" && tourStep > 0 && (
                       <button
                         type="button"
                         onClick={() => goToStep(tourStep - 1)}
@@ -807,7 +905,16 @@ export function HelpAndOnboardingSuite() {
                       >
                         Skip
                       </button>
-                    ) : tourStep < FREDDY_STEPS.length - 1 ? (
+                    ) : hasMoreInCurrentSection ? (
+                      <button
+                        type="button"
+                        onClick={() => goToStep(tourStep + 1)}
+                        className="min-h-[28px] px-3 py-1 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[11px] font-bold flex items-center gap-0.5 shadow-sm transition-all active:scale-95 touch-manipulation"
+                      >
+                        Next
+                        <ChevronRight size={12} />
+                      </button>
+                    ) : tourMode === "full" && tourStep < FREDDY_STEPS.length - 1 ? (
                       <button
                         type="button"
                         onClick={() => goToStep(tourStep + 1)}
@@ -822,7 +929,7 @@ export function HelpAndOnboardingSuite() {
                         onClick={completeTour}
                         className="min-h-[28px] px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
-                        Done
+                        Got it
                       </button>
                     )}
                   </div>
@@ -926,7 +1033,7 @@ export function HelpAndOnboardingSuite() {
                           Take an Interactive Tour with Freddy
                         </h4>
                         <p className="text-xs text-muted-foreground">
-                          Freddy points to each section with a &ldquo;Click here&rdquo; arrow, then goes inside to explain how it works.
+                          Tap Freddy anytime in the corner to explain the current section, or start the full guided tour here.
                         </p>
                       </div>
                     </div>
@@ -934,13 +1041,14 @@ export function HelpAndOnboardingSuite() {
                       type="button"
                       onClick={() => {
                         setHelpOpen(false);
+                        setTourMode("full");
                         setTourStep(0);
                         setTourOpen(true);
                       }}
                       className="px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-md transition-all active:scale-95"
                     >
                       <PlayCircle size={15} />
-                      Start Tour
+                      Full Tour
                     </button>
                   </div>
                 )}
