@@ -22,7 +22,8 @@ import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Avatar3DRenderer } from "./avatar-3d-renderer";
 
-const ONBOARDING_STORAGE_KEY = "mindsync_onboarding_completed_v1";
+const getOnboardingStorageKey = (userId: string) => `mindsync_onboarding_completed_v2_${userId}`;
+const PENDING_FULL_TOUR_KEY = "mindsync_pending_full_tour_user";
 const STEP_MEMORY_STORAGE_KEY = "mindsync_freddy_last_step_v2";
 const FREDDY_AVATAR_ID = "avatar-4fe2d1bd-cf46-4e5e-a62d-d6b60be519ed";
 
@@ -199,6 +200,7 @@ export function HelpAndOnboardingSuite() {
   const rafPendingRef = useRef<number | null>(null);
   const tourOpenedAtRef = useRef<number>(0);
   const prevPathnameRef = useRef<string>(pathname);
+  const autoLaunchedForUserRef = useRef<string | null>(null);
   // Remembers the last step index for each route so Freddy always remembers his place
   const sectionMemoryRef = useRef<Record<string, number>>({});
 
@@ -290,12 +292,13 @@ export function HelpAndOnboardingSuite() {
   }, [pathname, getStepForRoute]);
 
   const completeTour = useCallback(() => {
-    if (typeof window !== "undefined") {
-      localStorage.setItem(ONBOARDING_STORAGE_KEY, "true");
+    if (typeof window !== "undefined" && user?.id) {
+      localStorage.setItem(getOnboardingStorageKey(user.id), "true");
+      localStorage.removeItem(PENDING_FULL_TOUR_KEY);
     }
     setTourOpen(false);
     setSpotlight(null);
-  }, []);
+  }, [user?.id]);
 
   const goToStep = useCallback((nextIdx: number) => {
     const clamped = Math.max(0, Math.min(FREDDY_STEPS.length - 1, nextIdx));
@@ -526,17 +529,34 @@ export function HelpAndOnboardingSuite() {
     return () => window.removeEventListener("resize", onResize);
   }, [tourOpen]);
 
-  // Auto-launch once for first-time authenticated users
+  // Automatically launch the Full Tour for any first-time sign-up or new user account
   useEffect(() => {
-    if (!user || isAuthPage || typeof window === "undefined") return;
-    const hasCompleted = localStorage.getItem(ONBOARDING_STORAGE_KEY);
-    if (!hasCompleted) {
+    if (!user?.id || isAuthPage || typeof window === "undefined") return;
+    if (autoLaunchedForUserRef.current === user.id) return;
+
+    const userKey = getOnboardingStorageKey(user.id);
+    const pendingSignupUser = localStorage.getItem(PENDING_FULL_TOUR_KEY);
+    const hasCompletedForThisUser = localStorage.getItem(userKey);
+
+    if (pendingSignupUser === user.id || !hasCompletedForThisUser) {
       const timer = setTimeout(() => {
-        startFullTour();
-      }, 900);
+        autoLaunchedForUserRef.current = user.id;
+        localStorage.removeItem(PENDING_FULL_TOUR_KEY);
+        localStorage.setItem(userKey, "true");
+        sessionStorage.removeItem(STEP_MEMORY_STORAGE_KEY);
+        sectionMemoryRef.current = {};
+        tourOpenedAtRef.current = Date.now();
+        setHelpOpen(false);
+        setIdleWave(false);
+        setTourMode("full");
+        setTourStep(0);
+        setTourOpen(true);
+      }, 650);
       return () => clearTimeout(timer);
+    } else {
+      autoLaunchedForUserRef.current = user.id;
     }
-  }, [user, isAuthPage, startFullTour]);
+  }, [user?.id, isAuthPage]);
 
   // Global event listeners & keyboard navigation
   useEffect(() => {

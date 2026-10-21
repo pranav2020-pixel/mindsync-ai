@@ -168,6 +168,7 @@ export const AuthController = {
       message: "Account successfully verified and created!",
       data: {
         user: { ...verifiedUser, streak: 0 },
+        isNewUser: true,
         ...tokens,
       },
     });
@@ -239,6 +240,7 @@ export const AuthController = {
       }
     });
 
+    let isNewUser = false;
     if (user) {
       user = await prisma.user.update({
         where: { id: user.id },
@@ -250,6 +252,7 @@ export const AuthController = {
         }
       });
     } else {
+      isNewUser = true;
       user = await prisma.user.create({
         data: {
           email: normalizedEmail,
@@ -285,6 +288,7 @@ export const AuthController = {
           productivityGoals: user.productivityGoals,
           streak,
         },
+        isNewUser,
         ...tokens,
       },
     });
@@ -364,6 +368,8 @@ export const AuthController = {
       throw new AppError("Invalid or expired verification code", 400);
     }
 
+    const isNewUser = !user.isEmailVerified;
+
     const updatedUser = await prisma.user.update({
       where: { id: user.id },
       data: {
@@ -393,6 +399,7 @@ export const AuthController = {
           productivityGoals: updatedUser.productivityGoals,
           streak,
         },
+        isNewUser,
         ...tokens,
       },
     });

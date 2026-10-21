@@ -95,7 +95,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   }, [user, loading, pathname, router]);
 
-  const onUserAuthenticated = (newUser: any, accessToken: string, refreshToken?: string) => {
+  const onUserAuthenticated = (
+    newUser: any,
+    accessToken: string,
+    refreshToken?: string,
+    isNewSignup: boolean = false
+  ) => {
     // Isolate user sessions: purge any cached journals or private data from previous sessions
     try {
       localStorage.removeItem("mindsync_cached_journals");
@@ -104,6 +109,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         if (key && (key === "mindsync_cached_journals" || (key.startsWith("mindsync_cached_journals") && !key.endsWith(newUser.id)))) {
           localStorage.removeItem(key);
         }
+      }
+
+      if (isNewSignup && newUser?.id) {
+        localStorage.setItem("mindsync_pending_full_tour_user", newUser.id);
+        localStorage.removeItem(`mindsync_onboarding_completed_v2_${newUser.id}`);
+        sessionStorage.removeItem("mindsync_freddy_last_step_v2");
       }
     } catch {}
 
@@ -115,13 +126,14 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const login = async (email: string, password: string) => {
     const res = await api.post("/auth/login", { email, password });
     const { accessToken, refreshToken, user } = res.data.data;
-    onUserAuthenticated(user, accessToken, refreshToken);
+    onUserAuthenticated(user, accessToken, refreshToken, false);
   };
 
   const loginWithGoogle = async (credential: string) => {
     const res = await api.post("/auth/google", { credential });
-    const { accessToken, refreshToken, user } = res.data.data;
-    onUserAuthenticated(user, accessToken, refreshToken);
+    const { accessToken, refreshToken, user, isNewUser } = res.data.data;
+    const isSignupFlow = Boolean(isNewUser) || pathname === "/register";
+    onUserAuthenticated(user, accessToken, refreshToken, isSignupFlow);
   };
 
   const sendEmailOtp = async (email: string, purpose: string = "Sign In") => {
@@ -131,15 +143,15 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const verifyEmailOtp = async (email: string, code: string) => {
     const res = await api.post("/auth/otp/verify", { email, code });
-    const { accessToken, refreshToken, user } = res.data.data;
-    onUserAuthenticated(user, accessToken, refreshToken);
+    const { accessToken, refreshToken, user, isNewUser } = res.data.data;
+    onUserAuthenticated(user, accessToken, refreshToken, Boolean(isNewUser));
   };
 
   const register = async (data: any) => {
     const res = await api.post("/auth/register", data);
     if (res.data?.data?.accessToken) {
       const { accessToken, refreshToken, user } = res.data.data;
-      onUserAuthenticated(user, accessToken, refreshToken);
+      onUserAuthenticated(user, accessToken, refreshToken, true);
     }
     return res.data;
   };
