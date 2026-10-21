@@ -416,22 +416,27 @@ export function Navbar() {
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
                   exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  className="fixed sm:absolute top-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:top-12 right-3.5 sm:right-0 w-60 sm:w-56 bg-white dark:bg-slate-900 rounded-2xl p-2 shadow-2xl z-50 border border-slate-200 dark:border-slate-800"
+                  className="fixed sm:absolute top-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:top-12 right-3.5 sm:right-0 w-60 sm:w-56 bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-2 shadow-2xl z-50 border border-border/80"
                 >
-                  <div className="px-3 py-2 border-b border-slate-200/80 dark:border-slate-800 mb-1">
-                    <p className="font-semibold text-sm text-slate-900 dark:text-white">{user?.name}</p>
-                    <p className="text-xs text-slate-500 dark:text-muted-foreground truncate">{user?.email}</p>
+                  <div className="px-3 py-2.5 border-b border-border/70 mb-1">
+                    <p className="font-semibold text-sm text-foreground truncate">{user?.name}</p>
+                    {user?.username && (
+                      <p className="text-[11px] font-mono font-medium text-primary-600 dark:text-primary-400 truncate">
+                        @{user.username}
+                      </p>
+                    )}
+                    <p className="text-xs text-muted-foreground truncate mt-0.5">{user?.email}</p>
                   </div>
                   <Link
                     href="/settings"
                     onClick={() => setShowProfile(false)}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-white/5 rounded-lg transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-all active:scale-[0.98]"
                   >
-                    <Settings size={16} /> Account Settings
+                    <Settings size={16} className="text-muted-foreground" /> Account Settings
                   </Link>
                   <button
                     onClick={logout}
-                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-wellness-stress hover:bg-wellness-stress/10 rounded-lg transition-colors"
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-xl transition-all active:scale-[0.98]"
                   >
                     <LogOut size={16} /> Logout
                   </button>

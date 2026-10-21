@@ -35,6 +35,7 @@ import {
   Image as ImageIcon,
   Eye,
   Maximize2,
+  Download,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/layout/theme-provider";
@@ -272,7 +273,7 @@ export default function SettingsPage() {
     // Circular white border guide
     ctx.beginPath();
     ctx.arc(size / 2, size / 2, size / 2 - 6, 0, Math.PI * 2);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.95)";
     ctx.lineWidth = 2;
     ctx.stroke();
 
@@ -283,11 +284,26 @@ export default function SettingsPage() {
     ctx.lineTo(size / 2, size / 2 + radius);
     ctx.moveTo(size / 2 - radius, size / 2);
     ctx.lineTo(size / 2 + radius, size / 2);
-    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.25)";
     ctx.lineWidth = 1;
     ctx.setLineDash([4, 4]);
     ctx.stroke();
     ctx.setLineDash([]);
+
+    // 4 precision optical quadrant ticks
+    const tickLen = 6;
+    ctx.beginPath();
+    ctx.moveTo(size / 2, size / 2 - radius - 2);
+    ctx.lineTo(size / 2, size / 2 - radius + tickLen);
+    ctx.moveTo(size / 2, size / 2 + radius + 2);
+    ctx.lineTo(size / 2, size / 2 + radius - tickLen);
+    ctx.moveTo(size / 2 - radius - 2, size / 2);
+    ctx.lineTo(size / 2 - radius + tickLen, size / 2);
+    ctx.moveTo(size / 2 + radius + 2, size / 2);
+    ctx.lineTo(size / 2 + radius - tickLen, size / 2);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.85)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
 
     ctx.restore();
   }, [selectedImageSrc, zoomScale, panOffset]);
@@ -297,6 +313,20 @@ export default function SettingsPage() {
       drawCanvas();
     }
   }, [avatarModalOpen, drawCanvas]);
+
+  // Global Escape key dismiss handler for modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === "Escape") {
+        if (isViewingAvatar) setIsViewingAvatar(false);
+        if (avatarModalOpen) setAvatarModalOpen(false);
+      }
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isViewingAvatar, avatarModalOpen]);
+
+  const touchDistanceRef = useRef<number | null>(null);
 
   const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
     setIsDragging(true);
@@ -314,15 +344,40 @@ export default function SettingsPage() {
     if (e.touches.length === 1) {
       setIsDragging(true);
       setDragStart({ x: e.touches[0].clientX - panOffset.x, y: e.touches[0].clientY - panOffset.y });
+    } else if (e.touches.length === 2) {
+      setIsDragging(false);
+      const dist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      touchDistanceRef.current = dist;
     }
   };
 
   const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
-    if (!isDragging || e.touches.length !== 1) return;
-    setPanOffset({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+    if (e.touches.length === 1 && isDragging) {
+      setPanOffset({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+    } else if (e.touches.length === 2 && touchDistanceRef.current !== null) {
+      const currentDist = Math.hypot(
+        e.touches[0].clientX - e.touches[1].clientX,
+        e.touches[0].clientY - e.touches[1].clientY
+      );
+      const delta = (currentDist - touchDistanceRef.current) * 0.006;
+      setZoomScale((prev) => Math.min(3.0, Math.max(0.8, parseFloat((prev + delta).toFixed(2)))));
+      touchDistanceRef.current = currentDist;
+    }
   };
 
-  const handleTouchEnd = () => setIsDragging(false);
+  const handleTouchEnd = () => {
+    setIsDragging(false);
+    touchDistanceRef.current = null;
+  };
+
+  const handleWheel = (e: React.WheelEvent<HTMLCanvasElement>) => {
+    e.preventDefault();
+    const delta = e.deltaY < 0 ? 0.08 : -0.08;
+    setZoomScale((prev) => Math.min(3.0, Math.max(0.8, parseFloat((prev + delta).toFixed(2)))));
+  };
 
   const handleSaveAvatar = async () => {
     const img = imageObjRef.current;
@@ -1426,36 +1481,43 @@ export default function SettingsPage() {
         )}
       </AnimatePresence>
 
-      {/* Instagram-Style Circle Crop & Preview Modal */}
+      {/* Circular Crop & Positioning Modal */}
       <AnimatePresence>
         {avatarModalOpen && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="crop-modal-heading"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
           >
             <motion.div
               initial={{ scale: 0.94, opacity: 0, y: 10 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.94, opacity: 0, y: 10 }}
-              className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-5"
+              transition={{ type: "spring", damping: 26, stiffness: 320 }}
+              className="w-full max-w-md bg-card/95 text-card-foreground backdrop-blur-2xl rounded-3xl p-6 shadow-2xl border border-border/80 space-y-5"
             >
               {/* Modal Header */}
-              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
-                <div className="flex items-center gap-2">
-                  <div className="p-1.5 rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shadow-sm">
+              <div className="flex items-center justify-between border-b border-border/70 pb-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="p-2 rounded-xl bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shadow-sm">
                     <Camera size={16} />
                   </div>
                   <div>
-                    <h3 className="text-base font-bold text-foreground">Adjust Profile Photo</h3>
-                    <p className="text-[11px] text-muted-foreground">Circular crop &amp; frame adjustment</p>
+                    <h3 id="crop-modal-heading" className="text-base font-bold text-foreground">
+                      Adjust Profile Photo
+                    </h3>
+                    <p className="text-[11px] text-muted-foreground">Circular crop &amp; frame alignment</p>
                   </div>
                 </div>
                 <button
                   type="button"
                   onClick={() => setAvatarModalOpen(false)}
-                  className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  aria-label="Close photo cropper"
+                  className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95"
                 >
                   <X size={18} />
                 </button>
@@ -1463,12 +1525,12 @@ export default function SettingsPage() {
 
               {/* Instructions */}
               <p className="text-xs text-muted-foreground text-center">
-                Drag photo to position &amp; use the slider to fit your face inside the circular crop.
+                Drag to reposition &amp; use the slider or scroll wheel to fit your face inside the circle.
               </p>
 
-              {/* Interactive Canvas Viewport (Instagram Circle Mask) */}
-              <div className="flex justify-center">
-                <div className="relative w-[280px] h-[280px] rounded-2xl overflow-hidden bg-slate-950 shadow-inner select-none cursor-grab active:cursor-grabbing border border-slate-700/50">
+              {/* Interactive Canvas Viewport */}
+              <div className="flex flex-col items-center gap-2">
+                <div className="relative w-[280px] h-[280px] rounded-2xl overflow-hidden bg-slate-950 shadow-inner select-none cursor-grab active:cursor-grabbing border border-border/80 group">
                   <canvas
                     ref={canvasRef}
                     width={280}
@@ -1480,13 +1542,18 @@ export default function SettingsPage() {
                     onTouchStart={handleTouchStart}
                     onTouchMove={handleTouchMove}
                     onTouchEnd={handleTouchEnd}
+                    onWheel={handleWheel}
                     className="w-full h-full block"
                   />
+                  {/* Floating Live Zoom Badge */}
+                  <div className="absolute top-2.5 right-2.5 px-2 py-0.5 rounded-full bg-black/60 backdrop-blur-md text-[10px] font-mono text-white/90 border border-white/10 pointer-events-none select-none">
+                    {Math.round(zoomScale * 100)}%
+                  </div>
                 </div>
               </div>
 
               {/* Zoom & Positioning Controls */}
-              <div className="space-y-3 px-2">
+              <div className="space-y-3 px-1">
                 <div className="flex items-center gap-3">
                   <ZoomOut size={16} className="text-muted-foreground shrink-0" />
                   <input
@@ -1496,10 +1563,11 @@ export default function SettingsPage() {
                     step={0.05}
                     value={zoomScale}
                     onChange={(e) => setZoomScale(parseFloat(e.target.value))}
-                    className="w-full accent-primary-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
+                    aria-label="Zoom profile image"
+                    className="w-full accent-primary-600 dark:accent-primary-400 cursor-pointer h-1.5 bg-muted rounded-lg"
                   />
                   <ZoomIn size={16} className="text-muted-foreground shrink-0" />
-                  <span className="text-xs font-mono text-muted-foreground w-10 text-right shrink-0">
+                  <span className="text-xs font-mono text-muted-foreground w-11 text-right shrink-0">
                     {Math.round(zoomScale * 100)}%
                   </span>
                 </div>
@@ -1511,24 +1579,24 @@ export default function SettingsPage() {
                       setZoomScale(1);
                       setPanOffset({ x: 0, y: 0 });
                     }}
-                    className="flex items-center gap-1 hover:text-primary-500 transition-colors"
+                    className="flex items-center gap-1 hover:text-primary-500 active:scale-95 transition-all font-medium"
                   >
                     <RotateCcw size={12} />
                     Reset Fit
                   </button>
-                  <span className="text-[11px] italic text-muted-foreground/80">
-                    Touch or drag image to reposition
+                  <span className="text-[11px] text-muted-foreground/75">
+                    Drag or pinch to adjust
                   </span>
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-white/10">
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-border/70">
                 <button
                   type="button"
                   onClick={() => setAvatarModalOpen(false)}
                   disabled={avatarSaving}
-                  className="px-4 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95"
                 >
                   Cancel
                 </button>
@@ -1536,7 +1604,7 @@ export default function SettingsPage() {
                   type="button"
                   onClick={handleSaveAvatar}
                   disabled={avatarSaving}
-                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-wellness-focus hover:opacity-95 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-wellness-focus hover:opacity-95 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md active:scale-95 disabled:opacity-50"
                 >
                   {avatarSaving ? (
                     <>
@@ -1564,35 +1632,53 @@ export default function SettingsPage() {
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setIsViewingAvatar(false)}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="lightbox-photo-heading"
             className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-xl"
           >
             <motion.div
               initial={{ scale: 0.9, opacity: 0, y: 12 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 12 }}
+              transition={{ type: "spring", damping: 25, stiffness: 320 }}
               onClick={(e) => e.stopPropagation()}
-              className="relative w-full max-w-sm sm:max-w-md bg-white/95 dark:bg-slate-900/95 backdrop-blur-2xl rounded-3xl p-6 shadow-2xl border border-slate-200/80 dark:border-white/10 flex flex-col items-center text-center space-y-5"
+              className="relative w-full max-w-sm sm:max-w-md bg-card/95 text-card-foreground backdrop-blur-2xl rounded-3xl p-6 sm:p-7 shadow-2xl border border-border/80 flex flex-col items-center text-center space-y-5"
             >
-              {/* Header with Title and Close Button */}
-              <div className="w-full flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+              {/* Header with Title and Actions */}
+              <div className="w-full flex items-center justify-between border-b border-border/70 pb-3">
                 <div className="flex items-center gap-2">
                   <div className="p-1.5 rounded-lg bg-primary-500/10 text-primary-500">
                     <User size={16} />
                   </div>
-                  <h3 className="text-sm font-bold text-foreground">Profile Photo</h3>
+                  <h3 id="lightbox-photo-heading" className="text-sm font-bold text-foreground">
+                    Profile Photo
+                  </h3>
                 </div>
-                <button
-                  type="button"
-                  onClick={() => setIsViewingAvatar(false)}
-                  className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-                >
-                  <X size={18} />
-                </button>
+                <div className="flex items-center gap-1">
+                  <a
+                    href={user.avatar}
+                    download={`${user.username || "profile"}-avatar.jpg`}
+                    className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95"
+                    title="Download high-resolution photo"
+                    aria-label="Download profile photo"
+                  >
+                    <Download size={16} />
+                  </a>
+                  <button
+                    type="button"
+                    onClick={() => setIsViewingAvatar(false)}
+                    aria-label="Close photo viewer"
+                    className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95"
+                  >
+                    <X size={18} />
+                  </button>
+                </div>
               </div>
 
-              {/* Large Circular Avatar Display */}
-              <div className="relative group p-1.5 rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-2xl">
-                <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden bg-slate-950 border-4 border-white dark:border-slate-900 shadow-inner">
+              {/* Large Circular Avatar Display with Glow */}
+              <div className="relative group p-[3.5px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-2xl ring-4 ring-primary-500/15">
+                <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden bg-slate-950 border-4 border-background shadow-inner">
                   <img
                     src={user.avatar}
                     alt={user.name || "Profile Photo"}
@@ -1612,14 +1698,14 @@ export default function SettingsPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="w-full flex items-center justify-center gap-2.5 pt-2 border-t border-slate-100 dark:border-white/10">
+              <div className="w-full flex items-center justify-center gap-2.5 pt-2 border-t border-border/70">
                 <button
                   type="button"
                   onClick={() => {
                     setIsViewingAvatar(false);
                     fileInputRef.current?.click();
                   }}
-                  className="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm"
+                  className="px-4 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-semibold flex items-center gap-1.5 transition-all shadow-sm active:scale-95"
                 >
                   <Camera size={13} />
                   Change Photo
@@ -1631,7 +1717,7 @@ export default function SettingsPage() {
                     setIsViewingAvatar(false);
                     handleRemoveAvatar();
                   }}
-                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors flex items-center gap-1.5 border border-red-500/20"
+                  className="px-3.5 py-2 rounded-xl text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors flex items-center gap-1.5 border border-red-500/20 active:scale-95"
                 >
                   <Trash2 size={13} />
                   Remove
@@ -1640,7 +1726,7 @@ export default function SettingsPage() {
                 <button
                   type="button"
                   onClick={() => setIsViewingAvatar(false)}
-                  className="px-4 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                  className="px-4 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95"
                 >
                   Close
                 </button>
