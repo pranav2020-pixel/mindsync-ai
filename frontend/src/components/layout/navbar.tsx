@@ -11,8 +11,9 @@ import { useTheme } from "./theme-provider";
 import { cn } from "@/lib/utils";
 import {
   Sun, Moon, Leaf, Bell, LogOut, User, Settings, Check, Trash2,
-  Shield, FileText, Sparkles, Inbox, Menu, X
+  Shield, FileText, Sparkles, Inbox, Menu, X, HelpCircle, PlayCircle
 } from "lucide-react";
+import { HelpAndOnboardingSuite } from "./help-onboarding-suite";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -194,6 +195,7 @@ export function Navbar() {
   }
 
   return (
+    <>
     <header
       className={cn(
         "sticky top-0 z-30 w-full glass border-b border-slate-200/80 dark:border-white/10 pt-[env(safe-area-inset-top,0px)]",
@@ -223,7 +225,24 @@ export function Navbar() {
         </Link>
       </div>
 
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2 sm:gap-3">
+        {/* Universal Help & Support (?) Trigger (TASK-603) */}
+        <button
+          type="button"
+          onClick={() => {
+            setShowNotifications(false);
+            setShowProfile(false);
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("mindsync:open-help"));
+            }
+          }}
+          className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground active:scale-95"
+          title="Help, Guided Tour & 24/7 Support (Press ?)"
+          aria-label="Open Help and Support Center"
+        >
+          <HelpCircle size={18} />
+        </button>
+
         <button
           onClick={toggleTheme}
           className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground"
@@ -435,6 +454,30 @@ export function Navbar() {
                     <Settings size={16} className="text-muted-foreground" /> Account Settings
                   </Link>
                   <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfile(false);
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("mindsync:start-tour"));
+                      }
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-all active:scale-[0.98]"
+                  >
+                    <PlayCircle size={16} className="text-primary-500" /> Interactive Tour
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowProfile(false);
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(new CustomEvent("mindsync:open-help"));
+                      }
+                    }}
+                    className="w-full flex items-center gap-2 px-3 py-2 text-sm text-foreground hover:bg-muted rounded-xl transition-all active:scale-[0.98]"
+                  >
+                    <HelpCircle size={16} className="text-muted-foreground" /> Help &amp; Crisis Support
+                  </button>
+                  <button
                     onClick={logout}
                     className="w-full flex items-center gap-2 px-3 py-2 text-sm text-red-500 hover:bg-red-500/10 rounded-xl transition-all active:scale-[0.98]"
                   >
@@ -448,5 +491,7 @@ export function Navbar() {
       </div>
       </div>
     </header>
+    <HelpAndOnboardingSuite />
+    </>
   );
 }

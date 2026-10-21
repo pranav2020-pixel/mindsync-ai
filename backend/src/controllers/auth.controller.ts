@@ -539,6 +539,9 @@ export const AuthController = {
     let usernameChangedAtUpdate: Date | undefined = undefined;
 
     if (username !== undefined) {
+      if (username !== null && typeof username !== "string") {
+        throw new AppError("Username must be a valid string", 400);
+      }
       const trimmed = (username || "").trim().toLowerCase();
       if (trimmed) {
         const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
@@ -587,35 +590,74 @@ export const AuthController = {
       }
     }
 
-    const user = await prisma.user.update({
-      where: { id: req.user.id },
-      data: {
-        ...(name !== undefined && name.trim() ? { name: name.trim() } : {}),
-        ...(cleanUsername !== undefined ? { username: cleanUsername, usernameChangedAt: usernameChangedAtUpdate } : {}),
-        ...(avatar !== undefined ? { avatar } : {}),
-        ...(age !== undefined ? { age: Number(age) || null } : {}),
-        ...(gender !== undefined ? { gender } : {}),
-        ...(occupation !== undefined ? { occupation } : {}),
-        ...(timezone !== undefined ? { timezone } : {}),
-        ...(wellnessGoals !== undefined ? { wellnessGoals } : {}),
-        ...(productivityGoals !== undefined ? { productivityGoals } : {}),
-      },
-      select: {
-        id: true,
-        email: true,
-        name: true,
-        username: true,
-        usernameChangedAt: true,
-        avatar: true,
-        role: true,
-        age: true,
-        gender: true,
-        occupation: true,
-        timezone: true,
-        wellnessGoals: true,
-        productivityGoals: true,
-      },
-    });
+    // Validate and sanitize avatar (prevent XSS data URIs and oversized payloads)
+    let sanitizedAvatar: string | null | undefined = undefined;
+    if (avatar !== undefined) {
+      if (avatar === null || avatar === "") {
+        sanitizedAvatar = null;
+      } else if (typeof avatar === "string") {
+        const maxAvatarLength = 500_000; // ~375KB base64 limit
+        if (avatar.length > maxAvatarLength) {
+          throw new AppError("Profile photo payload is too large (max 375KB after compression)", 400);
+        }
+        const isSafeDataImage = /^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i.test(avatar);
+        const isSafeHttpsUrl = /^https:\/\/[^\s<>"']+$/i.test(avatar);
+        if (!isSafeDataImage && !isSafeHttpsUrl) {
+          throw new AppError("Invalid profile photo format. Only JPEG, PNG, WebP, or HTTPS image URLs are allowed", 400);
+        }
+        sanitizedAvatar = avatar;
+      } else {
+        throw new AppError("Invalid profile photo payload", 400);
+      }
+    }
+
+    // Validate display name if provided
+    let sanitizedName: string | undefined = undefined;
+    if (name !== undefined) {
+      if (typeof name !== "string" || !name.trim()) {
+        throw new AppError("Display name cannot be empty", 400);
+      }
+      sanitizedName = name.trim().slice(0, 100);
+    }
+
+    let user;
+    try {
+      user = await prisma.user.update({
+        where: { id: req.user.id },
+        data: {
+          ...(sanitizedName !== undefined ? { name: sanitizedName } : {}),
+          ...(cleanUsername !== undefined ? { username: cleanUsername, usernameChangedAt: usernameChangedAtUpdate } : {}),
+          ...(sanitizedAvatar !== undefined ? { avatar: sanitizedAvatar } : {}),
+          ...(age !== undefined ? { age: Number(age) || null } : {}),
+          ...(gender !== undefined ? { gender } : {}),
+          ...(occupation !== undefined ? { occupation } : {}),
+          ...(timezone !== undefined ? { timezone } : {}),
+          ...(wellnessGoals !== undefined ? { wellnessGoals } : {}),
+          ...(productivityGoals !== undefined ? { productivityGoals } : {}),
+        },
+        select: {
+          id: true,
+          email: true,
+          name: true,
+          username: true,
+          usernameChangedAt: true,
+          avatar: true,
+          role: true,
+          age: true,
+          gender: true,
+          occupation: true,
+          timezone: true,
+          wellnessGoals: true,
+          productivityGoals: true,
+        },
+      });
+    } catch (err: any) {
+      if (err?.code === "P2002") {
+        throw new AppError("Username is already taken by another user", 400);
+      }
+      throw err;
+    }
+
     const streak = await AuthController.calculateUserStreak(req.user.id);
     res.json({ success: true, data: { ...user, streak } });
   }),

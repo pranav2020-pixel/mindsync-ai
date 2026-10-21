@@ -36,6 +36,8 @@ import {
   Eye,
   Maximize2,
   Download,
+  HelpCircle,
+  PlayCircle,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/layout/theme-provider";
@@ -562,11 +564,39 @@ export default function SettingsPage() {
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-16">
       {/* Header */}
-      <div>
-        <h1 className="text-3xl font-bold tracking-tight">Account & Security Settings</h1>
-        <p className="text-muted-foreground mt-1 text-sm">
-          Manage your account profile, credentials, and data privacy options.
-        </p>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Account &amp; Security Settings</h1>
+          <p className="text-muted-foreground mt-1 text-sm">
+            Manage your account profile, credentials, and data privacy options.
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2 shrink-0">
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("mindsync:start-tour"));
+              }
+            }}
+            className="px-3.5 py-2 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1.5 border border-primary-500/20 transition-all shadow-sm active:scale-95"
+          >
+            <PlayCircle size={14} />
+            Replay Tour
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("mindsync:open-help"));
+              }
+            }}
+            className="px-3.5 py-2 rounded-xl bg-muted/60 hover:bg-muted text-foreground text-xs font-semibold flex items-center gap-1.5 border border-border/70 transition-all shadow-sm active:scale-95"
+          >
+            <HelpCircle size={14} />
+            Help &amp; Support
+          </button>
+        </div>
       </div>
 
       {/* Profile Overview Card */}
@@ -1656,15 +1686,18 @@ export default function SettingsPage() {
                   </h3>
                 </div>
                 <div className="flex items-center gap-1">
-                  <a
-                    href={user.avatar}
-                    download={`${user.username || "profile"}-avatar.jpg`}
-                    className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95"
-                    title="Download high-resolution photo"
-                    aria-label="Download profile photo"
-                  >
-                    <Download size={16} />
-                  </a>
+                  {/^data:image\/(jpeg|jpg|png|webp);base64,|^https:\/\//i.test(user.avatar) && (
+                    <a
+                      href={user.avatar}
+                      download={`${user.username || "profile"}-avatar.jpg`}
+                      rel="noopener noreferrer"
+                      className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95"
+                      title="Download high-resolution photo"
+                      aria-label="Download profile photo"
+                    >
+                      <Download size={16} />
+                    </a>
+                  )}
                   <button
                     type="button"
                     onClick={() => setIsViewingAvatar(false)}
