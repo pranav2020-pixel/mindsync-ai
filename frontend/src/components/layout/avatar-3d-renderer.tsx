@@ -413,6 +413,10 @@ vec3 transformToHeadSpace(vec3 p) {
 }
 
 float mapScene(vec3 p) {
+  // Fast bounding-sphere early exit for rays far from the avatar
+  float boundDist = length(p - vec3(u_bodyOffset, 0.0)) - 1.55;
+  if (boundDist > 0.25) return boundDist;
+
   vec3 hp = transformToHeadSpace(p);
   float d = 100.0;
   for (int i = 0; i < 10; i++) {
@@ -433,7 +437,7 @@ float mapScene(vec3 p) {
 }
 
 vec3 calcNormal(vec3 p) {
-  const float eps = 0.002;
+  const float eps = 0.0025;
   vec2 e = vec2(1.0, -1.0) * 0.5773;
   return normalize(
     e.xyy * mapScene(p + e.xyy * eps) +
@@ -458,15 +462,15 @@ void main() {
 
   float t = 0.0;
   bool hit = false;
-  for (int i = 0; i < 56; i++) {
+  for (int i = 0; i < 42; i++) {
     vec3 p = ro + rd * t;
     float d = mapScene(p);
-    if (d < 0.002) {
+    if (d < 0.0025) {
       hit = true;
       break;
     }
-    if (t > 5.5) break;
-    t += d * 0.9;
+    if (t > 5.0) break;
+    t += d * 0.92;
   }
 
   if (!hit) {
@@ -578,6 +582,37 @@ export function Avatar3DRenderer({
     );
   }, [sequenceId]);
 
+  // Keep dynamic props in a ref so changing sequences/sizes never recompiles the WebGL shader
+  const liveRef = useRef({
+    avatar,
+    sequence,
+    expressionId,
+    size,
+    interactiveGaze,
+    customBodyColor,
+    customEyeColor,
+  });
+
+  useEffect(() => {
+    liveRef.current = {
+      avatar,
+      sequence,
+      expressionId,
+      size,
+      interactiveGaze,
+      customBodyColor,
+      customEyeColor,
+    };
+  }, [
+    avatar,
+    sequence,
+    expressionId,
+    size,
+    interactiveGaze,
+    customBodyColor,
+    customEyeColor,
+  ]);
+
   useEffect(() => {
     if (!interactiveGaze || typeof window === "undefined") return;
     const handleMouseMove = (e: MouseEvent) => {
@@ -600,14 +635,10 @@ export function Avatar3DRenderer({
     return () => window.removeEventListener("mousemove", handleMouseMove);
   }, [interactiveGaze]);
 
+  // Compile WebGL shader ONCE on mount for zero-lag transitions
   useEffect(() => {
     const canvas = canvasRef.current;
-    if (!canvas || !avatar) return;
-
-    const dpr =
-      typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 2) : 1;
-    canvas.width = Math.round(size * dpr);
-    canvas.height = Math.round(size * dpr);
+    if (!canvas) return;
 
     const gl = (canvas.getContext("webgl", {
       alpha: true,
@@ -668,82 +699,117 @@ export function Avatar3DRenderer({
     const uEyeAngles = gl.getUniformLocation(prog, "u_eyeAngles");
     const uSmoothK = gl.getUniformLocation(prog, "u_smoothK");
 
-    const nodes = avatar.shape?.nodes || [];
-    const totalNodes = Math.min(1 + nodes.length, 10);
-    gl.uniform1i(uNodeCount, totalNodes);
-
-    const smoothFactor = avatar.name.toLowerCase().includes("cloud")
-      ? 0.14
-      : avatar.name.toLowerCase().includes("kirby")
-      ? 0.08
-      : 0.035;
-    gl.uniform1f(uSmoothK, smoothFactor);
+    const nodeTypeLocs = Array.from({ length: 10 }, (_, i) =>
+      gl.getUniformLocation(prog, `u_nodeTypes[${i}]`)
+    );
+    const nodeSizeLocs = Array.from({ length: 10 }, (_, i) =>
+      gl.getUniformLocation(prog, `u_nodeSizes[${i}]`)
+    );
+    const nodePosLocs = Array.from({ length: 10 }, (_, i) =>
+      gl.getUniformLocation(prog, `u_nodePos[${i}]`)
+    );
+    const nodeRotLocs = Array.from({ length: 10 }, (_, i) =>
+      gl.getUniformLocation(prog, `u_nodeRot[${i}]`)
+    );
+    const nodeRoundLocs = Array.from({ length: 10 }, (_, i) =>
+      gl.getUniformLocation(prog, `u_nodeRound[${i}]`)
+    );
 
     const SCALE = 155.0;
     const DEG2RAD = Math.PI / 180;
+    let uploadedAvatarId = "";
+    let lastPixelSize = 0;
 
-    // Node 0: Primary shape
-    const primSize = avatar.shape?.size || [220, 220, 220];
-    gl.uniform1i(
-      gl.getUniformLocation(prog, "u_nodeTypes[0]"),
-      SHAPE_TYPE_MAP[avatar.shape?.primary] ?? 0
-    );
-    gl.uniform3f(
-      gl.getUniformLocation(prog, "u_nodeSizes[0]"),
-      (primSize[0] * 0.5) / SCALE,
-      (primSize[1] * 0.5) / SCALE,
-      (primSize[2] * 0.5) / SCALE
-    );
-    gl.uniform3f(gl.getUniformLocation(prog, "u_nodePos[0]"), 0, 0, 0);
-    gl.uniform3f(gl.getUniformLocation(prog, "u_nodeRot[0]"), 0, 0, 0);
-    gl.uniform1f(
-      gl.getUniformLocation(prog, "u_nodeRound[0]"),
-      avatar.shape?.roundness ?? 0.65
-    );
+    const uploadGeometry = (av: AvatarDefinition) => {
+      const nodes = av.shape?.nodes || [];
+      const totalNodes = Math.min(1 + nodes.length, 10);
+      gl.uniform1i(uNodeCount, totalNodes);
 
-    for (let i = 0; i < totalNodes - 1; i++) {
-      const n = nodes[i];
-      const idx = i + 1;
-      gl.uniform1i(
-        gl.getUniformLocation(prog, `u_nodeTypes[${idx}]`),
-        SHAPE_TYPE_MAP[n.shape] ?? 0
-      );
+      const smoothFactor = av.name.toLowerCase().includes("cloud")
+        ? 0.14
+        : av.name.toLowerCase().includes("kirby")
+        ? 0.08
+        : 0.035;
+      gl.uniform1f(uSmoothK, smoothFactor);
+
+      const primSize = av.shape?.size || [220, 220, 220];
+      gl.uniform1i(nodeTypeLocs[0], SHAPE_TYPE_MAP[av.shape?.primary] ?? 0);
       gl.uniform3f(
-        gl.getUniformLocation(prog, `u_nodeSizes[${idx}]`),
-        (n.size[0] * 0.5) / SCALE,
-        (n.size[1] * 0.5) / SCALE,
-        (n.size[2] * 0.5) / SCALE
+        nodeSizeLocs[0],
+        (primSize[0] * 0.5) / SCALE,
+        (primSize[1] * 0.5) / SCALE,
+        (primSize[2] * 0.5) / SCALE
       );
-      gl.uniform3f(
-        gl.getUniformLocation(prog, `u_nodePos[${idx}]`),
-        n.position[0] / SCALE,
-        -n.position[1] / SCALE,
-        n.position[2] / SCALE
-      );
-      gl.uniform3f(
-        gl.getUniformLocation(prog, `u_nodeRot[${idx}]`),
-        (n.rotation?.[0] || 0) * DEG2RAD,
-        (n.rotation?.[1] || 0) * DEG2RAD,
-        -(n.rotation?.[2] || 0) * DEG2RAD
-      );
-      gl.uniform1f(
-        gl.getUniformLocation(prog, `u_nodeRound[${idx}]`),
-        n.roundness ?? 0.65
-      );
-    }
+      gl.uniform3f(nodePosLocs[0], 0, 0, 0);
+      gl.uniform3f(nodeRotLocs[0], 0, 0, 0);
+      gl.uniform1f(nodeRoundLocs[0], av.shape?.roundness ?? 0.65);
+
+      for (let i = 0; i < totalNodes - 1; i++) {
+        const n = nodes[i];
+        const idx = i + 1;
+        gl.uniform1i(nodeTypeLocs[idx], SHAPE_TYPE_MAP[n.shape] ?? 0);
+        gl.uniform3f(
+          nodeSizeLocs[idx],
+          (n.size[0] * 0.5) / SCALE,
+          (n.size[1] * 0.5) / SCALE,
+          (n.size[2] * 0.5) / SCALE
+        );
+        gl.uniform3f(
+          nodePosLocs[idx],
+          n.position[0] / SCALE,
+          -n.position[1] / SCALE,
+          n.position[2] / SCALE
+        );
+        gl.uniform3f(
+          nodeRotLocs[idx],
+          (n.rotation?.[0] || 0) * DEG2RAD,
+          (n.rotation?.[1] || 0) * DEG2RAD,
+          -(n.rotation?.[2] || 0) * DEG2RAD
+        );
+        gl.uniform1f(nodeRoundLocs[idx], n.roundness ?? 0.65);
+      }
+      uploadedAvatarId = av.id;
+    };
 
     const defaultExp =
       expressionsMap.get("expression-00") || AVATAR_STUDIO_DATA.expressions[0];
 
     let rafId = 0;
     const startTime = performance.now();
-    let nextBlinkTime =
-      startTime + (sequence?.blink?.initialDelayMs || 1800) + Math.random() * 600;
-    const blinkDuration = sequence?.blink?.durationMs || 150;
+    let nextBlinkTime = startTime + 1800 + Math.random() * 600;
+    let smoothGazeX = 0;
+    let smoothGazeY = 0;
 
-    const steps =
-      sequence?.steps?.length
-        ? sequence.steps
+    const renderFrame = (now: number) => {
+      const {
+        avatar: curAvatar,
+        sequence: curSeq,
+        expressionId: curExpId,
+        size: curSize,
+        interactiveGaze: curGaze,
+        customBodyColor: curBodyHex,
+        customEyeColor: curEyeHex,
+      } = liveRef.current;
+
+      const dpr =
+        typeof window !== "undefined" ? Math.min(window.devicePixelRatio || 1, 1.5) : 1;
+      const targetPx = Math.round(curSize * dpr);
+      if (targetPx !== lastPixelSize && targetPx > 0) {
+        canvas.width = targetPx;
+        canvas.height = targetPx;
+        lastPixelSize = targetPx;
+      }
+
+      if (curAvatar && curAvatar.id !== uploadedAvatarId) {
+        uploadGeometry(curAvatar);
+      }
+
+      gl.viewport(0, 0, canvas.width, canvas.height);
+      gl.clearColor(0, 0, 0, 0);
+      gl.clear(gl.COLOR_BUFFER_BIT);
+
+      const steps = curSeq?.steps?.length
+        ? curSeq.steps
         : [
             {
               id: "s0",
@@ -753,25 +819,19 @@ export function Avatar3DRenderer({
               transition: "smooth",
             },
           ];
-    const stepDurations = steps.map((s) =>
-      Math.max(50, (s.holdMs || 500) + (s.transitionMs || 250))
-    );
-    const totalCycleMs = Math.max(100, stepDurations.reduce((acc, v) => acc + v, 0));
 
-    let smoothGazeX = 0;
-    let smoothGazeY = 0;
-
-    const renderFrame = (now: number) => {
-      gl.viewport(0, 0, canvas.width, canvas.height);
-      gl.clearColor(0, 0, 0, 0);
-      gl.clear(gl.COLOR_BUFFER_BIT);
+      let totalCycleMs = 0;
+      for (let i = 0; i < steps.length; i++) {
+        totalCycleMs += Math.max(50, (steps[i].holdMs || 500) + (steps[i].transitionMs || 250));
+      }
+      totalCycleMs = Math.max(100, totalCycleMs);
 
       let currentExp: AvatarExpression = defaultExp;
       let nextExp: AvatarExpression = defaultExp;
       let blendT = 0;
 
-      if (expressionId && expressionsMap.has(expressionId)) {
-        currentExp = expressionsMap.get(expressionId)!;
+      if (curExpId && expressionsMap.has(curExpId)) {
+        currentExp = expressionsMap.get(curExpId)!;
         nextExp = currentExp;
         blendT = 0;
       } else {
@@ -779,7 +839,7 @@ export function Avatar3DRenderer({
         let accum = 0;
         for (let i = 0; i < steps.length; i++) {
           const step = steps[i];
-          const dur = stepDurations[i];
+          const dur = Math.max(50, (step.holdMs || 500) + (step.transitionMs || 250));
           if (elapsedInCycle < accum + dur) {
             const localT = elapsedInCycle - accum;
             const hold = step.holdMs || 400;
@@ -814,7 +874,8 @@ export function Avatar3DRenderer({
       const leftAngle = lerp(currentExp.leftAngle, nextExp.leftAngle, blendT);
       const rightAngle = lerp(currentExp.rightAngle, nextExp.rightAngle, blendT);
 
-      if (sequence?.blink?.enabled !== false && sequence?.id !== "sleeping") {
+      const blinkDuration = curSeq?.blink?.durationMs || 150;
+      if (curSeq?.blink?.enabled !== false && curSeq?.id !== "sleeping") {
         if (now >= nextBlinkTime) {
           const blinkElapsed = now - nextBlinkTime;
           if (blinkElapsed <= blinkDuration) {
@@ -824,8 +885,8 @@ export function Avatar3DRenderer({
             widthLeft = lerp(widthLeft, widthLeft * 1.25, bt);
             widthRight = lerp(widthRight, widthRight * 1.25, bt);
           } else {
-            const minInt = sequence?.blink?.minIntervalMs || 2200;
-            const maxInt = sequence?.blink?.maxIntervalMs || 4800;
+            const minInt = curSeq?.blink?.minIntervalMs || 2200;
+            const maxInt = curSeq?.blink?.maxIntervalMs || 4800;
             nextBlinkTime = now + minInt + Math.random() * (maxInt - minInt);
           }
         }
@@ -834,8 +895,8 @@ export function Avatar3DRenderer({
       smoothGazeX = lerp(smoothGazeX, pointerRef.current.x, 0.08);
       smoothGazeY = lerp(smoothGazeY, pointerRef.current.y, 0.08);
 
-      const gazeYaw = interactiveGaze ? smoothGazeX * 14 : 0;
-      const gazePitch = interactiveGaze ? smoothGazeY * 11 : 0;
+      const gazeYaw = curGaze ? smoothGazeX * 14 : 0;
+      const gazePitch = curGaze ? smoothGazeY * 11 : 0;
 
       const tSec = (now - startTime) * 0.001;
       let driftX = Math.sin(tSec * 1.7) * 0.025;
@@ -852,8 +913,8 @@ export function Avatar3DRenderer({
         eyeShakeY = Math.cos(tSec * 62.0) * 2.0;
       }
 
-      const activeBodyHex = customBodyColor || avatar.bodyColor || "#fe7c7c";
-      const activeEyeHex = customEyeColor || avatar.eyeColor || "#3e4e65";
+      const activeBodyHex = curBodyHex || curAvatar?.bodyColor || "#fe7c7c";
+      const activeEyeHex = curEyeHex || curAvatar?.eyeColor || "#3e4e65";
       const [br, bg, bb] = hexToRgbNormalized(activeBodyHex);
       const [er, eg, eb] = hexToRgbNormalized(activeEyeHex);
       gl.uniform3f(uBodyColor, br, bg, bb);
@@ -901,16 +962,7 @@ export function Avatar3DRenderer({
       gl.deleteShader(vs);
       gl.deleteShader(fs);
     };
-  }, [
-    avatar,
-    sequence,
-    expressionId,
-    size,
-    interactiveGaze,
-    customBodyColor,
-    customEyeColor,
-    expressionsMap,
-  ]);
+  }, [expressionsMap]);
 
   return (
     <canvas

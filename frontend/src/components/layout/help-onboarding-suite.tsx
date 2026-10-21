@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   HelpCircle,
@@ -14,6 +14,7 @@ import {
   Compass,
   ExternalLink,
   LifeBuoy,
+  MousePointerClick,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
@@ -27,10 +28,12 @@ interface FreddyTourStep {
   id: string;
   sectionLabel: string;
   route: string;
+  navPrompt: string;
   title: string;
   text: string;
   sequenceId: string;
-  selectors: string[];
+  navSelectors: string[];
+  insideSelectors: string[];
 }
 
 const FREDDY_STEPS: FreddyTourStep[] = [
@@ -38,91 +41,100 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "dashboard-overview",
     sectionLabel: "Dashboard",
     route: "/",
+    navPrompt: 'Click "Dashboard" to open your daily home overview.',
     title: "Hi, I'm Freddy! 👋",
-    text: "Let's go inside each section! Here on your Dashboard, you see your daily score and streak.",
+    text: "Here on your Dashboard, you see your daily wellness score, active streak, and quick stats.",
     sequenceId: "excited",
-    selectors: ["main h1", "main .glass-card"],
+    navSelectors: ['aside a[href="/"]', 'nav a[href="/"]'],
+    insideSelectors: ["main h1", "main .glass-card"],
   },
   {
     id: "journal-editor",
     sectionLabel: "Journal",
     route: "/journal",
-    title: "Write Privately",
-    text: "Type your thoughts here—every entry is locked with AES-256 encryption before saving.",
+    navPrompt: 'Click "Journal" in the navigation bar to go inside.',
+    title: "Encrypted Journal",
+    text: "Write your thoughts freely here—every entry is locked with AES-256 encryption.",
     sequenceId: "thinking",
-    selectors: ["main textarea", "main form"],
+    navSelectors: ['aside a[href="/journal"]', 'nav a[href="/journal"]'],
+    insideSelectors: ["main textarea", "main form"],
   },
   {
     id: "journal-save",
     sectionLabel: "Journal",
     route: "/journal",
-    title: "AI Mood Insights",
-    text: "Set your mood sliders and save to get gentle AI emotional insights.",
+    navPrompt: 'Click "Journal" to explore mood sliders & AI insights.',
+    title: "Mood & AI Insights",
+    text: "Set your mood sliders and tap Save to get gentle AI emotional reflection.",
     sequenceId: "happy",
-    selectors: ['main form button[type="submit"]', "main form input[type='range']"],
+    navSelectors: ['aside a[href="/journal"]', 'nav a[href="/journal"]'],
+    insideSelectors: ['main form button[type="submit"]', "main form input[type='range']"],
   },
   {
     id: "mood-checkin",
     sectionLabel: "Mood",
     route: "/mood",
-    title: "Daily Mood Check-In",
-    text: "Slide from 1 to 10 to log how you feel, along with your sleep, water, and exercise.",
+    navPrompt: 'Click "Mood" in the menu to open your daily check-in.',
+    title: "1–10 Mood Check-In",
+    text: "Slide from 1 to 10 to log how you feel along with sleep, water, and exercise.",
     sequenceId: "happy",
-    selectors: ["main input[type='range']", "main .glass-card"],
+    navSelectors: ['aside a[href="/mood"]', 'nav a[href="/mood"]'],
+    insideSelectors: ["main input[type='range']", "main .glass-card"],
   },
   {
-    id: "habits-rank",
+    id: "habits-rituals",
     sectionLabel: "Habits",
     route: "/habits",
-    title: "Wellness Rank & XP",
-    text: "Every habit you complete earns XP to level up your Wellness Rank!",
+    navPrompt: 'Click "Habits" in the menu to see your rituals & XP rank.',
+    title: "Daily Rituals & XP",
+    text: "Check off daily habits here to build streaks and level up your Wellness Rank!",
     sequenceId: "celebrate",
-    selectors: ["main .glass-card"],
-  },
-  {
-    id: "habits-list",
-    sectionLabel: "Habits",
-    route: "/habits",
-    title: "Daily Rituals",
-    text: "Tap any daily ritual to check it off, or tap 'New Habit' to add your own.",
-    sequenceId: "playful",
-    selectors: ["main .grid .glass-card", "main button"],
-  },
-  {
-    id: "assessments-suite",
-    sectionLabel: "Checkups",
-    route: "/assessments",
-    title: "2-Minute Checkups",
-    text: "Pick any science-backed quiz here to check your stress, sleep, or well-being.",
-    sequenceId: "curious",
-    selectors: ["main .glass-card", "main h1"],
+    navSelectors: ['aside a[href="/habits"]', 'nav a[href="/habits"]'],
+    insideSelectors: ["main .glass-card"],
   },
   {
     id: "productivity-timer",
-    sectionLabel: "Focus",
+    sectionLabel: "Productivity",
     route: "/productivity",
-    title: "Pomodoro Focus Timer",
-    text: "Start a 25-minute focus timer whenever you want calm, distraction-free work.",
+    navPrompt: 'Click "Productivity" in the menu to open your focus timer.',
+    title: "25-Min Focus Timer",
+    text: "Start a calm 25-minute Pomodoro timer whenever you want distraction-free focus.",
     sequenceId: "working",
-    selectors: ["main .glass-card", "main button"],
+    navSelectors: ['aside a[href="/productivity"]', 'nav a[href="/productivity"]'],
+    insideSelectors: ["main .glass-card", "main button"],
+  },
+  {
+    id: "assessments-suite",
+    sectionLabel: "Assessments",
+    route: "/assessments",
+    navPrompt: 'Click "Assessments" in the menu to see 2-minute checkups.',
+    title: "2-Minute Checkups",
+    text: "Tap any science-backed checkup card here to test your stress, sleep, or well-being.",
+    sequenceId: "curious",
+    navSelectors: ['aside a[href="/assessments"]', 'nav a[href="/assessments"]'],
+    insideSelectors: ["main .glass-card", "main h1"],
   },
   {
     id: "chat-companion",
     sectionLabel: "AI Chat",
     route: "/chat",
+    navPrompt: 'Click "AI Chat" in the menu to meet your 24/7 listener.',
     title: "24/7 AI Companion",
     text: "Send a message here anytime you want a friendly, supportive listener.",
     sequenceId: "listening",
-    selectors: ["main textarea", "main input", "main form"],
+    navSelectors: ['aside a[href="/chat"]', 'nav a[href="/chat"]'],
+    insideSelectors: ["main textarea", "main input", "main form"],
   },
   {
     id: "settings-profile",
     sectionLabel: "Settings",
     route: "/settings",
+    navPrompt: 'Click "Settings" in the menu to customize your profile & theme.',
     title: "Profile & 4 Themes",
-    text: "Update your circular photo, @username, or switch themes here. Enjoy MindSync!",
+    text: "Update your circular photo, @username, or switch between 4 themes here. Enjoy MindSync!",
     sequenceId: "celebrate",
-    selectors: ["main .glass-card", "main h1"],
+    navSelectors: ['aside a[href="/settings"]', 'nav a[href="/settings"]'],
+    insideSelectors: ["main .glass-card", "main h1"],
   },
 ];
 
@@ -153,20 +165,51 @@ export function HelpAndOnboardingSuite() {
   const router = useRouter();
   const pathname = usePathname();
 
+  const [mounted, setMounted] = useState(false);
   const [tourOpen, setTourOpen] = useState(false);
   const [tourStep, setTourStep] = useState(0);
   const [isMobileView, setIsMobileView] = useState(false);
-  const [freddyPos, setFreddyPos] = useState<{ x: number; y: number }>({ x: 24, y: 110 });
+  const [freddyPos, setFreddyPos] = useState<{ x: number; y: number }>({ x: 24, y: 120 });
+  const [restingPos, setRestingPos] = useState<{ x: number; y: number }>({ x: 24, y: 500 });
   const [bubbleSide, setBubbleSide] = useState<"right" | "left">("right");
   const [spotlight, setSpotlight] = useState<SpotlightBox | null>(null);
+  const [needsMobileMoreMenu, setNeedsMobileMoreMenu] = useState(false);
   const [idleWave, setIdleWave] = useState(false);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [activeHelpTab, setActiveHelpTab] = useState<"guide" | "faq" | "shortcuts" | "crisis">("guide");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
 
+  const rafPendingRef = useRef<number | null>(null);
+  const tourOpenedAtRef = useRef<number>(0);
+
   const isAuthPage =
     pathname === "/login" || pathname === "/register" || pathname === "/forgot-password";
+
+  const currentStep = FREDDY_STEPS[tourStep] || FREDDY_STEPS[0];
+  // Interactive mode: if user is not on the step's route yet, show "Click here" on the nav button!
+  const isWaitingForSectionClick = tourOpen && pathname !== currentStep.route;
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    const vw = window.innerWidth;
+    const vh = window.innerHeight;
+    const mobile = vw < 640;
+    setIsMobileView(mobile);
+    setRestingPos({
+      x: Math.max(16, vw - (mobile ? 80 : 88)),
+      y: Math.max(80, vh - (mobile ? 148 : 88)),
+    });
+    setMounted(true);
+  }, []);
+
+  const startFreshTour = useCallback(() => {
+    tourOpenedAtRef.current = Date.now();
+    setHelpOpen(false);
+    setIdleWave(false);
+    setTourStep(0);
+    setTourOpen(true);
+  }, []);
 
   const completeTour = useCallback(() => {
     if (typeof window !== "undefined") {
@@ -176,43 +219,73 @@ export function HelpAndOnboardingSuite() {
     setSpotlight(null);
   }, []);
 
-  const goToStep = useCallback(
-    (nextIdx: number) => {
-      const clamped = Math.max(0, Math.min(FREDDY_STEPS.length - 1, nextIdx));
-      setTourStep(clamped);
-      const targetRoute = FREDDY_STEPS[clamped]?.route;
-      if (targetRoute && pathname !== targetRoute) {
-        router.push(targetRoute);
-      }
-    },
-    [pathname, router]
-  );
+  const goToStep = useCallback((nextIdx: number) => {
+    const clamped = Math.max(0, Math.min(FREDDY_STEPS.length - 1, nextIdx));
+    setTourStep(clamped);
+  }, []);
 
-  // Locate target element inside the current section, scroll it into view if needed, and position Freddy
-  const updateStepPosition = useCallback(
+  // Measure target element (either the nav button in "Click here" mode, or the feature inside the section)
+  const measureAndPosition = useCallback(
     (stepIndex: number, shouldScrollIntoView = false) => {
       if (typeof window === "undefined") return;
       const vw = window.innerWidth;
       const vh = window.innerHeight;
       const mobile = vw < 640;
       setIsMobileView(mobile);
+      setRestingPos({
+        x: Math.max(16, vw - (mobile ? 80 : 88)),
+        y: Math.max(80, vh - (mobile ? 148 : 88)),
+      });
 
       const step = FREDDY_STEPS[stepIndex] || FREDDY_STEPS[0];
+      const waitingForClick = pathname !== step.route;
 
       let foundEl: Element | null = null;
-      for (const sel of step.selectors) {
-        const nodes = document.querySelectorAll(sel);
-        for (let i = 0; i < nodes.length; i++) {
-          const r = nodes[i].getBoundingClientRect();
-          if (r.width > 16 && r.height > 16) {
-            foundEl = nodes[i];
-            break;
+      let usingMoreMenuFallback = false;
+
+      if (waitingForClick) {
+        // 1. Look for visible navigation button for this route (Sidebar or BottomNav)
+        for (const sel of step.navSelectors) {
+          const nodes = document.querySelectorAll(sel);
+          for (let i = 0; i < nodes.length; i++) {
+            const r = nodes[i].getBoundingClientRect();
+            if (r.width > 12 && r.height > 12 && r.right > 8 && r.left < vw - 8) {
+              foundEl = nodes[i];
+              break;
+            }
+          }
+          if (foundEl) break;
+        }
+
+        // 2. On mobile (<1024px), if the link is inside the closed "More" drawer, highlight the BottomNav "More" button
+        if (!foundEl && vw < 1024) {
+          const moreBtn = document.querySelector("nav button");
+          if (moreBtn) {
+            const r = moreBtn.getBoundingClientRect();
+            if (r.width > 12 && r.height > 12) {
+              foundEl = moreBtn;
+              usingMoreMenuFallback = true;
+            }
           }
         }
-        if (foundEl) break;
+      } else {
+        // Inside the section: locate the active feature control inside the page
+        for (const sel of step.insideSelectors) {
+          const nodes = document.querySelectorAll(sel);
+          for (let i = 0; i < nodes.length; i++) {
+            const r = nodes[i].getBoundingClientRect();
+            if (r.width > 16 && r.height > 16) {
+              foundEl = nodes[i];
+              break;
+            }
+          }
+          if (foundEl) break;
+        }
       }
 
-      if (foundEl && shouldScrollIntoView) {
+      setNeedsMobileMoreMenu(usingMoreMenuFallback);
+
+      if (foundEl && shouldScrollIntoView && !waitingForClick) {
         const rectBefore = foundEl.getBoundingClientRect();
         const topSafe = mobile ? 76 : 80;
         const bottomSafe = mobile ? vh - 96 : vh - 60;
@@ -220,7 +293,6 @@ export function HelpAndOnboardingSuite() {
           try {
             foundEl.scrollIntoView({ behavior: "smooth", block: "center", inline: "nearest" });
           } catch {
-            // Fallback for older iOS WebKit
             foundEl.scrollIntoView();
           }
         }
@@ -228,76 +300,76 @@ export function HelpAndOnboardingSuite() {
 
       const foundRect = foundEl ? foundEl.getBoundingClientRect() : null;
 
-      // Responsive unit dimensions for Android/iOS vs Desktop
-      const freddySize = mobile ? 76 : 100;
-      const bubbleWidth = mobile ? Math.min(226, vw - freddySize - 28) : 238;
+      const freddySize = mobile ? 76 : 96;
+      const bubbleWidth = mobile ? Math.min(230, vw - freddySize - 26) : 244;
       const totalUnitWidth = freddySize + 8 + bubbleWidth;
-      const totalUnitHeight = mobile ? 118 : 128;
+      const totalUnitHeight = mobile ? 124 : 132;
 
-      const topSafeBound = mobile ? 72 : 68;
-      const bottomSafeBound = mobile ? vh - totalUnitHeight - 86 : vh - totalUnitHeight - 24;
+      const topSafeBound = mobile ? 70 : 68;
+      const bottomSafeBound = mobile ? vh - totalUnitHeight - 82 : vh - totalUnitHeight - 20;
 
-      if (
-        foundRect &&
-        foundRect.width > 16 &&
-        foundRect.height > 16 &&
-        foundRect.bottom > topSafeBound &&
-        foundRect.top < vh - 70
-      ) {
-        // Clamp spotlight box so it looks clean even on tall forms/cards
-        const spotTop = Math.max(topSafeBound - 4, foundRect.top - 4);
-        const spotHeight = Math.min(foundRect.height + 8, vh - spotTop - (mobile ? 84 : 24));
+      if (foundRect && foundRect.width > 12 && foundRect.height > 12) {
+        const isNavTarget = waitingForClick;
+        const pad = isNavTarget ? 4 : 5;
+        const spotTop = Math.max(isNavTarget ? 4 : topSafeBound - 4, foundRect.top - pad);
+        const maxSpotHeight = isNavTarget
+          ? foundRect.height + pad * 2
+          : Math.min(foundRect.height + pad * 2, vh - spotTop - (mobile ? 82 : 24));
+
         setSpotlight({
-          top: spotTop,
-          left: Math.max(6, foundRect.left - 4),
-          width: Math.min(vw - 12, foundRect.width + 8),
-          height: Math.max(36, spotHeight),
+          top: Math.round(spotTop),
+          left: Math.round(Math.max(4, foundRect.left - pad)),
+          width: Math.round(Math.min(vw - 8, foundRect.width + pad * 2)),
+          height: Math.round(Math.max(32, maxSpotHeight)),
         });
 
         if (mobile) {
-          // On Android & iOS mobile screens, place Freddy + bubble cleanly ABOVE or BELOW the highlighted section
           setBubbleSide("right");
-          const centerX = Math.max(10, Math.min(vw - totalUnitWidth - 10, (vw - totalUnitWidth) * 0.5));
-          const spaceBelow = vh - 86 - (spotTop + spotHeight);
+          // Align horizontally near target if narrow (like BottomNav tab), clamped safely to screen edges
+          const idealX = foundRect.left + foundRect.width * 0.5 - totalUnitWidth * 0.5;
+          const clampedX = Math.max(10, Math.min(vw - totalUnitWidth - 10, idealX));
+
+          const spaceBelow = vh - 82 - (spotTop + maxSpotHeight);
           const spaceAbove = spotTop - topSafeBound;
 
           let targetY: number;
-          if (spaceBelow >= totalUnitHeight + 12 || spaceBelow >= spaceAbove) {
-            targetY = Math.min(bottomSafeBound, spotTop + spotHeight + 12);
+          if (isNavTarget && foundRect.top > vh * 0.6) {
+            // Highlighting BottomNav item on Android/iOS: hover cleanly above BottomNav
+            targetY = foundRect.top - totalUnitHeight - 12;
+          } else if (spaceBelow >= totalUnitHeight + 10 || spaceBelow >= spaceAbove) {
+            targetY = Math.min(bottomSafeBound, spotTop + maxSpotHeight + 10);
           } else {
-            targetY = Math.max(topSafeBound, spotTop - totalUnitHeight - 12);
+            targetY = Math.max(topSafeBound, spotTop - totalUnitHeight - 10);
           }
 
           setFreddyPos({
-            x: Math.round(centerX),
+            x: Math.round(clampedX),
             y: Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, targetY))),
           });
         } else {
-          // Desktop: hover beside the element (or below/above if wide card)
           const spaceRight = vw - foundRect.right;
           const spaceLeft = foundRect.left;
 
           let targetX: number;
-          let targetY = foundRect.top + Math.min(foundRect.height * 0.35, 90) - totalUnitHeight * 0.5;
+          let targetY = foundRect.top + Math.min(foundRect.height * 0.35, 80) - totalUnitHeight * 0.5;
 
-          if (spaceRight >= totalUnitWidth + 24) {
-            targetX = foundRect.right + 16;
+          if (spaceRight >= totalUnitWidth + 20) {
+            targetX = foundRect.right + 14;
             setBubbleSide("right");
-          } else if (spaceLeft >= totalUnitWidth + 24) {
-            targetX = foundRect.left - totalUnitWidth - 16;
+          } else if (spaceLeft >= totalUnitWidth + 20) {
+            targetX = foundRect.left - totalUnitWidth - 14;
             setBubbleSide("left");
           } else {
-            // Wide card: float near top-right corner of the card or just below its header
-            targetX = Math.max(24, Math.min(vw - totalUnitWidth - 24, foundRect.right - totalUnitWidth - 12));
+            targetX = Math.max(20, Math.min(vw - totalUnitWidth - 20, foundRect.right - totalUnitWidth - 12));
             targetY =
-              foundRect.top > topSafeBound + totalUnitHeight + 16
+              foundRect.top > topSafeBound + totalUnitHeight + 14
                 ? foundRect.top - totalUnitHeight - 12
-                : Math.min(bottomSafeBound, foundRect.top + 16);
+                : Math.min(bottomSafeBound, foundRect.top + 14);
             setBubbleSide("right");
           }
 
           setFreddyPos({
-            x: Math.round(Math.max(16, Math.min(vw - totalUnitWidth - 16, targetX))),
+            x: Math.round(Math.max(14, Math.min(vw - totalUnitWidth - 14, targetX))),
             y: Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, targetY))),
           });
         }
@@ -312,32 +384,72 @@ export function HelpAndOnboardingSuite() {
         });
       }
     },
-    []
+    [pathname]
   );
 
-  // Navigate to step's route if needed and update Freddy's position as the section renders
+  const schedulePositionUpdate = useCallback(
+    (shouldScroll = false) => {
+      if (rafPendingRef.current !== null) {
+        cancelAnimationFrame(rafPendingRef.current);
+      }
+      rafPendingRef.current = requestAnimationFrame(() => {
+        rafPendingRef.current = null;
+        measureAndPosition(tourStep, shouldScroll);
+      });
+    },
+    [measureAndPosition, tourStep]
+  );
+
+  // Reposition Freddy when tour opens, step changes, or user clicks into the target route
   useEffect(() => {
     if (!tourOpen) return;
-    const step = FREDDY_STEPS[tourStep] || FREDDY_STEPS[0];
-    if (pathname !== step.route) {
-      router.push(step.route);
-    }
 
-    // Immediate + delayed passes so DOM elements inside the new route are measured after mount & scroll
-    updateStepPosition(tourStep, true);
-    const t1 = setTimeout(() => updateStepPosition(tourStep, true), 160);
-    const t2 = setTimeout(() => updateStepPosition(tourStep, false), 420);
+    measureAndPosition(tourStep, true);
+    const t1 = setTimeout(() => measureAndPosition(tourStep, true), 140);
+    const t2 = setTimeout(() => measureAndPosition(tourStep, false), 360);
 
-    const onViewportChange = () => updateStepPosition(tourStep, false);
-    window.addEventListener("resize", onViewportChange);
+    const onViewportChange = () => schedulePositionUpdate(false);
+    const onDrawerToggle = () => {
+      setTimeout(() => measureAndPosition(tourStep, false), 180);
+      setTimeout(() => measureAndPosition(tourStep, false), 350);
+    };
+
+    window.addEventListener("resize", onViewportChange, { passive: true });
     window.addEventListener("scroll", onViewportChange, { passive: true });
+    window.addEventListener("open-mobile-sidebar", onDrawerToggle);
+    window.addEventListener("close-mobile-sidebar", onDrawerToggle);
+    window.addEventListener("toggle-mobile-sidebar", onDrawerToggle);
+
     return () => {
       clearTimeout(t1);
       clearTimeout(t2);
+      if (rafPendingRef.current !== null) {
+        cancelAnimationFrame(rafPendingRef.current);
+      }
       window.removeEventListener("resize", onViewportChange);
       window.removeEventListener("scroll", onViewportChange);
+      window.removeEventListener("open-mobile-sidebar", onDrawerToggle);
+      window.removeEventListener("close-mobile-sidebar", onDrawerToggle);
+      window.removeEventListener("toggle-mobile-sidebar", onDrawerToggle);
     };
-  }, [tourOpen, tourStep, pathname, router, updateStepPosition]);
+  }, [tourOpen, tourStep, pathname, measureAndPosition, schedulePositionUpdate]);
+
+  // Keep resting position updated on window resize when tour is closed
+  useEffect(() => {
+    if (tourOpen || typeof window === "undefined") return;
+    const onResize = () => {
+      const vw = window.innerWidth;
+      const vh = window.innerHeight;
+      const mobile = vw < 640;
+      setIsMobileView(mobile);
+      setRestingPos({
+        x: Math.max(16, vw - (mobile ? 80 : 88)),
+        y: Math.max(80, vh - (mobile ? 148 : 88)),
+      });
+    };
+    window.addEventListener("resize", onResize, { passive: true });
+    return () => window.removeEventListener("resize", onResize);
+  }, [tourOpen]);
 
   // Auto-launch once for first-time authenticated users
   useEffect(() => {
@@ -345,12 +457,11 @@ export function HelpAndOnboardingSuite() {
     const hasCompleted = localStorage.getItem(ONBOARDING_STORAGE_KEY);
     if (!hasCompleted) {
       const timer = setTimeout(() => {
-        setTourStep(0);
-        setTourOpen(true);
+        startFreshTour();
       }, 900);
       return () => clearTimeout(timer);
     }
-  }, [user, isAuthPage]);
+  }, [user, isAuthPage, startFreshTour]);
 
   // Global event listeners & keyboard navigation
   useEffect(() => {
@@ -363,12 +474,7 @@ export function HelpAndOnboardingSuite() {
     };
 
     const handleStartTour = () => {
-      setHelpOpen(false);
-      setTourStep(0);
-      setTourOpen(true);
-      if (pathname !== FREDDY_STEPS[0].route) {
-        router.push(FREDDY_STEPS[0].route);
-      }
+      startFreshTour();
     };
 
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -417,99 +523,166 @@ export function HelpAndOnboardingSuite() {
       window.removeEventListener("mindsync:start-tour", handleStartTour);
       window.removeEventListener("keydown", handleKeyDown);
     };
-  }, [tourOpen, tourStep, helpOpen, pathname, router, completeTour, goToStep]);
+  }, [tourOpen, tourStep, helpOpen, completeTour, goToStep, startFreshTour]);
 
-  if (isAuthPage) return null;
+  if (isAuthPage || !mounted) return null;
 
-  const currentStep = FREDDY_STEPS[tourStep] || FREDDY_STEPS[0];
-  const freddyRenderSize = isMobileView ? 76 : 100;
+  const handleEnterCurrentSection = () => {
+    if (needsMobileMoreMenu && typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
+      return;
+    }
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(new CustomEvent("close-mobile-sidebar"));
+    }
+    router.push(currentStep.route);
+  };
+
+  const activeX = tourOpen ? freddyPos.x : restingPos.x;
+  const activeY = tourOpen ? freddyPos.y : restingPos.y;
+  const freddyRenderSize = tourOpen ? (isMobileView ? 76 : 96) : 64;
 
   return (
     <>
-      {/* 1. Deep Section-by-Section Hovering Freddy Tour (Android, iOS & Desktop Calibrated) */}
+      {/* 1. Spotlight Highlight Ring (Active during tour) */}
       <AnimatePresence>
-        {tourOpen && (
-          <div className="fixed inset-0 z-50 pointer-events-none overflow-hidden">
-            {/* Subtle highlight ring around the active element inside the current section */}
+        {tourOpen && spotlight && (
+          <motion.div
+            key="freddy-spotlight"
+            initial={{ opacity: 0, scale: 0.96 }}
+            animate={{
+              opacity: 1,
+              scale: 1,
+              top: spotlight.top,
+              left: spotlight.left,
+              width: spotlight.width,
+              height: spotlight.height,
+            }}
+            exit={{ opacity: 0, scale: 0.96 }}
+            transition={{ type: "spring", stiffness: 260, damping: 28 }}
+            className={cn(
+              "fixed z-50 rounded-2xl pointer-events-none",
+              isWaitingForSectionClick
+                ? "ring-2 ring-emerald-400 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.45)] animate-pulse"
+                : "ring-2 ring-primary-500 bg-primary-500/[0.06] shadow-[0_0_24px_rgba(16,185,129,0.28)]"
+            )}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* 2. Single Persistent 3D Freddy + Interactive Speech Bubble (Zero Remount Lag) */}
+      {user && (
+        <motion.div
+          initial={false}
+          animate={{
+            x: activeX,
+            y: activeY,
+          }}
+          transition={{
+            type: "spring",
+            stiffness: 150,
+            damping: 22,
+            mass: 0.8,
+          }}
+          className={cn(
+            "fixed top-0 left-0 z-50 flex items-center gap-2 pointer-events-none",
+            tourOpen && bubbleSide === "left" && "flex-row-reverse"
+          )}
+        >
+          {/* Hovering 3D Freddy Bot (Always Mounted -> Instant 60fps WebGL) */}
+          <motion.div
+            animate={{ y: [0, -7, 0] }}
+            transition={{
+              repeat: Infinity,
+              duration: 2.4,
+              ease: "easeInOut",
+            }}
+            onMouseEnter={() => {
+              if (!tourOpen) setIdleWave(true);
+            }}
+            onMouseLeave={() => {
+              if (!tourOpen) setIdleWave(false);
+            }}
+            className="relative shrink-0 pointer-events-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)] touch-manipulation"
+          >
+            {/* Idle Hover Tooltip when Tour is Closed */}
             <AnimatePresence>
-              {spotlight && (
+              {!tourOpen && idleWave && (
                 <motion.div
-                  key="freddy-spotlight"
-                  initial={{ opacity: 0, scale: 0.97 }}
-                  animate={{
-                    opacity: 1,
-                    scale: 1,
-                    top: spotlight.top,
-                    left: spotlight.left,
-                    width: spotlight.width,
-                    height: spotlight.height,
-                  }}
-                  exit={{ opacity: 0, scale: 0.97 }}
-                  transition={{ type: "spring", stiffness: 220, damping: 26 }}
-                  className="fixed rounded-2xl ring-2 ring-primary-500 bg-primary-500/[0.06] shadow-[0_0_28px_rgba(16,185,129,0.32)] pointer-events-none"
-                />
+                  initial={{ opacity: 0, x: 6, scale: 0.95 }}
+                  animate={{ opacity: 1, x: 0, scale: 1 }}
+                  exit={{ opacity: 0, x: 6, scale: 0.95 }}
+                  className="pointer-events-none hidden sm:block absolute right-full mr-2.5 top-1/2 -translate-y-1/2 bg-card/95 text-card-foreground backdrop-blur-xl px-3 py-1.5 rounded-xl border border-border/80 shadow-lg text-[11px] font-medium whitespace-nowrap"
+                >
+                  Tap Freddy for a guided tour!
+                </motion.div>
               )}
             </AnimatePresence>
 
-            {/* Freddy + Minimalist Speech Bubble gliding freely across the screen */}
-            <motion.div
-              initial={{ opacity: 0, scale: 0.88, x: freddyPos.x, y: freddyPos.y }}
-              animate={{
-                opacity: 1,
-                scale: 1,
-                x: freddyPos.x,
-                y: freddyPos.y,
+            <Avatar3DRenderer
+              avatarId={FREDDY_AVATAR_ID}
+              sequenceId={
+                tourOpen
+                  ? isWaitingForSectionClick
+                    ? "curious"
+                    : currentStep.sequenceId
+                  : idleWave
+                  ? "excited"
+                  : "idle"
+              }
+              size={freddyRenderSize}
+              interactiveGaze={true}
+              onClick={() => {
+                if (!tourOpen) {
+                  startFreshTour();
+                  return;
+                }
+                // Guard against accidental double-tap right as tour opens
+                if (Date.now() - tourOpenedAtRef.current < 600) {
+                  return;
+                }
+                if (isWaitingForSectionClick) {
+                  handleEnterCurrentSection();
+                } else if (tourStep < FREDDY_STEPS.length - 1) {
+                  goToStep(tourStep + 1);
+                } else {
+                  completeTour();
+                }
               }}
-              exit={{ opacity: 0, scale: 0.88 }}
-              transition={{
-                type: "spring",
-                stiffness: 120,
-                damping: 20,
-                mass: 0.85,
-              }}
-              className={cn(
-                "fixed top-0 left-0 flex items-center gap-2 pointer-events-auto",
-                bubbleSide === "left" && "flex-row-reverse"
-              )}
-            >
-              {/* Hovering 3D Freddy Bot */}
-              <motion.div
-                animate={{ y: [0, -8, 0] }}
-                transition={{
-                  repeat: Infinity,
-                  duration: 2.3,
-                  ease: "easeInOut",
-                }}
-                className="relative shrink-0 drop-shadow-[0_12px_20px_rgba(0,0,0,0.38)] touch-manipulation"
-              >
-                <Avatar3DRenderer
-                  avatarId={FREDDY_AVATAR_ID}
-                  sequenceId={currentStep.sequenceId}
-                  size={freddyRenderSize}
-                  interactiveGaze={true}
-                  onClick={() => {
-                    if (tourStep < FREDDY_STEPS.length - 1) {
-                      goToStep(tourStep + 1);
-                    } else {
-                      completeTour();
-                    }
-                  }}
-                  title="Freddy · Tap to go to next section"
-                />
-              </motion.div>
+              title={
+                tourOpen
+                  ? isWaitingForSectionClick
+                    ? `Click "${currentStep.sectionLabel}" to open section`
+                    : "Freddy · Tap for next step"
+                  : "Tap Freddy for a guided tour"
+              }
+            />
+          </motion.div>
 
-              {/* Minimalist, Easy-to-Read Speech Bubble */}
+          {/* Active Tour Speech Bubble */}
+          <AnimatePresence mode="wait">
+            {tourOpen && (
               <motion.div
-                key={currentStep.id}
-                initial={{ opacity: 0, y: 5, scale: 0.96 }}
+                key={`${currentStep.id}-${isWaitingForSectionClick ? "nav" : "inside"}`}
+                initial={{ opacity: 0, y: 4, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
-                transition={{ duration: 0.18 }}
-                className="relative w-[min(226px,calc(100vw-104px))] sm:w-[238px] bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-border/80 space-y-1.5"
+                exit={{ opacity: 0, y: -4, scale: 0.96 }}
+                transition={{ duration: 0.15 }}
+                className="pointer-events-auto relative w-[min(230px,calc(100vw-102px))] sm:w-[244px] bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-border/80 space-y-2"
               >
-                {/* Section Pill + Close Button */}
+                {/* Top Header: Section Badge + Close Button */}
                 <div className="flex items-center justify-between gap-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary-600 dark:text-primary-400 truncate">
-                    {currentStep.sectionLabel} · {tourStep + 1}/{FREDDY_STEPS.length}
+                  <span
+                    className={cn(
+                      "text-[10px] font-bold uppercase tracking-wider truncate",
+                      isWaitingForSectionClick
+                        ? "text-emerald-600 dark:text-emerald-400"
+                        : "text-primary-600 dark:text-primary-400"
+                    )}
+                  >
+                    {isWaitingForSectionClick
+                      ? `Open ${currentStep.sectionLabel} · ${tourStep + 1}/${FREDDY_STEPS.length}`
+                      : `${currentStep.sectionLabel} · ${tourStep + 1}/${FREDDY_STEPS.length}`}
                   </span>
                   <button
                     type="button"
@@ -521,17 +694,40 @@ export function HelpAndOnboardingSuite() {
                   </button>
                 </div>
 
-                {/* Short Title */}
-                <p className="text-xs font-bold text-foreground leading-snug">
-                  {currentStep.title}
-                </p>
+                {isWaitingForSectionClick ? (
+                  /* MODE A: "CLICK HERE" TO ENTER SECTION (User clicks the button to go inside!) */
+                  <div className="space-y-1.5">
+                    <button
+                      type="button"
+                      onClick={handleEnterCurrentSection}
+                      className="w-full py-1.5 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 touch-manipulation"
+                    >
+                      <MousePointerClick size={14} className="shrink-0 animate-bounce" />
+                      <span className="truncate">
+                        {needsMobileMoreMenu
+                          ? 'Click "More" menu'
+                          : `Click here: ${currentStep.sectionLabel}`}
+                      </span>
+                    </button>
+                    <p className="text-[11px] text-muted-foreground leading-snug">
+                      {needsMobileMoreMenu
+                        ? `Tap the highlighted "More" button below to see ${currentStep.sectionLabel}.`
+                        : currentStep.navPrompt}
+                    </p>
+                  </div>
+                ) : (
+                  /* MODE B: INSIDE SECTION EXPLANATION */
+                  <div className="space-y-1">
+                    <p className="text-xs font-bold text-foreground leading-snug">
+                      {currentStep.title}
+                    </p>
+                    <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+                      {currentStep.text}
+                    </p>
+                  </div>
+                )}
 
-                {/* Simple 1-Sentence Explanation */}
-                <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
-                  {currentStep.text}
-                </p>
-
-                {/* Minimal Controls: Step Dots + Back/Next */}
+                {/* Bottom Bar: Step Dots + Back / Skip / Next */}
                 <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-border/60">
                   <div className="flex items-center gap-1">
                     {FREDDY_STEPS.map((s, idx) => (
@@ -555,18 +751,32 @@ export function HelpAndOnboardingSuite() {
                       <button
                         type="button"
                         onClick={() => goToStep(tourStep - 1)}
-                        className="min-h-[30px] px-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 flex items-center justify-center touch-manipulation"
+                        className="min-h-[28px] px-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 flex items-center justify-center touch-manipulation"
                         aria-label="Previous step"
                       >
                         <ChevronLeft size={14} />
                       </button>
                     )}
 
-                    {tourStep < FREDDY_STEPS.length - 1 ? (
+                    {isWaitingForSectionClick ? (
+                      <button
+                        type="button"
+                        onClick={() => {
+                          if (tourStep < FREDDY_STEPS.length - 1) {
+                            goToStep(tourStep + 1);
+                          } else {
+                            completeTour();
+                          }
+                        }}
+                        className="min-h-[28px] px-2 py-0.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors touch-manipulation"
+                      >
+                        Skip
+                      </button>
+                    ) : tourStep < FREDDY_STEPS.length - 1 ? (
                       <button
                         type="button"
                         onClick={() => goToStep(tourStep + 1)}
-                        className="min-h-[30px] px-3 py-1 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[11px] font-bold flex items-center gap-0.5 shadow-sm transition-all active:scale-95 touch-manipulation"
+                        className="min-h-[28px] px-3 py-1 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[11px] font-bold flex items-center gap-0.5 shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
                         Next
                         <ChevronRight size={12} />
@@ -575,7 +785,7 @@ export function HelpAndOnboardingSuite() {
                       <button
                         type="button"
                         onClick={completeTour}
-                        className="min-h-[30px] px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-sm transition-all active:scale-95 touch-manipulation"
+                        className="min-h-[28px] px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
                         Done
                       </button>
@@ -583,50 +793,9 @@ export function HelpAndOnboardingSuite() {
                   </div>
                 </div>
               </motion.div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      {/* 2. Resting Hovering Freddy in Bottom-Right Corner (Clears iOS/Android BottomNav Safe Area) */}
-      {user && !tourOpen && (
-        <div className="fixed bottom-[calc(4.75rem+env(safe-area-inset-bottom,0px))] lg:bottom-5 right-3 sm:right-4 z-40 flex items-center gap-2 pointer-events-none">
-          <AnimatePresence>
-            {idleWave && (
-              <motion.div
-                initial={{ opacity: 0, x: 8, scale: 0.95 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: 8, scale: 0.95 }}
-                className="pointer-events-auto hidden sm:block bg-card/95 text-card-foreground backdrop-blur-xl px-3 py-1.5 rounded-xl border border-border/80 shadow-lg text-[11px] font-medium whitespace-nowrap"
-              >
-                Tap Freddy for a guided tour!
-              </motion.div>
             )}
           </AnimatePresence>
-
-          <motion.div
-            animate={{ y: [0, -6, 0] }}
-            transition={{ repeat: Infinity, duration: 2.8, ease: "easeInOut" }}
-            onMouseEnter={() => setIdleWave(true)}
-            onMouseLeave={() => setIdleWave(false)}
-            className="pointer-events-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.3)] touch-manipulation"
-          >
-            <Avatar3DRenderer
-              avatarId={FREDDY_AVATAR_ID}
-              sequenceId={idleWave ? "excited" : "idle"}
-              size={64}
-              interactiveGaze={true}
-              onClick={() => {
-                setTourStep(0);
-                setTourOpen(true);
-                if (pathname !== FREDDY_STEPS[0].route) {
-                  router.push(FREDDY_STEPS[0].route);
-                }
-              }}
-              title="Tap Freddy for a guided tour"
-            />
-          </motion.div>
-        </div>
+        </motion.div>
       )}
 
       {/* 3. Universal Help & Support Modal (?) */}
@@ -719,10 +888,10 @@ export function HelpAndOnboardingSuite() {
                       />
                       <div className="space-y-1">
                         <h4 className="text-sm font-bold text-foreground">
-                          Take a Guided Section Tour with Freddy
+                          Take an Interactive Tour with Freddy
                         </h4>
                         <p className="text-xs text-muted-foreground">
-                          Freddy will take you inside each section and hover over the features to explain them simply.
+                          Freddy points to each section with a &ldquo;Click here&rdquo; bubble, then goes inside to explain how it works.
                         </p>
                       </div>
                     </div>
@@ -732,9 +901,6 @@ export function HelpAndOnboardingSuite() {
                         setHelpOpen(false);
                         setTourStep(0);
                         setTourOpen(true);
-                        if (pathname !== FREDDY_STEPS[0].route) {
-                          router.push(FREDDY_STEPS[0].route);
-                        }
                       }}
                       className="px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-md transition-all active:scale-95"
                     >
