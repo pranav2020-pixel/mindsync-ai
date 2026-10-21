@@ -13,7 +13,31 @@ export const prisma = new PrismaClient({
   log: process.env.NODE_ENV === "development" ? ["query", "error", "warn"] : ["error"],
 });
 
-export const redis = process.env.REDIS_URL ? new Redis(process.env.REDIS_URL) : null;
+export const redis = process.env.REDIS_URL
+  ? new Redis(process.env.REDIS_URL, {
+      maxRetriesPerRequest: 3,
+      enableOfflineQueue: false,
+      lazyConnect: true,
+      retryStrategy: (times) => (times > 3 ? null : Math.min(times * 100, 3000)),
+    })
+  : null;
+
+if (redis) {
+  redis.on("error", (err) => {
+    console.warn("⚠️ Redis cache unavailable (operating with in-memory fallback):", err.message);
+  });
+  redis.connect().catch((err) => {
+    console.warn("⚠️ Redis initial connect failed:", err.message);
+  });
+}
+
+// Global crash protection for cloud environments (prevents exit status 1 crashes on Render)
+process.on("unhandledRejection", (reason, promise) => {
+  console.error("⚠️ Unhandled Rejection at:", promise, "reason:", reason);
+});
+process.on("uncaughtException", (err) => {
+  console.error("⚠️ Uncaught Exception thrown:", err);
+});
 
 const app = express();
 const PORT = process.env.PORT || 4000;
@@ -34,6 +58,11 @@ app.use(limiter);
 app.use(morgan("dev"));
 app.use(express.json({ limit: "10mb" }));
 app.use(express.urlencoded({ extended: true }));
+
+// Root and Health Endpoints (Render ALB/Pinger compatibility)
+app.get("/", (req, res) => {
+  res.json({ status: "ok", service: "MindSync AI API", version: "1.0.0", timestamp: new Date().toISOString() });
+});
 
 app.get("/health", (req, res) => {
   res.json({ status: "ok", timestamp: new Date().toISOString() });
@@ -69,23 +98,24 @@ const initApp = async () => {
     // Auto-seed assessments
     await ensureAssessmentsSeeded(prisma);
 
-    // Auto-seed or update demo user
-    const bcrypt = require("bcryptjs");
-    const hashedPassword = await bcrypt.hash("password123", 12);
-    await prisma.user.upsert({
-      where: { email: "demo@mindsync.ai" },
-      update: { password: hashedPassword, isEmailVerified: true },
-      create: {
-        email: "demo@mindsync.ai",
-        password: hashedPassword,
-        name: "Alex Chen",
-        role: "USER" as any,
-        isEmailVerified: true,
-        wellnessGoals: ["Reduce stress", "Improve sleep", "Mindful journaling"],
-        productivityGoals: ["Consistent morning routine"],
-      },
-    });
-    console.log("✅ Demo user verified / seeded!");
+    // Auto-seed demo user if missing
+    const existingDemo = await prisma.user.findUnique({ where: { email: "demo@mindsync.ai" } });
+    if (!existingDemo) {
+      const bcrypt = require("bcryptjs");
+      const hashedPassword = await bcrypt.hash("password123", 10);
+      await prisma.user.create({
+        data: {
+          email: "demo@mindsync.ai",
+          password: hashedPassword,
+          name: "Alex Chen",
+          role: "USER" as any,
+          isEmailVerified: true,
+          wellnessGoals: ["Reduce stress", "Improve sleep", "Mindful journaling"],
+          productivityGoals: ["Consistent morning routine"],
+        },
+      });
+      console.log("✅ Demo user verified / seeded!");
+    }
 
     // Clean up any bogus test accounts created without valid email format (e.g. vasu@12)
     try {
