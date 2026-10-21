@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -27,6 +27,12 @@ import {
   Edit3,
   X,
   Save,
+  Camera,
+  Upload,
+  ZoomIn,
+  ZoomOut,
+  RotateCcw,
+  Image as ImageIcon,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/layout/theme-provider";
@@ -166,6 +172,219 @@ export default function SettingsPage() {
       toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to update profile");
     } finally {
       setProfileSaving(false);
+    }
+  };
+
+  // Instagram-Style Profile Picture Avatar Crop State
+  const [avatarModalOpen, setAvatarModalOpen] = useState(false);
+  const [selectedImageSrc, setSelectedImageSrc] = useState<string | null>(null);
+  const [zoomScale, setZoomScale] = useState(1);
+  const [panOffset, setPanOffset] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+  const [avatarSaving, setAvatarSaving] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const imageObjRef = useRef<HTMLImageElement | null>(null);
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith("image/")) {
+      toast.error("Please upload an image file (PNG, JPG, or WebP)");
+      return;
+    }
+
+    if (file.size > 12 * 1024 * 1024) {
+      toast.error("Image file is too large (max 12MB)");
+      return;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      imageObjRef.current = null;
+      setSelectedImageSrc(reader.result as string);
+      setZoomScale(1);
+      setPanOffset({ x: 0, y: 0 });
+      setAvatarModalOpen(true);
+    };
+    reader.readAsDataURL(file);
+    e.target.value = "";
+  };
+
+  const drawCanvas = useCallback(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !selectedImageSrc) return;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return;
+
+    const img = imageObjRef.current;
+    if (!img) {
+      const newImg = new Image();
+      newImg.crossOrigin = "anonymous";
+      newImg.onload = () => {
+        imageObjRef.current = newImg;
+        drawCanvas();
+      };
+      newImg.src = selectedImageSrc;
+      return;
+    }
+
+    const size = canvas.width; // 280
+    ctx.clearRect(0, 0, size, size);
+
+    ctx.save();
+    // Dark viewport background
+    ctx.fillStyle = "#020617";
+    ctx.fillRect(0, 0, size, size);
+
+    const imgAspect = img.width / img.height;
+    let baseW = size;
+    let baseH = size;
+    if (imgAspect > 1) {
+      baseH = size;
+      baseW = size * imgAspect;
+    } else {
+      baseW = size;
+      baseH = size / imgAspect;
+    }
+
+    const w = baseW * zoomScale;
+    const h = baseH * zoomScale;
+    const x = (size - w) / 2 + panOffset.x;
+    const y = (size - h) / 2 + panOffset.y;
+
+    // Draw user image
+    ctx.drawImage(img, x, y, w, h);
+
+    // Instagram circular mask: fill outside the circle with dark translucent frosted mask
+    ctx.beginPath();
+    ctx.rect(0, 0, size, size);
+    ctx.arc(size / 2, size / 2, size / 2 - 6, 0, Math.PI * 2, true);
+    ctx.closePath();
+    ctx.fillStyle = "rgba(0, 0, 0, 0.65)";
+    ctx.fill();
+
+    // Circular white border guide
+    ctx.beginPath();
+    ctx.arc(size / 2, size / 2, size / 2 - 6, 0, Math.PI * 2);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.9)";
+    ctx.lineWidth = 2;
+    ctx.stroke();
+
+    // Grid center crosshair lines
+    const radius = size / 2 - 6;
+    ctx.beginPath();
+    ctx.moveTo(size / 2, size / 2 - radius);
+    ctx.lineTo(size / 2, size / 2 + radius);
+    ctx.moveTo(size / 2 - radius, size / 2);
+    ctx.lineTo(size / 2 + radius, size / 2);
+    ctx.strokeStyle = "rgba(255, 255, 255, 0.15)";
+    ctx.lineWidth = 1;
+    ctx.setLineDash([4, 4]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    ctx.restore();
+  }, [selectedImageSrc, zoomScale, panOffset]);
+
+  useEffect(() => {
+    if (avatarModalOpen) {
+      drawCanvas();
+    }
+  }, [avatarModalOpen, drawCanvas]);
+
+  const handleMouseDown = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    setIsDragging(true);
+    setDragStart({ x: e.clientX - panOffset.x, y: e.clientY - panOffset.y });
+  };
+
+  const handleMouseMove = (e: React.MouseEvent<HTMLCanvasElement>) => {
+    if (!isDragging) return;
+    setPanOffset({ x: e.clientX - dragStart.x, y: e.clientY - dragStart.y });
+  };
+
+  const handleMouseUp = () => setIsDragging(false);
+
+  const handleTouchStart = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX - panOffset.x, y: e.touches[0].clientY - panOffset.y });
+    }
+  };
+
+  const handleTouchMove = (e: React.TouchEvent<HTMLCanvasElement>) => {
+    if (!isDragging || e.touches.length !== 1) return;
+    setPanOffset({ x: e.touches[0].clientX - dragStart.x, y: e.touches[0].clientY - dragStart.y });
+  };
+
+  const handleTouchEnd = () => setIsDragging(false);
+
+  const handleSaveAvatar = async () => {
+    const img = imageObjRef.current;
+    if (!img) return;
+
+    setAvatarSaving(true);
+    try {
+      const exportSize = 400;
+      const exportCanvas = document.createElement("canvas");
+      exportCanvas.width = exportSize;
+      exportCanvas.height = exportSize;
+      const ctx = exportCanvas.getContext("2d");
+      if (!ctx) throw new Error("Could not initialize canvas context");
+
+      const previewSize = 280;
+      const scaleToExport = exportSize / previewSize;
+
+      const imgAspect = img.width / img.height;
+      let baseW = previewSize;
+      let baseH = previewSize;
+      if (imgAspect > 1) {
+        baseH = previewSize;
+        baseW = previewSize * imgAspect;
+      } else {
+        baseW = previewSize;
+        baseH = previewSize / imgAspect;
+      }
+
+      const w = baseW * zoomScale * scaleToExport;
+      const h = baseH * zoomScale * scaleToExport;
+      const x = ((previewSize - baseW * zoomScale) / 2 + panOffset.x) * scaleToExport;
+      const y = ((previewSize - baseH * zoomScale) / 2 + panOffset.y) * scaleToExport;
+
+      ctx.fillStyle = "#ffffff";
+      ctx.fillRect(0, 0, exportSize, exportSize);
+      ctx.drawImage(img, x, y, w, h);
+
+      const dataUrl = exportCanvas.toDataURL("image/jpeg", 0.88);
+
+      const res = await api.patch("/auth/profile", { avatar: dataUrl });
+      if (res.data?.data) {
+        updateUser(res.data.data);
+      }
+      toast.success("Profile picture updated successfully!");
+      setAvatarModalOpen(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || err.message || "Failed to update profile photo");
+    } finally {
+      setAvatarSaving(false);
+    }
+  };
+
+  const handleRemoveAvatar = async () => {
+    if (!confirm("Are you sure you want to remove your profile photo?")) return;
+    setAvatarSaving(true);
+    try {
+      const res = await api.patch("/auth/profile", { avatar: null });
+      if (res.data?.data) {
+        updateUser(res.data.data);
+      }
+      toast.success("Profile photo removed");
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to remove photo");
+    } finally {
+      setAvatarSaving(false);
     }
   };
 
@@ -323,6 +542,95 @@ export default function SettingsPage() {
               Edit Profile & Username
             </button>
           )}
+        </div>
+
+        {/* Hidden File Input for Profile Photo */}
+        <input
+          type="file"
+          ref={fileInputRef}
+          onChange={handleFileChange}
+          accept="image/png,image/jpeg,image/webp,image/jpg"
+          className="hidden"
+        />
+
+        {/* Instagram Profile Picture Presentation */}
+        <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5">
+          {/* Avatar with Instagram Gradient Ring */}
+          <div className="relative group shrink-0">
+            <div className="p-[3px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-md">
+              <div
+                onClick={() => fileInputRef.current?.click()}
+                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-900 relative cursor-pointer flex items-center justify-center transition-all group-hover:brightness-95"
+                title="Click to change profile picture"
+              >
+                {user?.avatar ? (
+                  <img
+                    src={user.avatar}
+                    alt={user?.name || "Profile"}
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  <span className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 select-none">
+                    {user?.name?.[0] || "U"}
+                  </span>
+                )}
+                <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-semibold">
+                  <Camera size={18} />
+                  <span>Change</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Camera badge trigger */}
+            <button
+              type="button"
+              onClick={() => fileInputRef.current?.click()}
+              className="absolute bottom-0 right-0 p-2 rounded-full bg-primary-600 hover:bg-primary-500 text-white shadow-md border-2 border-white dark:border-slate-900 transition-transform active:scale-95 hover:scale-105"
+              title="Change profile photo"
+            >
+              <Camera size={13} />
+            </button>
+          </div>
+
+          {/* Profile details & photo action buttons */}
+          <div className="flex-1 text-center sm:text-left space-y-2">
+            <div>
+              <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2">
+                <h3 className="text-base font-bold text-foreground">{user?.name || "User"}</h3>
+                {user?.username && (
+                  <span className="text-xs font-mono font-semibold text-primary-600 dark:text-primary-400 bg-primary-500/10 px-2 py-0.5 rounded-full border border-primary-500/20">
+                    @{user.username}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Upload a portrait or selfie. Adjust and fit inside the circular preview just like Instagram.
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="px-3.5 py-1.5 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1.5 transition-all border border-primary-500/20 shadow-sm"
+              >
+                <Camera size={13} />
+                Change Profile Photo
+              </button>
+
+              {user?.avatar && (
+                <button
+                  type="button"
+                  onClick={handleRemoveAvatar}
+                  disabled={avatarSaving}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-500 hover:text-red-600 hover:bg-red-500/10 transition-colors flex items-center gap-1.5 border border-red-500/20"
+                >
+                  <Trash2 size={13} />
+                  Remove
+                </button>
+              )}
+            </div>
+          </div>
         </div>
 
         <AnimatePresence mode="wait">
@@ -1086,6 +1394,136 @@ export default function SettingsPage() {
               )}
             </motion.div>
           </div>
+        )}
+      </AnimatePresence>
+
+      {/* Instagram-Style Circle Crop & Preview Modal */}
+      <AnimatePresence>
+        {avatarModalOpen && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/80 backdrop-blur-md"
+          >
+            <motion.div
+              initial={{ scale: 0.94, opacity: 0, y: 10 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.94, opacity: 0, y: 10 }}
+              className="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 shadow-2xl border border-slate-200 dark:border-white/10 space-y-5"
+            >
+              {/* Modal Header */}
+              <div className="flex items-center justify-between border-b border-slate-100 dark:border-white/10 pb-3">
+                <div className="flex items-center gap-2">
+                  <div className="p-1.5 rounded-lg bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 text-white shadow-sm">
+                    <Camera size={16} />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-bold text-foreground">Adjust Profile Photo</h3>
+                    <p className="text-[11px] text-muted-foreground">Instagram circular crop &amp; fit preview</p>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setAvatarModalOpen(false)}
+                  className="p-1.5 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  <X size={18} />
+                </button>
+              </div>
+
+              {/* Instructions */}
+              <p className="text-xs text-muted-foreground text-center">
+                Drag photo to position &amp; use the slider to fit your face inside the circular crop.
+              </p>
+
+              {/* Interactive Canvas Viewport (Instagram Circle Mask) */}
+              <div className="flex justify-center">
+                <div className="relative w-[280px] h-[280px] rounded-2xl overflow-hidden bg-slate-950 shadow-inner select-none cursor-grab active:cursor-grabbing border border-slate-700/50">
+                  <canvas
+                    ref={canvasRef}
+                    width={280}
+                    height={280}
+                    onMouseDown={handleMouseDown}
+                    onMouseMove={handleMouseMove}
+                    onMouseUp={handleMouseUp}
+                    onMouseLeave={handleMouseUp}
+                    onTouchStart={handleTouchStart}
+                    onTouchMove={handleTouchMove}
+                    onTouchEnd={handleTouchEnd}
+                    className="w-full h-full block"
+                  />
+                </div>
+              </div>
+
+              {/* Zoom & Positioning Controls */}
+              <div className="space-y-3 px-2">
+                <div className="flex items-center gap-3">
+                  <ZoomOut size={16} className="text-muted-foreground shrink-0" />
+                  <input
+                    type="range"
+                    min={0.8}
+                    max={3.0}
+                    step={0.05}
+                    value={zoomScale}
+                    onChange={(e) => setZoomScale(parseFloat(e.target.value))}
+                    className="w-full accent-primary-500 cursor-pointer h-1.5 bg-slate-200 dark:bg-slate-700 rounded-lg"
+                  />
+                  <ZoomIn size={16} className="text-muted-foreground shrink-0" />
+                  <span className="text-xs font-mono text-muted-foreground w-10 text-right shrink-0">
+                    {Math.round(zoomScale * 100)}%
+                  </span>
+                </div>
+
+                <div className="flex items-center justify-between text-xs text-muted-foreground">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setZoomScale(1);
+                      setPanOffset({ x: 0, y: 0 });
+                    }}
+                    className="flex items-center gap-1 hover:text-primary-500 transition-colors"
+                  >
+                    <RotateCcw size={12} />
+                    Reset Fit
+                  </button>
+                  <span className="text-[11px] italic text-muted-foreground/80">
+                    Touch or drag image to reposition
+                  </span>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2.5 pt-2 border-t border-slate-100 dark:border-white/10">
+                <button
+                  type="button"
+                  onClick={() => setAvatarModalOpen(false)}
+                  disabled={avatarSaving}
+                  className="px-4 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveAvatar}
+                  disabled={avatarSaving}
+                  className="px-5 py-2 rounded-xl bg-gradient-to-r from-primary-600 to-wellness-focus hover:opacity-95 text-white text-xs font-bold transition-all flex items-center gap-1.5 shadow-md disabled:opacity-50"
+                >
+                  {avatarSaving ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Check size={14} className="stroke-[3]" />
+                      Set Profile Photo
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.div>
+          </motion.div>
         )}
       </AnimatePresence>
     </div>

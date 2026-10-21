@@ -526,7 +526,7 @@ export const AuthController = {
   }),
 
   updateProfile: asyncHandler(async (req: any, res: Response) => {
-    const { name, username, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;
+    const { name, username, age, gender, occupation, timezone, wellnessGoals, productivityGoals, avatar } = req.body;
     
     // Always query fresh user record directly from database
     const currentUser = await prisma.user.findUnique({
@@ -592,6 +592,7 @@ export const AuthController = {
       data: {
         ...(name !== undefined && name.trim() ? { name: name.trim() } : {}),
         ...(cleanUsername !== undefined ? { username: cleanUsername, usernameChangedAt: usernameChangedAtUpdate } : {}),
+        ...(avatar !== undefined ? { avatar } : {}),
         ...(age !== undefined ? { age: Number(age) || null } : {}),
         ...(gender !== undefined ? { gender } : {}),
         ...(occupation !== undefined ? { occupation } : {}),

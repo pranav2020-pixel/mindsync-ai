@@ -391,8 +391,12 @@ export function Navbar() {
             }}
             className="flex items-center gap-3 pl-3 pr-1 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           >
-            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center text-sm font-bold text-white shadow-md">
-              {user?.name?.[0] || "U"}
+            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center text-sm font-bold text-white shadow-md overflow-hidden ring-2 ring-primary-500/20">
+              {user?.avatar ? (
+                <img src={user.avatar} alt={user?.name || "User"} className="w-full h-full object-cover" />
+              ) : (
+                user?.name?.[0] || "U"
+              )}
             </div>
             <span className="text-sm font-medium text-foreground hidden sm:block">{user?.name}</span>
           </button>
