@@ -226,6 +226,24 @@ export function Navbar() {
       </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
+        {/* Direct 3D Companion Tour Trigger (TASK-604) */}
+        <button
+          type="button"
+          onClick={() => {
+            setShowNotifications(false);
+            setShowProfile(false);
+            if (typeof window !== "undefined") {
+              window.dispatchEvent(new CustomEvent("mindsync:start-tour"));
+            }
+          }}
+          className="px-2.5 py-1.5 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 border border-primary-500/20 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+          title="Launch Interactive 3D Avatar Tour"
+          aria-label="Launch Interactive 3D Avatar Tour"
+        >
+          <PlayCircle size={14} />
+          <span className="hidden sm:inline">3D Tour</span>
+        </button>
+
         {/* Universal Help & Support (?) Trigger (TASK-603) */}
         <button
           type="button"
@@ -237,7 +255,7 @@ export function Navbar() {
             }
           }}
           className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground active:scale-95"
-          title="Help, Guided Tour & 24/7 Support (Press ?)"
+          title="Help, 3D Avatar Studio & 24/7 Support (Press ?)"
           aria-label="Open Help and Support Center"
         >
           <HelpCircle size={18} />
