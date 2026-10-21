@@ -603,9 +603,6 @@ export default function SettingsPage() {
                   </span>
                 )}
               </div>
-              <p className="text-xs text-muted-foreground mt-0.5">
-                Upload a portrait or selfie. Adjust and fit inside the circular preview just like Instagram.
-              </p>
             </div>
 
             <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
@@ -1420,7 +1417,7 @@ export default function SettingsPage() {
                   </div>
                   <div>
                     <h3 className="text-base font-bold text-foreground">Adjust Profile Photo</h3>
-                    <p className="text-[11px] text-muted-foreground">Instagram circular crop &amp; fit preview</p>
+                    <p className="text-[11px] text-muted-foreground">Circular crop &amp; frame adjustment</p>
                   </div>
                 </div>
                 <button
