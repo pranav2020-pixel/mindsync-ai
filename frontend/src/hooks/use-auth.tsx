@@ -19,6 +19,8 @@ interface AuthContextType {
   sendEmailOtp: (email: string, purpose?: string) => Promise<{ success: boolean; message: string; devCode?: string }>;
   verifyEmailOtp: (email: string, code: string) => Promise<void>;
   register: (data: any) => Promise<any>;
+  updateUser: (updatedFields: Partial<User>) => void;
+  refetchUser: () => Promise<void>;
   logout: () => void;
   loading: boolean;
 }
@@ -142,6 +144,21 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return res.data;
   };
 
+  const updateUser = (updatedFields: Partial<User>) => {
+    setUser((prev) => (prev ? { ...prev, ...updatedFields } : null));
+  };
+
+  const refetchUser = async () => {
+    try {
+      const res = await api.get("/auth/me");
+      if (res.data?.data) {
+        setUser(res.data.data);
+      }
+    } catch (e) {
+      console.warn("Failed to refetch user profile:", e);
+    }
+  };
+
   const logout = () => {
     clearStoredTokens();
     setUser(null);
@@ -150,7 +167,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   return (
     <GoogleOAuthProvider clientId={googleClientId}>
-      <AuthContext.Provider value={{ user, login, loginWithGoogle, sendEmailOtp, verifyEmailOtp, logout, register, loading }}>
+      <AuthContext.Provider value={{ user, login, loginWithGoogle, sendEmailOtp, verifyEmailOtp, logout, register, updateUser, refetchUser, loading }}>
         {children}
       </AuthContext.Provider>
     </GoogleOAuthProvider>

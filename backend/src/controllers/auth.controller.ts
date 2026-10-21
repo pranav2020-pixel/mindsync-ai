@@ -488,14 +488,92 @@ export const AuthController = {
     return streak;
   },
 
+  checkUsername: asyncHandler(async (req: any, res: Response) => {
+    const raw = (req.query.username as string || "").trim().toLowerCase();
+    if (!raw) {
+      return res.status(400).json({ success: false, available: false, error: "Username is required" });
+    }
+    const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+    if (!usernameRegex.test(raw)) {
+      return res.status(400).json({
+        success: false,
+        available: false,
+        error: "Username must be 3-30 characters and contain only letters, numbers, or underscores.",
+      });
+    }
+
+    // Check if it already belongs to the current authenticated user
+    if (req.user?.username && req.user.username.toLowerCase() === raw) {
+      return res.json({ success: true, available: true, isCurrent: true, message: "This is already your current username" });
+    }
+
+    const existing = await prisma.user.findFirst({
+      where: {
+        username: { equals: raw, mode: "insensitive" },
+        id: { not: req.user?.id },
+      },
+    });
+
+    if (existing) {
+      return res.json({ success: true, available: false, message: "Username is already taken" });
+    }
+
+    return res.json({ success: true, available: true, message: "Username is available!" });
+  }),
+
   updateProfile: asyncHandler(async (req: any, res: Response) => {
-    const { name, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;
+    const { name, username, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;
+    
+    let cleanUsername: string | null | undefined = undefined;
+    if (username !== undefined) {
+      const trimmed = (username || "").trim().toLowerCase();
+      if (trimmed) {
+        const usernameRegex = /^[a-zA-Z0-9_]{3,30}$/;
+        if (!usernameRegex.test(trimmed)) {
+          throw new AppError("Username must be 3-30 characters and contain only letters, numbers, or underscores", 400);
+        }
+        const existing = await prisma.user.findFirst({
+          where: {
+            username: { equals: trimmed, mode: "insensitive" },
+            id: { not: req.user.id },
+          },
+        });
+        if (existing) {
+          throw new AppError("Username is already taken by another user", 400);
+        }
+        cleanUsername = trimmed;
+      }
+    }
+
     const user = await prisma.user.update({
       where: { id: req.user.id },
-      data: { name, age, gender, occupation, timezone, wellnessGoals, productivityGoals },
-      select: { id: true, email: true, name: true, avatar: true, age: true, gender: true, occupation: true, timezone: true, wellnessGoals: true, productivityGoals: true },
+      data: {
+        ...(name !== undefined && name.trim() ? { name: name.trim() } : {}),
+        ...(cleanUsername !== undefined ? { username: cleanUsername } : {}),
+        ...(age !== undefined ? { age: Number(age) || null } : {}),
+        ...(gender !== undefined ? { gender } : {}),
+        ...(occupation !== undefined ? { occupation } : {}),
+        ...(timezone !== undefined ? { timezone } : {}),
+        ...(wellnessGoals !== undefined ? { wellnessGoals } : {}),
+        ...(productivityGoals !== undefined ? { productivityGoals } : {}),
+      },
+      select: {
+        id: true,
+        email: true,
+        name: true,
+        username: true,
+        avatar: true,
+        role: true,
+        age: true,
+        gender: true,
+        occupation: true,
+        timezone: true,
+        wellnessGoals: true,
+        productivityGoals: true,
+      },
     });
-    res.json({ success: true, data: user });
+    const streak = await AuthController.calculateUserStreak(req.user.id);
+    res.json({ success: true, data: { ...user, streak } });
   }),
 
   logout: asyncHandler(async (req: any, res: Response) => {

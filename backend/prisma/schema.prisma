@@ -115,6 +115,7 @@ enum ReportFormat {
 model User {
   id                     String   @id @default(uuid())
   email                  String   @unique
+  username               String?  @unique
   password               String?
   name                   String
   avatar                 String?

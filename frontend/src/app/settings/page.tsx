@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -23,6 +23,10 @@ import {
   Sparkles,
   Palette,
   Check,
+  AtSign,
+  Edit3,
+  X,
+  Save,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/layout/theme-provider";
@@ -31,8 +35,103 @@ import api from "@/lib/api";
 import { toast } from "react-hot-toast";
 
 export default function SettingsPage() {
-  const { user, logout } = useAuth();
+  const { user, logout, updateUser, refetchUser } = useAuth();
   const { theme, setTheme } = useTheme();
+
+  // Profile editing state
+  const [isEditingProfile, setIsEditingProfile] = useState(false);
+  const [nameInput, setNameInput] = useState(user?.name || "");
+  const [usernameInput, setUsernameInput] = useState(user?.username || "");
+  const [profileSaving, setProfileSaving] = useState(false);
+
+  // Real-time username check state
+  const [checkingUsername, setCheckingUsername] = useState(false);
+  const [usernameStatus, setUsernameStatus] = useState<{
+    available: boolean | null;
+    message: string;
+    isCurrent?: boolean;
+  }>({ available: null, message: "" });
+
+  useEffect(() => {
+    if (user) {
+      setNameInput(user.name || "");
+      setUsernameInput(user.username || "");
+    }
+  }, [user]);
+
+  // Debounced username availability checker
+  useEffect(() => {
+    const clean = usernameInput.trim().toLowerCase();
+    if (!clean) {
+      setUsernameStatus({ available: null, message: "" });
+      return;
+    }
+
+    if (user?.username && clean === user.username.toLowerCase()) {
+      setUsernameStatus({ available: true, message: "Your current username", isCurrent: true });
+      return;
+    }
+
+    const regex = /^[a-zA-Z0-9_]{3,30}$/;
+    if (!regex.test(clean)) {
+      setUsernameStatus({
+        available: false,
+        message: "3-30 characters, letters, numbers, or _ only",
+      });
+      return;
+    }
+
+    setCheckingUsername(true);
+    const timer = setTimeout(async () => {
+      try {
+        const res = await api.get(`/auth/check-username?username=${clean}`);
+        if (res.data?.available) {
+          setUsernameStatus({ available: true, message: "Username is available!" });
+        } else {
+          setUsernameStatus({ available: false, message: res.data?.message || "Username is already taken" });
+        }
+      } catch (err: any) {
+        setUsernameStatus({
+          available: false,
+          message: err.response?.data?.message || err.response?.data?.error || "Error checking username",
+        });
+      } finally {
+        setCheckingUsername(false);
+      }
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [usernameInput, user?.username]);
+
+  const handleSaveProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!nameInput.trim()) {
+      toast.error("Full Name cannot be empty");
+      return;
+    }
+
+    if (usernameInput.trim() && usernameStatus.available === false) {
+      toast.error("Please pick an available username");
+      return;
+    }
+
+    setProfileSaving(true);
+    try {
+      const res = await api.patch("/auth/profile", {
+        name: nameInput.trim(),
+        username: usernameInput.trim() || undefined,
+      });
+      if (res.data?.data) {
+        updateUser(res.data.data);
+      }
+      toast.success("Profile updated successfully!");
+      setIsEditingProfile(false);
+    } catch (err: any) {
+      toast.error(err.response?.data?.error || "Failed to update profile");
+    } finally {
+      setProfileSaving(false);
+    }
+  };
 
   // Password state
   const [currentPassword, setCurrentPassword] = useState("");
@@ -163,34 +262,188 @@ export default function SettingsPage() {
         animate={{ opacity: 1, y: 0 }}
         className="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-white/10 space-y-4"
       >
-        <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-500 dark:text-primary-400 flex items-center justify-center">
-            <User size={20} />
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-500/20 text-primary-500 dark:text-primary-400 flex items-center justify-center">
+              <User size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Profile Overview</h2>
+              <p className="text-xs text-muted-foreground">Your account credentials and public identity</p>
+            </div>
           </div>
-          <div>
-            <h2 className="text-lg font-semibold text-foreground">Profile Overview</h2>
-            <p className="text-xs text-muted-foreground">Your account credentials and status</p>
-          </div>
+
+          {!isEditingProfile && (
+            <button
+              type="button"
+              onClick={() => {
+                setNameInput(user?.name || "");
+                setUsernameInput(user?.username || "");
+                setIsEditingProfile(true);
+              }}
+              className="px-3.5 py-1.5 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1.5 transition-all border border-primary-500/20"
+            >
+              <Edit3 size={14} />
+              Change Username & Name
+            </button>
+          )}
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
-            <p className="text-xs text-muted-foreground">Full Name</p>
-            <p className="text-sm font-semibold text-foreground">{user?.name || "User"}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
-            <p className="text-xs text-muted-foreground">Email Address</p>
-            <p className="text-sm font-semibold text-foreground">{user?.email || "Unknown"}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
-            <p className="text-xs text-muted-foreground">Account Role</p>
-            <p className="text-sm font-semibold text-foreground">{user?.role || "USER"}</p>
-          </div>
-          <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
-            <p className="text-xs text-muted-foreground">Active Streak</p>
-            <p className="text-sm font-bold text-amber-600 dark:text-amber-400">{user?.streak ?? 0} days</p>
-          </div>
-        </div>
+        <AnimatePresence mode="wait">
+          {isEditingProfile ? (
+            <motion.form
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: "auto" }}
+              exit={{ opacity: 0, height: 0 }}
+              onSubmit={handleSaveProfile}
+              className="pt-2 space-y-4"
+            >
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Full Name Input */}
+                <div className="space-y-1.5">
+                  <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                    <User size={13} className="text-muted-foreground" />
+                    Display Name
+                  </label>
+                  <input
+                    type="text"
+                    value={nameInput}
+                    onChange={(e) => setNameInput(e.target.value)}
+                    placeholder="Enter your name"
+                    required
+                    className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3.5 py-2.5 text-sm text-foreground placeholder:text-muted-foreground outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 transition-all"
+                  />
+                  <p className="text-[11px] text-muted-foreground">
+                    Your visible name across reflections, chats, and wellness reports.
+                  </p>
+                </div>
+
+                {/* Unique Username Input */}
+                <div className="space-y-1.5">
+                  <div className="flex items-center justify-between">
+                    <label className="text-xs font-semibold text-foreground flex items-center gap-1.5">
+                      <AtSign size={13} className="text-muted-foreground" />
+                      Unique Username / Handle
+                    </label>
+                    {checkingUsername ? (
+                      <span className="text-[10px] text-muted-foreground flex items-center gap-1">
+                        <Loader2 size={10} className="animate-spin" /> Checking...
+                      </span>
+                    ) : usernameStatus.available === true ? (
+                      <span className="text-[10px] text-emerald-600 dark:text-emerald-400 font-semibold flex items-center gap-1 bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                        <Check size={10} className="stroke-[3]" /> Available
+                      </span>
+                    ) : usernameStatus.available === false ? (
+                      <span className="text-[10px] text-red-600 dark:text-red-400 font-semibold flex items-center gap-1 bg-red-500/10 px-2 py-0.5 rounded-full border border-red-500/20">
+                        <X size={10} /> Taken
+                      </span>
+                    ) : null}
+                  </div>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground text-sm font-semibold select-none">
+                      @
+                    </span>
+                    <input
+                      type="text"
+                      value={usernameInput}
+                      onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                      placeholder="username"
+                      maxLength={30}
+                      className={cn(
+                        "w-full bg-slate-50 dark:bg-white/5 border rounded-xl pl-8 pr-3.5 py-2.5 text-sm font-mono text-foreground placeholder:text-muted-foreground outline-none transition-all",
+                        usernameStatus.available === true
+                          ? "border-emerald-500/60 focus:border-emerald-500 focus:bg-white dark:focus:bg-white/10"
+                          : usernameStatus.available === false
+                          ? "border-red-500/60 focus:border-red-500 focus:bg-white dark:focus:bg-white/10"
+                          : "border-slate-200 dark:border-white/10 focus:border-primary-500 focus:bg-white dark:focus:bg-white/10"
+                      )}
+                    />
+                  </div>
+                  <p className={cn(
+                    "text-[11px]",
+                    usernameStatus.available === false ? "text-red-500 font-medium" : "text-muted-foreground"
+                  )}>
+                    {usernameStatus.message || "3-30 lowercase characters, numbers, and underscores."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-2.5 pt-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNameInput(user?.name || "");
+                    setUsernameInput(user?.username || "");
+                    setIsEditingProfile(false);
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs text-muted-foreground hover:text-foreground hover:bg-muted transition-colors flex items-center gap-1.5"
+                >
+                  <X size={14} />
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={profileSaving || checkingUsername || (Boolean(usernameInput.trim()) && usernameStatus.available === false)}
+                  className="px-5 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm"
+                >
+                  {profileSaving ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin" />
+                      Saving...
+                    </>
+                  ) : (
+                    <>
+                      <Save size={14} />
+                      Save Changes
+                    </>
+                  )}
+                </button>
+              </div>
+            </motion.form>
+          ) : (
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2"
+            >
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
+                <p className="text-xs text-muted-foreground">Display Name</p>
+                <p className="text-sm font-semibold text-foreground truncate">{user?.name || "User"}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
+                <p className="text-xs text-muted-foreground">Username</p>
+                <p className="text-sm font-semibold text-foreground truncate font-mono">
+                  {user?.username ? (
+                    <span className="text-primary-600 dark:text-primary-400">@{user.username}</span>
+                  ) : (
+                    <span className="text-muted-foreground font-sans text-xs italic">Not claimed yet</span>
+                  )}
+                </p>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
+                <p className="text-xs text-muted-foreground">Email Address</p>
+                <p className="text-sm font-semibold text-foreground truncate">{user?.email || "Unknown"}</p>
+              </div>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
+                <p className="text-xs text-muted-foreground">Account Role</p>
+                <div className="flex items-center gap-1.5">
+                  <span className={cn(
+                    "text-xs font-bold px-2 py-0.5 rounded-md",
+                    user?.role === "ADMIN"
+                      ? "bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-500/20"
+                      : "bg-primary-500/15 text-primary-600 dark:text-primary-400 border border-primary-500/20"
+                  )}>
+                    {user?.role || "USER"}
+                  </span>
+                  <span className="text-xs font-bold text-amber-600 dark:text-amber-400">
+                    🔥 {user?.streak ?? 0}d
+                  </span>
+                </div>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </motion.div>
 
       {/* Appearance & Color Therapy Theme Card */}

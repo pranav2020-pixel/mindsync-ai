@@ -25,6 +25,7 @@ router.get("/email-diagnostics", AuthController.emailDiagnostics);
 router.post("/refresh", AuthController.refresh);
 router.get("/me", authenticate, AuthController.me);
 router.get("/streak", authenticate, AuthController.getStreak);
+router.get("/check-username", authenticate, AuthController.checkUsername);
 router.patch("/profile", authenticate, AuthController.updateProfile);
 router.post("/change-password", authenticate, AuthController.changePassword);
 router.post("/delete-account/request", authenticate, AuthController.requestDeleteAccount);

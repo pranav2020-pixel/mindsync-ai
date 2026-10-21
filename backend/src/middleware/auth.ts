@@ -13,7 +13,7 @@ export const authenticate = async (req: AuthRequest, res: Response, next: NextFu
     const decoded = jwt.verify(token, process.env.JWT_SECRET || "mindsync-default-jwt-secret-key") as any;
     const user = await prisma.user.findUnique({
       where: { id: decoded.userId },
-      select: { id: true, email: true, name: true, avatar: true, role: true, wellnessGoals: true, productivityGoals: true },
+      select: { id: true, email: true, name: true, username: true, avatar: true, role: true, wellnessGoals: true, productivityGoals: true },
     });
     if (!user) throw new AppError("User not found", 401);
     req.user = user;
