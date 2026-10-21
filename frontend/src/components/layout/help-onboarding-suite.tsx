@@ -14,7 +14,8 @@ import {
   Compass,
   ExternalLink,
   LifeBuoy,
-  MousePointerClick,
+  ArrowLeft,
+  ArrowDown,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
@@ -52,7 +53,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "journal-editor",
     sectionLabel: "Journal",
     route: "/journal",
-    navPrompt: 'Click "Journal" in the navigation bar to go inside.',
+    navPrompt: 'Click "Journal" to go inside your private journal.',
     title: "Encrypted Journal",
     text: "Write your thoughts freely here—every entry is locked with AES-256 encryption.",
     sequenceId: "thinking",
@@ -74,7 +75,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "mood-checkin",
     sectionLabel: "Mood",
     route: "/mood",
-    navPrompt: 'Click "Mood" in the menu to open your daily check-in.',
+    navPrompt: 'Click "Mood" to open your daily emotional check-in.',
     title: "1–10 Mood Check-In",
     text: "Slide from 1 to 10 to log how you feel along with sleep, water, and exercise.",
     sequenceId: "happy",
@@ -85,7 +86,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "habits-rituals",
     sectionLabel: "Habits",
     route: "/habits",
-    navPrompt: 'Click "Habits" in the menu to see your rituals & XP rank.',
+    navPrompt: 'Click "Habits" to see your daily rituals & XP rank.',
     title: "Daily Rituals & XP",
     text: "Check off daily habits here to build streaks and level up your Wellness Rank!",
     sequenceId: "celebrate",
@@ -96,7 +97,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "productivity-timer",
     sectionLabel: "Productivity",
     route: "/productivity",
-    navPrompt: 'Click "Productivity" in the menu to open your focus timer.',
+    navPrompt: 'Click "Productivity" to open your focus timer.',
     title: "25-Min Focus Timer",
     text: "Start a calm 25-minute Pomodoro timer whenever you want distraction-free focus.",
     sequenceId: "working",
@@ -107,7 +108,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "assessments-suite",
     sectionLabel: "Assessments",
     route: "/assessments",
-    navPrompt: 'Click "Assessments" in the menu to see 2-minute checkups.',
+    navPrompt: 'Click "Assessments" to see 2-minute checkups.',
     title: "2-Minute Checkups",
     text: "Tap any science-backed checkup card here to test your stress, sleep, or well-being.",
     sequenceId: "curious",
@@ -118,7 +119,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "chat-companion",
     sectionLabel: "AI Chat",
     route: "/chat",
-    navPrompt: 'Click "AI Chat" in the menu to meet your 24/7 listener.',
+    navPrompt: 'Click "AI Chat" to meet your 24/7 wellness listener.',
     title: "24/7 AI Companion",
     text: "Send a message here anytime you want a friendly, supportive listener.",
     sequenceId: "listening",
@@ -129,7 +130,7 @@ const FREDDY_STEPS: FreddyTourStep[] = [
     id: "settings-profile",
     sectionLabel: "Settings",
     route: "/settings",
-    navPrompt: 'Click "Settings" in the menu to customize your profile & theme.',
+    navPrompt: 'Click "Settings" to customize your profile & theme.',
     title: "Profile & 4 Themes",
     text: "Update your circular photo, @username, or switch between 4 themes here. Enjoy MindSync!",
     sequenceId: "celebrate",
@@ -173,6 +174,7 @@ export function HelpAndOnboardingSuite() {
   const [restingPos, setRestingPos] = useState<{ x: number; y: number }>({ x: 24, y: 500 });
   const [bubbleSide, setBubbleSide] = useState<"right" | "left">("right");
   const [spotlight, setSpotlight] = useState<SpotlightBox | null>(null);
+  const [pointerMode, setPointerMode] = useState<"left" | "down">("left");
   const [needsMobileMoreMenu, setNeedsMobileMoreMenu] = useState(false);
   const [idleWave, setIdleWave] = useState(false);
 
@@ -187,7 +189,7 @@ export function HelpAndOnboardingSuite() {
     pathname === "/login" || pathname === "/register" || pathname === "/forgot-password";
 
   const currentStep = FREDDY_STEPS[tourStep] || FREDDY_STEPS[0];
-  // Interactive mode: if user is not on the step's route yet, show "Click here" on the nav button!
+  // Interactive mode: if user is not on the step's route yet, point directly at the nav button with "Click here"
   const isWaitingForSectionClick = tourOpen && pathname !== currentStep.route;
 
   useEffect(() => {
@@ -301,15 +303,18 @@ export function HelpAndOnboardingSuite() {
       const foundRect = foundEl ? foundEl.getBoundingClientRect() : null;
 
       const freddySize = mobile ? 76 : 96;
-      const bubbleWidth = mobile ? Math.min(230, vw - freddySize - 26) : 244;
+      const bubbleWidth = mobile ? Math.min(226, vw - freddySize - 26) : 238;
       const totalUnitWidth = freddySize + 8 + bubbleWidth;
-      const totalUnitHeight = mobile ? 124 : 132;
+      const totalUnitHeight = mobile ? 114 : 120;
 
       const topSafeBound = mobile ? 70 : 68;
       const bottomSafeBound = mobile ? vh - totalUnitHeight - 82 : vh - totalUnitHeight - 20;
 
       if (foundRect && foundRect.width > 12 && foundRect.height > 12) {
         const isNavTarget = waitingForClick;
+        const isBottomBarItem = isNavTarget && foundRect.top > vh * 0.65;
+        setPointerMode(isBottomBarItem ? "down" : "left");
+
         const pad = isNavTarget ? 4 : 5;
         const spotTop = Math.max(isNavTarget ? 4 : topSafeBound - 4, foundRect.top - pad);
         const maxSpotHeight = isNavTarget
@@ -325,7 +330,6 @@ export function HelpAndOnboardingSuite() {
 
         if (mobile) {
           setBubbleSide("right");
-          // Align horizontally near target if narrow (like BottomNav tab), clamped safely to screen edges
           const idealX = foundRect.left + foundRect.width * 0.5 - totalUnitWidth * 0.5;
           const clampedX = Math.max(10, Math.min(vw - totalUnitWidth - 10, idealX));
 
@@ -333,9 +337,9 @@ export function HelpAndOnboardingSuite() {
           const spaceAbove = spotTop - topSafeBound;
 
           let targetY: number;
-          if (isNavTarget && foundRect.top > vh * 0.6) {
-            // Highlighting BottomNav item on Android/iOS: hover cleanly above BottomNav
-            targetY = foundRect.top - totalUnitHeight - 12;
+          if (isBottomBarItem) {
+            // Leave room for the "Click here ↓" pointer badge right above the BottomNav icon
+            targetY = foundRect.top - totalUnitHeight - 44;
           } else if (spaceBelow >= totalUnitHeight + 10 || spaceBelow >= spaceAbove) {
             targetY = Math.min(bottomSafeBound, spotTop + maxSpotHeight + 10);
           } else {
@@ -347,14 +351,16 @@ export function HelpAndOnboardingSuite() {
             y: Math.round(Math.max(topSafeBound, Math.min(bottomSafeBound, targetY))),
           });
         } else {
+          // On Desktop: if waiting for nav click, leave 118px gap on the right of the sidebar item for the "← Click here" pointer arrow
+          const pointerGap = isNavTarget ? 120 : 14;
           const spaceRight = vw - foundRect.right;
           const spaceLeft = foundRect.left;
 
           let targetX: number;
-          let targetY = foundRect.top + Math.min(foundRect.height * 0.35, 80) - totalUnitHeight * 0.5;
+          let targetY = foundRect.top + Math.min(foundRect.height * 0.5, 80) - totalUnitHeight * 0.5;
 
-          if (spaceRight >= totalUnitWidth + 20) {
-            targetX = foundRect.right + 14;
+          if (spaceRight >= totalUnitWidth + pointerGap + 12) {
+            targetX = foundRect.right + pointerGap;
             setBubbleSide("right");
           } else if (spaceLeft >= totalUnitWidth + 20) {
             targetX = foundRect.left - totalUnitWidth - 14;
@@ -544,33 +550,82 @@ export function HelpAndOnboardingSuite() {
 
   return (
     <>
-      {/* 1. Spotlight Highlight Ring (Active during tour) */}
+      {/* 1. Spotlight Highlight Ring + Directional "Click here" Arrow Pointing at the Section */}
       <AnimatePresence>
         {tourOpen && spotlight && (
-          <motion.div
-            key="freddy-spotlight"
-            initial={{ opacity: 0, scale: 0.96 }}
-            animate={{
-              opacity: 1,
-              scale: 1,
-              top: spotlight.top,
-              left: spotlight.left,
-              width: spotlight.width,
-              height: spotlight.height,
-            }}
-            exit={{ opacity: 0, scale: 0.96 }}
-            transition={{ type: "spring", stiffness: 260, damping: 28 }}
-            className={cn(
-              "fixed z-50 rounded-2xl pointer-events-none",
-              isWaitingForSectionClick
-                ? "ring-2 ring-emerald-400 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.45)] animate-pulse"
-                : "ring-2 ring-primary-500 bg-primary-500/[0.06] shadow-[0_0_24px_rgba(16,185,129,0.28)]"
+          <>
+            <motion.div
+              key="freddy-spotlight"
+              initial={{ opacity: 0, scale: 0.96 }}
+              animate={{
+                opacity: 1,
+                scale: 1,
+                top: spotlight.top,
+                left: spotlight.left,
+                width: spotlight.width,
+                height: spotlight.height,
+              }}
+              exit={{ opacity: 0, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 260, damping: 28 }}
+              className={cn(
+                "fixed z-50 rounded-2xl pointer-events-none",
+                isWaitingForSectionClick
+                  ? "ring-2 ring-emerald-400 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.45)] animate-pulse"
+                  : "ring-2 ring-primary-500 bg-primary-500/[0.06] shadow-[0_0_24px_rgba(16,185,129,0.28)]"
+              )}
+            />
+
+            {/* Directional "Click here" Arrow Badge pointing directly at the highlighted nav section */}
+            {isWaitingForSectionClick && (
+              <motion.button
+                key="freddy-click-here-pointer"
+                type="button"
+                onClick={handleEnterCurrentSection}
+                initial={{ opacity: 0, scale: 0.9 }}
+                animate={
+                  pointerMode === "down"
+                    ? {
+                        opacity: 1,
+                        scale: 1,
+                        top: Math.max(12, spotlight.top - 34),
+                        left: Math.max(8, spotlight.left + spotlight.width * 0.5 - 48),
+                        y: [0, 5, 0],
+                      }
+                    : {
+                        opacity: 1,
+                        scale: 1,
+                        top: spotlight.top + spotlight.height * 0.5 - 14,
+                        left: spotlight.left + spotlight.width + 6,
+                        x: [0, -6, 0],
+                      }
+                }
+                exit={{ opacity: 0, scale: 0.9 }}
+                transition={{
+                  top: { type: "spring", stiffness: 260, damping: 26 },
+                  left: { type: "spring", stiffness: 260, damping: 26 },
+                  x: { repeat: Infinity, duration: 1.1, ease: "easeInOut" },
+                  y: { repeat: Infinity, duration: 1.1, ease: "easeInOut" },
+                }}
+                className="fixed z-50 pointer-events-auto px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold tracking-tight flex items-center gap-1 shadow-[0_0_20px_rgba(16,185,129,0.65)] whitespace-nowrap touch-manipulation"
+              >
+                {pointerMode === "down" ? (
+                  <>
+                    <span>Click here</span>
+                    <ArrowDown size={13} strokeWidth={2.75} />
+                  </>
+                ) : (
+                  <>
+                    <ArrowLeft size={13} strokeWidth={2.75} />
+                    <span>Click here</span>
+                  </>
+                )}
+              </motion.button>
             )}
-          />
+          </>
         )}
       </AnimatePresence>
 
-      {/* 2. Single Persistent 3D Freddy + Interactive Speech Bubble (Zero Remount Lag) */}
+      {/* 2. Single Persistent 3D Freddy + Clean Minimalist Speech Bubble */}
       {user && (
         <motion.div
           initial={false}
@@ -589,7 +644,7 @@ export function HelpAndOnboardingSuite() {
             tourOpen && bubbleSide === "left" && "flex-row-reverse"
           )}
         >
-          {/* Hovering 3D Freddy Bot (Always Mounted -> Instant 60fps WebGL) */}
+          {/* Hovering 3D Freddy Bot (Eyes & Expression Track Mouse Arrow) */}
           <motion.div
             animate={{ y: [0, -7, 0] }}
             transition={{
@@ -637,7 +692,6 @@ export function HelpAndOnboardingSuite() {
                   startFreshTour();
                   return;
                 }
-                // Guard against accidental double-tap right as tour opens
                 if (Date.now() - tourOpenedAtRef.current < 600) {
                   return;
                 }
@@ -659,7 +713,7 @@ export function HelpAndOnboardingSuite() {
             />
           </motion.div>
 
-          {/* Active Tour Speech Bubble */}
+          {/* Clean Minimalist Speech Bubble (No button inside bubble) */}
           <AnimatePresence mode="wait">
             {tourOpen && (
               <motion.div
@@ -668,7 +722,7 @@ export function HelpAndOnboardingSuite() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.96 }}
                 transition={{ duration: 0.15 }}
-                className="pointer-events-auto relative w-[min(230px,calc(100vw-102px))] sm:w-[244px] bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-border/80 space-y-2"
+                className="pointer-events-auto relative w-[min(226px,calc(100vw-102px))] sm:w-[238px] bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-border/80 space-y-1.5"
               >
                 {/* Top Header: Section Badge + Close Button */}
                 <div className="flex items-center justify-between gap-1.5">
@@ -694,38 +748,19 @@ export function HelpAndOnboardingSuite() {
                   </button>
                 </div>
 
-                {isWaitingForSectionClick ? (
-                  /* MODE A: "CLICK HERE" TO ENTER SECTION (User clicks the button to go inside!) */
-                  <div className="space-y-1.5">
-                    <button
-                      type="button"
-                      onClick={handleEnterCurrentSection}
-                      className="w-full py-1.5 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white text-xs font-bold flex items-center justify-center gap-1.5 shadow-sm transition-all active:scale-95 touch-manipulation"
-                    >
-                      <MousePointerClick size={14} className="shrink-0 animate-bounce" />
-                      <span className="truncate">
-                        {needsMobileMoreMenu
-                          ? 'Click "More" menu'
-                          : `Click here: ${currentStep.sectionLabel}`}
-                      </span>
-                    </button>
-                    <p className="text-[11px] text-muted-foreground leading-snug">
-                      {needsMobileMoreMenu
-                        ? `Tap the highlighted "More" button below to see ${currentStep.sectionLabel}.`
-                        : currentStep.navPrompt}
-                    </p>
-                  </div>
-                ) : (
-                  /* MODE B: INSIDE SECTION EXPLANATION */
-                  <div className="space-y-1">
-                    <p className="text-xs font-bold text-foreground leading-snug">
-                      {currentStep.title}
-                    </p>
-                    <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
-                      {currentStep.text}
-                    </p>
-                  </div>
-                )}
+                {/* Title & Minimalist 1-Line Explanation */}
+                <div className="space-y-1">
+                  <p className="text-xs font-bold text-foreground leading-snug">
+                    {currentStep.title}
+                  </p>
+                  <p className="text-[11px] sm:text-xs text-muted-foreground leading-relaxed">
+                    {isWaitingForSectionClick
+                      ? needsMobileMoreMenu
+                        ? `Tap "More" below, then tap "${currentStep.sectionLabel}".`
+                        : currentStep.navPrompt
+                      : currentStep.text}
+                  </p>
+                </div>
 
                 {/* Bottom Bar: Step Dots + Back / Skip / Next */}
                 <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-border/60">
@@ -891,7 +926,7 @@ export function HelpAndOnboardingSuite() {
                           Take an Interactive Tour with Freddy
                         </h4>
                         <p className="text-xs text-muted-foreground">
-                          Freddy points to each section with a &ldquo;Click here&rdquo; bubble, then goes inside to explain how it works.
+                          Freddy points to each section with a &ldquo;Click here&rdquo; arrow, then goes inside to explain how it works.
                         </p>
                       </div>
                     </div>

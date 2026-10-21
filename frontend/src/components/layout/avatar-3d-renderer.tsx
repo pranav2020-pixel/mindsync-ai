@@ -303,6 +303,10 @@ function lerp(a: number, b: number, t: number): number {
   return a + (b - a) * t;
 }
 
+function clamp(v: number, min: number, max: number): number {
+  return Math.max(min, Math.min(max, v));
+}
+
 function easeInOutCubic(t: number): number {
   return t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 }
@@ -413,7 +417,6 @@ vec3 transformToHeadSpace(vec3 p) {
 }
 
 float mapScene(vec3 p) {
-  // Fast bounding-sphere early exit for rays far from the avatar
   float boundDist = length(p - vec3(u_bodyOffset, 0.0)) - 1.55;
   if (boundDist > 0.25) return boundDist;
 
@@ -552,7 +555,25 @@ export function Avatar3DRenderer({
   title,
 }: Avatar3DRendererProps) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
-  const pointerRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+  const pointerRef = useRef<{
+    x: number;
+    y: number;
+    rawClientX: number;
+    rawClientY: number;
+    speed: number;
+    proximity: number;
+    lastMoveTime: number;
+    hasMoved: boolean;
+  }>({
+    x: 0,
+    y: 0,
+    rawClientX: 0,
+    rawClientY: 0,
+    speed: 0,
+    proximity: 0,
+    lastMoveTime: 0,
+    hasMoved: false,
+  });
 
   const avatar = useMemo<AvatarDefinition>(() => {
     const list = AVATAR_STUDIO_DATA.library.avatars;
@@ -582,7 +603,6 @@ export function Avatar3DRenderer({
     );
   }, [sequenceId]);
 
-  // Keep dynamic props in a ref so changing sequences/sizes never recompiles the WebGL shader
   const liveRef = useRef({
     avatar,
     sequence,
@@ -613,29 +633,65 @@ export function Avatar3DRenderer({
     customEyeColor,
   ]);
 
+  // Track mouse & touch pointer movement, direction, speed, and proximity to Freddy
   useEffect(() => {
     if (!interactiveGaze || typeof window === "undefined") return;
-    const handleMouseMove = (e: MouseEvent) => {
+
+    const updateFromClientPoint = (clientX: number, clientY: number) => {
       const canvas = canvasRef.current;
       if (!canvas) return;
       const rect = canvas.getBoundingClientRect();
       const cx = rect.left + rect.width * 0.5;
       const cy = rect.top + rect.height * 0.5;
-      const nx = Math.max(
-        -1,
-        Math.min(1, (e.clientX - cx) / Math.max(window.innerWidth * 0.35, 220))
-      );
-      const ny = Math.max(
-        -1,
-        Math.min(1, (e.clientY - cy) / Math.max(window.innerHeight * 0.35, 220))
-      );
-      pointerRef.current = { x: nx, y: ny };
+
+      const dx = clientX - cx;
+      const dy = clientY - cy;
+      const dist = Math.hypot(dx, dy);
+
+      // Sensitive directional normalization so eyes follow mouse arrow across the whole screen
+      const nx = clamp(dx / 240, -1, 1);
+      const ny = clamp(dy / 200, -1, 1);
+
+      const prev = pointerRef.current;
+      const moveDelta = prev.hasMoved
+        ? Math.hypot(clientX - prev.rawClientX, clientY - prev.rawClientY)
+        : 0;
+      const instantSpeed = clamp(moveDelta / 38, 0, 1);
+
+      // Proximity: 1.0 when cursor is right on Freddy, 0.0 when > 180px away
+      const prox = clamp(1 - dist / 180, 0, 1);
+
+      pointerRef.current = {
+        x: nx,
+        y: ny,
+        rawClientX: clientX,
+        rawClientY: clientY,
+        speed: Math.max(instantSpeed, prev.speed * 0.85),
+        proximity: prox,
+        lastMoveTime: performance.now(),
+        hasMoved: true,
+      };
     };
+
+    const handleMouseMove = (e: MouseEvent) => {
+      updateFromClientPoint(e.clientX, e.clientY);
+    };
+
+    const handleTouchMove = (e: TouchEvent) => {
+      if (e.touches && e.touches.length > 0) {
+        updateFromClientPoint(e.touches[0].clientX, e.touches[0].clientY);
+      }
+    };
+
     window.addEventListener("mousemove", handleMouseMove, { passive: true });
-    return () => window.removeEventListener("mousemove", handleMouseMove);
+    window.addEventListener("touchmove", handleTouchMove, { passive: true });
+    return () => {
+      window.removeEventListener("mousemove", handleMouseMove);
+      window.removeEventListener("touchmove", handleTouchMove);
+    };
   }, [interactiveGaze]);
 
-  // Compile WebGL shader ONCE on mount for zero-lag transitions
+  // Compile WebGL shader ONCE on mount for zero-lag 60fps rendering
   useEffect(() => {
     const canvas = canvasRef.current;
     if (!canvas) return;
@@ -779,6 +835,8 @@ export function Avatar3DRenderer({
     let nextBlinkTime = startTime + 1800 + Math.random() * 600;
     let smoothGazeX = 0;
     let smoothGazeY = 0;
+    let smoothSpeed = 0;
+    let smoothProx = 0;
 
     const renderFrame = (now: number) => {
       const {
@@ -803,6 +861,32 @@ export function Avatar3DRenderer({
       if (curAvatar && curAvatar.id !== uploadedAvatarId) {
         uploadGeometry(curAvatar);
       }
+
+      // If Freddy moved on screen while the mouse stayed still, keep gaze vector updated relative to new canvas position
+      if (curGaze && pointerRef.current.hasMoved) {
+        const rect = canvas.getBoundingClientRect();
+        const cx = rect.left + rect.width * 0.5;
+        const cy = rect.top + rect.height * 0.5;
+        pointerRef.current.x = clamp((pointerRef.current.rawClientX - cx) / 240, -1, 1);
+        pointerRef.current.y = clamp((pointerRef.current.rawClientY - cy) / 200, -1, 1);
+        const dist = Math.hypot(pointerRef.current.rawClientX - cx, pointerRef.current.rawClientY - cy);
+        pointerRef.current.proximity = clamp(1 - dist / 180, 0, 1);
+      }
+
+      // Decay mouse speed smoothly when pointer stops moving
+      const timeSinceMove = now - pointerRef.current.lastMoveTime;
+      const targetSpeed = timeSinceMove > 120 ? 0 : pointerRef.current.speed;
+
+      smoothGazeX = lerp(smoothGazeX, curGaze ? pointerRef.current.x : 0, 0.14);
+      smoothGazeY = lerp(smoothGazeY, curGaze ? pointerRef.current.y : 0, 0.14);
+      smoothSpeed = lerp(smoothSpeed, curGaze ? targetSpeed : 0, 0.12);
+      smoothProx = lerp(smoothProx, curGaze ? pointerRef.current.proximity : 0, 0.12);
+
+      // How recently the user interacted with the mouse (1.0 when active, fades to 0.35 after 3s idle)
+      const pointerActiveWeight =
+        curGaze && pointerRef.current.hasMoved
+          ? clamp(1 - Math.max(0, timeSinceMove - 1500) / 2500, 0.45, 1)
+          : 0;
 
       gl.viewport(0, 0, canvas.width, canvas.height);
       gl.clearColor(0, 0, 0, 0);
@@ -858,9 +942,10 @@ export function Avatar3DRenderer({
         }
       }
 
-      const headXDeg = lerp(currentExp.headX, nextExp.headX, blendT);
-      const headYDeg = lerp(currentExp.headY, nextExp.headY, blendT);
-      const headZDeg = lerp(currentExp.headZ, nextExp.headZ, blendT);
+      // Base sequence values
+      const seqHeadX = lerp(currentExp.headX, nextExp.headX, blendT);
+      const seqHeadY = lerp(currentExp.headY, nextExp.headY, blendT);
+      const seqHeadZ = lerp(currentExp.headZ, nextExp.headZ, blendT);
 
       let widthLeft = lerp(currentExp.widthLeft, nextExp.widthLeft, blendT);
       let widthRight = lerp(currentExp.widthRight, nextExp.widthRight, blendT);
@@ -871,19 +956,76 @@ export function Avatar3DRenderer({
       const posXRight = lerp(currentExp.positionXRight, nextExp.positionXRight, blendT);
       const posYLeft = lerp(currentExp.positionYLeft, nextExp.positionYLeft, blendT);
       const posYRight = lerp(currentExp.positionYRight, nextExp.positionYRight, blendT);
-      const leftAngle = lerp(currentExp.leftAngle, nextExp.leftAngle, blendT);
-      const rightAngle = lerp(currentExp.rightAngle, nextExp.rightAngle, blendT);
+      let leftAngle = lerp(currentExp.leftAngle, nextExp.leftAngle, blendT);
+      let rightAngle = lerp(currentExp.rightAngle, nextExp.rightAngle, blendT);
 
+      // --- DYNAMIC MOUSE-DRIVEN EXPRESSION MORPHING ---
+      if (curGaze && pointerRef.current.hasMoved) {
+        // 1. Start from neutral centered eye proportions when actively tracking mouse so eyes never get stuck at bottom
+        const baseW = 23.5;
+        const baseH = 48.0;
+        widthLeft = lerp(widthLeft, baseW, pointerActiveWeight * 0.72);
+        widthRight = lerp(widthRight, baseW, pointerActiveWeight * 0.72);
+        heightLeft = lerp(heightLeft, baseH, pointerActiveWeight * 0.72);
+        heightRight = lerp(heightRight, baseH, pointerActiveWeight * 0.72);
+
+        // 2. Directional Expression Change:
+        //    - Looking UP (smoothGazeY < 0): Tall, wide-eyed wonder/curiosity
+        //    - Looking DOWN (smoothGazeY > 0): Soft, warm attentive squint
+        const verticalWonder = clamp(-smoothGazeY, 0, 1);
+        const verticalSoft = clamp(smoothGazeY, 0, 1);
+
+        heightLeft *= 1 + verticalWonder * 0.28 - verticalSoft * 0.16;
+        heightRight *= 1 + verticalWonder * 0.28 - verticalSoft * 0.16;
+        widthLeft *= 1 + verticalWonder * 0.12 + verticalSoft * 0.08;
+        widthRight *= 1 + verticalWonder * 0.12 + verticalSoft * 0.08;
+
+        // 3. Horizontal Asymmetric Curiosity & 3D Perspective:
+        //    The eye closer to the mouse arrow opens wider & taller ("curious peek"), while the trailing eye squints slightly
+        const lookRight = clamp(smoothGazeX, 0, 1);
+        const lookLeft = clamp(-smoothGazeX, 0, 1);
+
+        heightRight *= 1 + lookRight * 0.22 - lookLeft * 0.18;
+        widthRight *= 1 + lookRight * 0.18 - lookLeft * 0.1;
+
+        heightLeft *= 1 + lookLeft * 0.22 - lookRight * 0.18;
+        widthLeft *= 1 + lookLeft * 0.18 - lookRight * 0.1;
+
+        // 4. Fast Mouse Movement -> Surprised / Excited wide round eyes!
+        if (smoothSpeed > 0.05) {
+          widthLeft = lerp(widthLeft, 40, smoothSpeed * 0.65);
+          widthRight = lerp(widthRight, 40, smoothSpeed * 0.65);
+          heightLeft = lerp(heightLeft, 58, smoothSpeed * 0.65);
+          heightRight = lerp(heightRight, 58, smoothSpeed * 0.65);
+        }
+
+        // 5. Cursor Close to Freddy -> Happy / Playful Wink Expression!
+        if (smoothProx > 0.25) {
+          const winkFactor = clamp((smoothProx - 0.25) / 0.65, 0, 1);
+          // Right eye winks happily while left eye perks up
+          heightRight = lerp(heightRight, 13.5, winkFactor * 0.85);
+          widthRight = lerp(widthRight, 44.0, winkFactor * 0.85);
+          heightLeft = lerp(heightLeft, 56.0, winkFactor * 0.6);
+        }
+
+        // 6. Expressive Eye Tilt Angles following mouse arrow direction
+        const dynamicLeftAngle = smoothGazeX * 14 - smoothGazeY * 10;
+        const dynamicRightAngle = smoothGazeX * 14 + smoothGazeY * 10;
+        leftAngle = lerp(leftAngle, dynamicLeftAngle, pointerActiveWeight * 0.85);
+        rightAngle = lerp(rightAngle, dynamicRightAngle, pointerActiveWeight * 0.85);
+      }
+
+      // Natural Blinking
       const blinkDuration = curSeq?.blink?.durationMs || 150;
       if (curSeq?.blink?.enabled !== false && curSeq?.id !== "sleeping") {
         if (now >= nextBlinkTime) {
           const blinkElapsed = now - nextBlinkTime;
           if (blinkElapsed <= blinkDuration) {
             const bt = Math.sin((blinkElapsed / blinkDuration) * Math.PI);
-            heightLeft = lerp(heightLeft, 10, bt);
-            heightRight = lerp(heightRight, 10, bt);
-            widthLeft = lerp(widthLeft, widthLeft * 1.25, bt);
-            widthRight = lerp(widthRight, widthRight * 1.25, bt);
+            heightLeft = lerp(heightLeft, 8, bt);
+            heightRight = lerp(heightRight, 8, bt);
+            widthLeft = lerp(widthLeft, widthLeft * 1.28, bt);
+            widthRight = lerp(widthRight, widthRight * 1.28, bt);
           } else {
             const minInt = curSeq?.blink?.minIntervalMs || 2200;
             const maxInt = curSeq?.blink?.maxIntervalMs || 4800;
@@ -892,15 +1034,18 @@ export function Avatar3DRenderer({
         }
       }
 
-      smoothGazeX = lerp(smoothGazeX, pointerRef.current.x, 0.08);
-      smoothGazeY = lerp(smoothGazeY, pointerRef.current.y, 0.08);
+      // Head rotation: blend between sequence pose and direct mouse arrow tracking
+      const gazeYaw = smoothGazeX * 26;
+      const gazePitch = smoothGazeY * 22;
+      const gazeRoll = -smoothGazeX * 9;
 
-      const gazeYaw = curGaze ? smoothGazeX * 14 : 0;
-      const gazePitch = curGaze ? smoothGazeY * 11 : 0;
+      const finalHeadX = lerp(seqHeadX, gazeYaw, pointerActiveWeight * 0.85);
+      const finalHeadY = lerp(seqHeadY * 0.35, gazePitch, pointerActiveWeight * 0.88);
+      const finalHeadZ = lerp(seqHeadZ * 0.4, gazeRoll, pointerActiveWeight * 0.82);
 
       const tSec = (now - startTime) * 0.001;
-      let driftX = Math.sin(tSec * 1.7) * 0.025;
-      let driftY = Math.sin(tSec * 2.4) * 0.045;
+      let driftX = Math.sin(tSec * 1.7) * 0.025 + smoothGazeX * 0.04;
+      let driftY = Math.sin(tSec * 2.4) * 0.045 - smoothGazeY * 0.035;
       if (currentExp.bodyMotion === "shake") {
         driftX += Math.sin(tSec * 48.0) * 0.028;
         driftY += Math.cos(tSec * 54.0) * 0.022;
@@ -922,17 +1067,23 @@ export function Avatar3DRenderer({
 
       gl.uniform3f(
         uHeadRot,
-        (headXDeg + gazeYaw) * DEG2RAD,
-        (headYDeg + gazePitch) * DEG2RAD,
-        headZDeg * DEG2RAD
+        finalHeadX * DEG2RAD,
+        finalHeadY * DEG2RAD,
+        finalHeadZ * DEG2RAD
       );
       gl.uniform2f(uBodyOffset, driftX, driftY);
 
+      // Direct Eye Sliding across the face along the mouse arrow direction!
+      const gazeEyeShiftX = smoothGazeX * 32.0;
+      const gazeEyeShiftY = smoothGazeY * 26.0;
+      const effectivePosYLeft = lerp(posYLeft, 0, pointerActiveWeight * 0.8) + gazeEyeShiftY;
+      const effectivePosYRight = lerp(posYRight, 0, pointerActiveWeight * 0.8) + gazeEyeShiftY;
+
       const halfGap = spacing * 0.5;
-      const lx = (-(halfGap + widthLeft * 0.5) + posXLeft + eyeShakeX) / SCALE;
-      const ly = -(posYLeft + eyeShakeY) / SCALE;
-      const rx = (halfGap + widthRight * 0.5 + posXRight + eyeShakeX) / SCALE;
-      const ry = -(posYRight + eyeShakeY) / SCALE;
+      const lx = (-(halfGap + widthLeft * 0.5) + posXLeft + gazeEyeShiftX + eyeShakeX) / SCALE;
+      const ly = -(effectivePosYLeft + eyeShakeY) / SCALE;
+      const rx = (halfGap + widthRight * 0.5 + posXRight + gazeEyeShiftX + eyeShakeX) / SCALE;
+      const ry = -(effectivePosYRight + eyeShakeY) / SCALE;
 
       gl.uniform4f(
         uEyeLeft,
