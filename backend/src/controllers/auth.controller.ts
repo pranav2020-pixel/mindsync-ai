@@ -528,6 +528,13 @@ export const AuthController = {
   updateProfile: asyncHandler(async (req: any, res: Response) => {
     const { name, username, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;
     
+    // Always query fresh user record directly from database
+    const currentUser = await prisma.user.findUnique({
+      where: { id: req.user.id },
+      select: { id: true, username: true, usernameChangedAt: true },
+    });
+    if (!currentUser) throw new AppError("User not found", 404);
+
     let cleanUsername: string | null | undefined = undefined;
     let usernameChangedAtUpdate: Date | undefined = undefined;
 
@@ -539,13 +546,13 @@ export const AuthController = {
           throw new AppError("Username must be 3-30 characters and contain only letters, numbers, or underscores", 400);
         }
 
-        const currentUsername = (req.user.username || "").toLowerCase();
+        const currentUsername = (currentUser.username || "").toLowerCase();
         const isChanging = currentUsername !== trimmed;
 
         if (isChanging) {
           // Check 60-day cooldown policy
-          if (req.user.usernameChangedAt) {
-            const lastChangedTime = new Date(req.user.usernameChangedAt).getTime();
+          if (currentUser.usernameChangedAt) {
+            const lastChangedTime = new Date(currentUser.usernameChangedAt).getTime();
             const now = Date.now();
             const diffMs = now - lastChangedTime;
             const cooldownMs = 60 * 24 * 60 * 60 * 1000; // 60 days

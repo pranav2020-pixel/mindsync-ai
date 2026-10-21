@@ -75,6 +75,11 @@ export default function SettingsPage() {
     isCurrent?: boolean;
   }>({ available: null, message: "" });
 
+  // Automatically fetch latest user profile on mount to guarantee fresh cooldown state
+  useEffect(() => {
+    refetchUser();
+  }, []);
+
   useEffect(() => {
     if (user) {
       setNameInput(user.name || "");
