@@ -193,7 +193,7 @@ export const AuthController = {
       data: { userId: user.id, token: tokens.refreshToken, type: "REFRESH", expiresAt: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) },
     });
     const streak = await AuthController.calculateUserStreak(user.id);
-    res.json({ success: true, data: { user: { id: user.id, email: user.email, name: user.name, avatar: user.avatar, role: user.role, wellnessGoals: user.wellnessGoals, productivityGoals: user.productivityGoals, streak }, ...tokens } });
+    res.json({ success: true, data: { user: { id: user.id, email: user.email, name: user.name, username: user.username, usernameChangedAt: user.usernameChangedAt, avatar: user.avatar, role: user.role, wellnessGoals: user.wellnessGoals, productivityGoals: user.productivityGoals, streak }, ...tokens } });
   }),
 
   googleAuth: asyncHandler(async (req: Request, res: Response) => {
@@ -277,6 +277,8 @@ export const AuthController = {
           id: user.id,
           email: user.email,
           name: user.name,
+          username: user.username,
+          usernameChangedAt: user.usernameChangedAt,
           avatar: user.avatar,
           role: user.role,
           wellnessGoals: user.wellnessGoals,
@@ -383,6 +385,8 @@ export const AuthController = {
           id: updatedUser.id,
           email: updatedUser.email,
           name: updatedUser.name,
+          username: updatedUser.username,
+          usernameChangedAt: updatedUser.usernameChangedAt,
           avatar: updatedUser.avatar,
           role: updatedUser.role,
           wellnessGoals: updatedUser.wellnessGoals,
@@ -525,6 +529,8 @@ export const AuthController = {
     const { name, username, age, gender, occupation, timezone, wellnessGoals, productivityGoals } = req.body;
     
     let cleanUsername: string | null | undefined = undefined;
+    let usernameChangedAtUpdate: Date | undefined = undefined;
+
     if (username !== undefined) {
       const trimmed = (username || "").trim().toLowerCase();
       if (trimmed) {
@@ -532,16 +538,45 @@ export const AuthController = {
         if (!usernameRegex.test(trimmed)) {
           throw new AppError("Username must be 3-30 characters and contain only letters, numbers, or underscores", 400);
         }
-        const existing = await prisma.user.findFirst({
-          where: {
-            username: { equals: trimmed, mode: "insensitive" },
-            id: { not: req.user.id },
-          },
-        });
-        if (existing) {
-          throw new AppError("Username is already taken by another user", 400);
+
+        const currentUsername = (req.user.username || "").toLowerCase();
+        const isChanging = currentUsername !== trimmed;
+
+        if (isChanging) {
+          // Check 60-day cooldown policy
+          if (req.user.usernameChangedAt) {
+            const lastChangedTime = new Date(req.user.usernameChangedAt).getTime();
+            const now = Date.now();
+            const diffMs = now - lastChangedTime;
+            const cooldownMs = 60 * 24 * 60 * 60 * 1000; // 60 days
+
+            if (diffMs < cooldownMs) {
+              const remainingDays = Math.ceil((cooldownMs - diffMs) / (24 * 60 * 60 * 1000));
+              const nextAvailableDate = new Date(lastChangedTime + cooldownMs).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+              });
+              throw new AppError(
+                `Username can only be changed once every 60 days. You can change it again in ${remainingDays} day${remainingDays === 1 ? "" : "s"} (on ${nextAvailableDate}).`,
+                400
+              );
+            }
+          }
+
+          const existing = await prisma.user.findFirst({
+            where: {
+              username: { equals: trimmed, mode: "insensitive" },
+              id: { not: req.user.id },
+            },
+          });
+          if (existing) {
+            throw new AppError("Username is already taken by another user", 400);
+          }
+
+          cleanUsername = trimmed;
+          usernameChangedAtUpdate = new Date();
         }
-        cleanUsername = trimmed;
       }
     }
 
@@ -549,7 +584,7 @@ export const AuthController = {
       where: { id: req.user.id },
       data: {
         ...(name !== undefined && name.trim() ? { name: name.trim() } : {}),
-        ...(cleanUsername !== undefined ? { username: cleanUsername } : {}),
+        ...(cleanUsername !== undefined ? { username: cleanUsername, usernameChangedAt: usernameChangedAtUpdate } : {}),
         ...(age !== undefined ? { age: Number(age) || null } : {}),
         ...(gender !== undefined ? { gender } : {}),
         ...(occupation !== undefined ? { occupation } : {}),
@@ -562,6 +597,7 @@ export const AuthController = {
         email: true,
         name: true,
         username: true,
+        usernameChangedAt: true,
         avatar: true,
         role: true,
         age: true,

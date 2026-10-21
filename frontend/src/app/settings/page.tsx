@@ -44,6 +44,29 @@ export default function SettingsPage() {
   const [usernameInput, setUsernameInput] = useState(user?.username || "");
   const [profileSaving, setProfileSaving] = useState(false);
 
+  // 60-Day Username Cooldown calculation
+  const cooldownInfo = (() => {
+    if (!user?.usernameChangedAt) {
+      return { isLocked: false, remainingDays: 0, nextDate: null };
+    }
+    const lastChanged = new Date(user.usernameChangedAt).getTime();
+    if (isNaN(lastChanged)) {
+      return { isLocked: false, remainingDays: 0, nextDate: null };
+    }
+    const cooldownMs = 60 * 24 * 60 * 60 * 1000;
+    const diffMs = Date.now() - lastChanged;
+    if (diffMs < cooldownMs) {
+      const remainingDays = Math.ceil((cooldownMs - diffMs) / (24 * 60 * 60 * 1000));
+      const nextDate = new Date(lastChanged + cooldownMs).toLocaleDateString("en-US", {
+        month: "short",
+        day: "numeric",
+        year: "numeric",
+      });
+      return { isLocked: true, remainingDays, nextDate };
+    }
+    return { isLocked: false, remainingDays: 0, nextDate: null };
+  })();
+
   // Real-time username check state
   const [checkingUsername, setCheckingUsername] = useState(false);
   const [usernameStatus, setUsernameStatus] = useState<{
@@ -61,6 +84,11 @@ export default function SettingsPage() {
 
   // Debounced username availability checker
   useEffect(() => {
+    if (cooldownInfo.isLocked) {
+      setUsernameStatus({ available: null, message: "" });
+      return;
+    }
+
     const clean = usernameInput.trim().toLowerCase();
     if (!clean) {
       setUsernameStatus({ available: null, message: "" });
@@ -101,33 +129,36 @@ export default function SettingsPage() {
     }, 400);
 
     return () => clearTimeout(timer);
-  }, [usernameInput, user?.username]);
+  }, [usernameInput, user?.username, cooldownInfo.isLocked]);
 
   const handleSaveProfile = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!nameInput.trim()) {
-      toast.error("Full Name cannot be empty");
+      toast.error("Display Name cannot be empty");
       return;
     }
 
-    if (usernameInput.trim() && usernameStatus.available === false) {
+    if (!cooldownInfo.isLocked && usernameInput.trim() && usernameStatus.available === false) {
       toast.error("Please pick an available username");
       return;
     }
 
     setProfileSaving(true);
     try {
-      const res = await api.patch("/auth/profile", {
+      const payload: { name: string; username?: string } = {
         name: nameInput.trim(),
-        username: usernameInput.trim() || undefined,
-      });
+      };
+      if (!cooldownInfo.isLocked && usernameInput.trim()) {
+        payload.username = usernameInput.trim();
+      }
+      const res = await api.patch("/auth/profile", payload);
       if (res.data?.data) {
         updateUser(res.data.data);
       }
       toast.success("Profile updated successfully!");
       setIsEditingProfile(false);
     } catch (err: any) {
-      toast.error(err.response?.data?.error || "Failed to update profile");
+      toast.error(err.response?.data?.error || err.response?.data?.message || "Failed to update profile");
     } finally {
       setProfileSaving(false);
     }
@@ -281,10 +312,10 @@ export default function SettingsPage() {
                 setUsernameInput(user?.username || "");
                 setIsEditingProfile(true);
               }}
-              className="px-3.5 py-1.5 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1.5 transition-all border border-primary-500/20"
+              className="px-3.5 py-1.5 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1.5 transition-all border border-primary-500/20 shadow-sm"
             >
               <Edit3 size={14} />
-              Change Username & Name
+              Edit Profile & Username
             </button>
           )}
         </div>
@@ -298,6 +329,21 @@ export default function SettingsPage() {
               onSubmit={handleSaveProfile}
               className="pt-2 space-y-4"
             >
+              {/* Cooldown Active Banner */}
+              {cooldownInfo.isLocked && (
+                <div className="flex items-start gap-2.5 p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-800 dark:text-amber-300 text-xs">
+                  <Lock size={16} className="shrink-0 mt-0.5 text-amber-600 dark:text-amber-400" />
+                  <div>
+                    <p className="font-semibold text-xs">60-Day Username Change Cooldown Active</p>
+                    <p className="text-[11px] opacity-90 mt-0.5 leading-relaxed">
+                      You recently updated your username. In accordance with MindSync security policy, usernames can only be changed once every 60 days.
+                      Your next change will be available in <strong>{cooldownInfo.remainingDays} day{cooldownInfo.remainingDays === 1 ? "" : "s"} (on {cooldownInfo.nextDate})</strong>.
+                      You can still update your Display Name below anytime.
+                    </p>
+                  </div>
+                </div>
+              )}
+
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Full Name Input */}
                 <div className="space-y-1.5">
@@ -325,7 +371,11 @@ export default function SettingsPage() {
                       <AtSign size={13} className="text-muted-foreground" />
                       Unique Username / Handle
                     </label>
-                    {checkingUsername ? (
+                    {cooldownInfo.isLocked ? (
+                      <span className="text-[10px] text-amber-600 dark:text-amber-400 font-semibold flex items-center gap-1 bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                        <Lock size={10} /> Locked ({cooldownInfo.remainingDays}d left)
+                      </span>
+                    ) : checkingUsername ? (
                       <span className="text-[10px] text-muted-foreground flex items-center gap-1">
                         <Loader2 size={10} className="animate-spin" /> Checking...
                       </span>
@@ -346,25 +396,46 @@ export default function SettingsPage() {
                     <input
                       type="text"
                       value={usernameInput}
-                      onChange={(e) => setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""))}
+                      onChange={(e) => {
+                        if (!cooldownInfo.isLocked) {
+                          setUsernameInput(e.target.value.toLowerCase().replace(/[^a-z0-9_]/g, ""));
+                        }
+                      }}
+                      disabled={cooldownInfo.isLocked}
+                      readOnly={cooldownInfo.isLocked}
                       placeholder="username"
                       maxLength={30}
                       className={cn(
-                        "w-full bg-slate-50 dark:bg-white/5 border rounded-xl pl-8 pr-3.5 py-2.5 text-sm font-mono text-foreground placeholder:text-muted-foreground outline-none transition-all",
-                        usernameStatus.available === true
-                          ? "border-emerald-500/60 focus:border-emerald-500 focus:bg-white dark:focus:bg-white/10"
+                        "w-full rounded-xl pl-8 pr-3.5 py-2.5 text-sm font-mono text-foreground placeholder:text-muted-foreground outline-none transition-all",
+                        cooldownInfo.isLocked
+                          ? "bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-muted-foreground cursor-not-allowed select-none"
+                          : usernameStatus.available === true
+                          ? "bg-slate-50 dark:bg-white/5 border border-emerald-500/60 focus:border-emerald-500 focus:bg-white dark:focus:bg-white/10"
                           : usernameStatus.available === false
-                          ? "border-red-500/60 focus:border-red-500 focus:bg-white dark:focus:bg-white/10"
-                          : "border-slate-200 dark:border-white/10 focus:border-primary-500 focus:bg-white dark:focus:bg-white/10"
+                          ? "bg-slate-50 dark:bg-white/5 border border-red-500/60 focus:border-red-500 focus:bg-white dark:focus:bg-white/10"
+                          : "bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 focus:border-primary-500 focus:bg-white dark:focus:bg-white/10"
                       )}
                     />
                   </div>
-                  <p className={cn(
-                    "text-[11px]",
-                    usernameStatus.available === false ? "text-red-500 font-medium" : "text-muted-foreground"
-                  )}>
-                    {usernameStatus.message || "3-30 lowercase characters, numbers, and underscores."}
-                  </p>
+                  <div className="flex flex-col gap-0.5">
+                    {cooldownInfo.isLocked ? (
+                      <p className="text-[11px] text-amber-600 dark:text-amber-400 font-medium flex items-center gap-1">
+                        <Clock size={11} /> Unlocks on {cooldownInfo.nextDate} (60-day cooldown policy).
+                      </p>
+                    ) : (
+                      <>
+                        <p className={cn(
+                          "text-[11px]",
+                          usernameStatus.available === false ? "text-red-500 font-medium" : "text-muted-foreground"
+                        )}>
+                          {usernameStatus.message || "3-30 lowercase characters, numbers, and underscores."}
+                        </p>
+                        <p className="text-[10px] text-muted-foreground/80 flex items-center gap-1">
+                          <Clock size={10} className="text-primary-500" /> Once claimed, username can only be changed once every 60 days.
+                        </p>
+                      </>
+                    )}
+                  </div>
                 </div>
               </div>
 
@@ -384,7 +455,7 @@ export default function SettingsPage() {
                 </button>
                 <button
                   type="submit"
-                  disabled={profileSaving || checkingUsername || (Boolean(usernameInput.trim()) && usernameStatus.available === false)}
+                  disabled={profileSaving || (!cooldownInfo.isLocked && checkingUsername) || (!cooldownInfo.isLocked && Boolean(usernameInput.trim()) && usernameStatus.available === false)}
                   className="px-5 py-2 rounded-xl bg-primary-600 hover:bg-primary-500 disabled:opacity-50 disabled:cursor-not-allowed text-white text-xs font-semibold transition-all flex items-center gap-1.5 shadow-sm"
                 >
                   {profileSaving ? (
@@ -407,12 +478,43 @@ export default function SettingsPage() {
               animate={{ opacity: 1 }}
               className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 pt-2"
             >
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
-                <p className="text-xs text-muted-foreground">Display Name</p>
+              {/* Display Name Card with Pencil Icon */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1 relative group">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">Display Name</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNameInput(user?.name || "");
+                      setUsernameInput(user?.username || "");
+                      setIsEditingProfile(true);
+                    }}
+                    title="Edit Display Name"
+                    className="p-1 rounded-lg text-primary-600 dark:text-primary-400 hover:bg-primary-500/10 transition-colors"
+                  >
+                    <Edit3 size={13} />
+                  </button>
+                </div>
                 <p className="text-sm font-semibold text-foreground truncate">{user?.name || "User"}</p>
               </div>
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
-                <p className="text-xs text-muted-foreground">Username</p>
+
+              {/* Username Card with Pencil Icon and 60-Day Status */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1.5 relative group">
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground">Username</p>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNameInput(user?.name || "");
+                      setUsernameInput(user?.username || "");
+                      setIsEditingProfile(true);
+                    }}
+                    title={cooldownInfo.isLocked ? "Username locked (60-day policy)" : "Edit Username"}
+                    className="p-1 rounded-lg text-primary-600 dark:text-primary-400 hover:bg-primary-500/10 transition-colors"
+                  >
+                    <Edit3 size={13} />
+                  </button>
+                </div>
                 <p className="text-sm font-semibold text-foreground truncate font-mono">
                   {user?.username ? (
                     <span className="text-primary-600 dark:text-primary-400">@{user.username}</span>
@@ -420,11 +522,26 @@ export default function SettingsPage() {
                     <span className="text-muted-foreground font-sans text-xs italic">Not claimed yet</span>
                   )}
                 </p>
+                <div>
+                  {cooldownInfo.isLocked ? (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-amber-600 dark:text-amber-400 font-medium bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">
+                      <Clock size={10} /> Locked: {cooldownInfo.remainingDays}d left
+                    </span>
+                  ) : (
+                    <span className="inline-flex items-center gap-1 text-[10px] text-emerald-600 dark:text-emerald-400 font-medium bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                      <Check size={10} /> Editable (60d rule)
+                    </span>
+                  )}
+                </div>
               </div>
+
+              {/* Email Address Card */}
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
                 <p className="text-xs text-muted-foreground">Email Address</p>
                 <p className="text-sm font-semibold text-foreground truncate">{user?.email || "Unknown"}</p>
               </div>
+
+              {/* Account Role & Streak */}
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 space-y-1">
                 <p className="text-xs text-muted-foreground">Account Role</p>
                 <div className="flex items-center gap-1.5">

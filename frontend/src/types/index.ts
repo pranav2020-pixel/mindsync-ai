@@ -1,5 +1,5 @@
 export interface User {
-  id: string; email: string; name: string; username?: string; avatar?: string;
+  id: string; email: string; name: string; username?: string; usernameChangedAt?: string; avatar?: string;
   age?: number; gender?: string; occupation?: string;
   timezone: string; wellnessGoals: string[]; productivityGoals: string[]; role: string;
   streak?: number;
