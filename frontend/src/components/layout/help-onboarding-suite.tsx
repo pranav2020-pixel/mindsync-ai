@@ -400,13 +400,13 @@ export function HelpAndOnboardingSuite() {
     if (buddyReactionIdx > 0) {
       return reactions[buddyReactionIdx % reactions.length];
     }
-    if (pathname.startsWith("/journal")) return "thinking";
-    if (pathname.startsWith("/mood")) return "happy";
-    if (pathname.startsWith("/habits")) return "celebrate";
-    if (pathname.startsWith("/assessments")) return "curious";
-    if (pathname.startsWith("/productivity")) return "working";
-    if (pathname.startsWith("/chat")) return "listening";
-    if (pathname.startsWith("/settings")) return "playful";
+    if (pathname?.startsWith("/journal")) return "thinking";
+    if (pathname?.startsWith("/mood")) return "happy";
+    if (pathname?.startsWith("/habits")) return "celebrate";
+    if (pathname?.startsWith("/assessments")) return "curious";
+    if (pathname?.startsWith("/productivity")) return "working";
+    if (pathname?.startsWith("/chat")) return "listening";
+    if (pathname?.startsWith("/settings")) return "playful";
     return "idle";
   }, [pathname, buddyReactionIdx]);
 
@@ -414,9 +414,9 @@ export function HelpAndOnboardingSuite() {
     return avatars.find((a) => a.id === selectedAvatarId) || avatars[0];
   }, [avatars, selectedAvatarId]);
 
-  if (isAuthPage) return null;
+  if (isAuthPage || !activeAvatarObj) return null;
 
-  const currentStep = TOUR_STEPS[tourStep];
+  const currentStep = TOUR_STEPS[tourStep] || TOUR_STEPS[0];
   const StepIcon = currentStep.icon;
   const activeTourSequence = customSequenceId || currentStep.defaultSequenceId;
 
