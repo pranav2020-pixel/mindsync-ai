@@ -11,9 +11,15 @@ import { useTheme } from "./theme-provider";
 import { cn } from "@/lib/utils";
 import {
   Sun, Moon, Leaf, Bell, LogOut, User, Settings, Check, Trash2,
-  Shield, FileText, Sparkles, Inbox, Menu, X, HelpCircle, PlayCircle
+  Shield, FileText, Sparkles, Inbox, Menu, X, HelpCircle, PlayCircle,
+  Volume2, VolumeX
 } from "lucide-react";
 import { HelpAndOnboardingSuite } from "./help-onboarding-suite";
+import {
+  isSoundMuted,
+  toggleSoundMuted,
+  SOUND_MUTE_CHANGE_EVENT,
+} from "@/lib/sound-effects";
 
 export function Navbar() {
   const pathname = usePathname();
@@ -23,6 +29,7 @@ export function Navbar() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
+  const [soundMuted, setSoundMuted] = useState(false);
 
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollYRef = useRef(0);
@@ -38,6 +45,21 @@ export function Navbar() {
     setIsVisible(true);
     lastScrollYRef.current = 0;
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    setSoundMuted(isSoundMuted());
+    const handleMuteChange = (e: Event) => {
+      const custom = e as CustomEvent<{ muted: boolean }>;
+      if (typeof custom.detail?.muted === "boolean") {
+        setSoundMuted(custom.detail.muted);
+      } else {
+        setSoundMuted(isSoundMuted());
+      }
+    };
+    window.addEventListener(SOUND_MUTE_CHANGE_EVENT, handleMuteChange);
+    return () => window.removeEventListener(SOUND_MUTE_CHANGE_EVENT, handleMuteChange);
+  }, []);
 
   // Instagram-style scroll-aware header: hide on scroll down, show on scroll up
   useEffect(() => {
@@ -240,8 +262,27 @@ export function Navbar() {
           title="Launch Interactive 3D Avatar Tour"
           aria-label="Launch Interactive 3D Avatar Tour"
         >
-          <PlayCircle size={14} />
+          <PlayCircle size={14} aria-hidden="true" />
           <span className="hidden sm:inline">3D Tour</span>
+        </button>
+
+        {/* Sound Mute / Unmute Toggle (TASK-604) */}
+        <button
+          type="button"
+          onClick={() => {
+            const nextMuted = toggleSoundMuted();
+            setSoundMuted(nextMuted);
+          }}
+          className="p-2 rounded-lg hover:bg-muted transition-colors text-muted-foreground hover:text-foreground active:scale-95"
+          title={soundMuted ? "Unmute Freddy & UI sound effects" : "Mute Freddy & UI sound effects"}
+          aria-label={soundMuted ? "Unmute Freddy and UI sound effects" : "Mute Freddy and UI sound effects"}
+          aria-pressed={!soundMuted}
+        >
+          {soundMuted ? (
+            <VolumeX size={18} aria-hidden="true" />
+          ) : (
+            <Volume2 size={18} aria-hidden="true" className="text-emerald-500" />
+          )}
         </button>
 
         {/* Universal Help & Support (?) Trigger (TASK-603) */}

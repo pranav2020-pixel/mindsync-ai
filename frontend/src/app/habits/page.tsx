@@ -10,6 +10,7 @@ import {
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { playCelebrationChord, playClickHerePulse } from "@/lib/sound-effects";
 
 interface HabitItem {
   key: string;
@@ -208,9 +209,12 @@ export default function HabitsPage() {
       });
 
       if (nextState) {
+        playCelebrationChord();
         toast.success(
           habitType === "EXERCISE" ? "Great workout! +20 XP" : "Habit completed! +10 XP"
         );
+      } else {
+        playClickHerePulse();
       }
       fetchData(selectedDate);
       fetchStats();

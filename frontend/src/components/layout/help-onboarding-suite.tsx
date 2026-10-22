@@ -16,11 +16,25 @@ import {
   LifeBuoy,
   ArrowLeft,
   ArrowDown,
+  Volume2,
+  VolumeX,
+  Sparkles,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { Avatar3DRenderer } from "./avatar-3d-renderer";
+import { ShaderGradientAura } from "./shader-gradient-aura";
+import {
+  isSoundMuted,
+  toggleSoundMuted,
+  SOUND_MUTE_CHANGE_EVENT,
+  playGlideWhoosh,
+  playBubblePop,
+  playBotVoiceBlip,
+  playClickHerePulse,
+  playCelebrationChord,
+} from "@/lib/sound-effects";
 
 const getOnboardingStorageKey = (userId: string) => `mindsync_onboarding_completed_v2_${userId}`;
 const PENDING_FULL_TOUR_KEY = "mindsync_pending_full_tour_user";
@@ -196,6 +210,10 @@ export function HelpAndOnboardingSuite() {
   const [pointerMode, setPointerMode] = useState<"left" | "down">("left");
   const [needsMobileMoreMenu, setNeedsMobileMoreMenu] = useState(false);
   const [idleWave, setIdleWave] = useState(false);
+  const [soundMuted, setSoundMutedState] = useState(false);
+  const [isGliding, setIsGliding] = useState(false);
+  const [glideTiltDeg, setGlideTiltDeg] = useState(0);
+  const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const [helpOpen, setHelpOpen] = useState(false);
   const [activeHelpTab, setActiveHelpTab] = useState<"guide" | "faq" | "shortcuts" | "crisis">("guide");
@@ -205,6 +223,8 @@ export function HelpAndOnboardingSuite() {
   const tourOpenedAtRef = useRef<number>(0);
   const prevPathnameRef = useRef<string>(pathname);
   const autoLaunchedForUserRef = useRef<string | null>(null);
+  const prevFreddyPosRef = useRef<{ x: number; y: number } | null>(null);
+  const glideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   // Remembers the last step index for each route so Freddy always remembers his place
   const sectionMemoryRef = useRef<Record<string, number>>({});
 
@@ -248,6 +268,33 @@ export function HelpAndOnboardingSuite() {
       x: Math.max(16, vw - (mobile ? 80 : 88)),
       y: Math.max(80, vh - (mobile ? 148 : 88)),
     });
+    setSoundMutedState(isSoundMuted());
+
+    const mq =
+      typeof window.matchMedia === "function"
+        ? window.matchMedia("(prefers-reduced-motion: reduce)")
+        : null;
+    if (mq) {
+      setPrefersReducedMotion(mq.matches);
+    }
+
+    const handleMuteChange = (e: Event) => {
+      const custom = e as CustomEvent<{ muted: boolean }>;
+      if (typeof custom.detail?.muted === "boolean") {
+        setSoundMutedState(custom.detail.muted);
+      } else {
+        setSoundMutedState(isSoundMuted());
+      }
+    };
+    const handleMotionChange = (e: MediaQueryListEvent) => {
+      setPrefersReducedMotion(e.matches);
+    };
+
+    window.addEventListener(SOUND_MUTE_CHANGE_EVENT, handleMuteChange);
+    if (mq && typeof mq.addEventListener === "function") {
+      mq.addEventListener("change", handleMotionChange);
+    }
+
     const savedStep = sessionStorage.getItem(STEP_MEMORY_STORAGE_KEY);
     if (savedStep !== null) {
       const parsed = Number(savedStep);
@@ -260,7 +307,58 @@ export function HelpAndOnboardingSuite() {
       setTourOpen(true);
     }
     setMounted(true);
+
+    return () => {
+      if (glideTimerRef.current) clearTimeout(glideTimerRef.current);
+      window.removeEventListener(SOUND_MUTE_CHANGE_EVENT, handleMuteChange);
+      if (mq && typeof mq.removeEventListener === "function") {
+        mq.removeEventListener("change", handleMotionChange);
+      }
+    };
   }, []);
+
+  // Flight physics & whoosh sound when Freddy glides across the viewport
+  useEffect(() => {
+    if (!tourOpen) {
+      prevFreddyPosRef.current = null;
+      setIsGliding(false);
+      setGlideTiltDeg(0);
+      return;
+    }
+    const prev = prevFreddyPosRef.current;
+    prevFreddyPosRef.current = freddyPos;
+    if (!prev) return;
+
+    const dx = freddyPos.x - prev.x;
+    const dy = freddyPos.y - prev.y;
+    const dist = Math.hypot(dx, dy);
+    if (dist > 28) {
+      playGlideWhoosh();
+      if (!prefersReducedMotion) {
+        const tilt = Math.max(-11, Math.min(11, dx * 0.045));
+        setGlideTiltDeg(tilt);
+        setIsGliding(true);
+        if (glideTimerRef.current) clearTimeout(glideTimerRef.current);
+        glideTimerRef.current = setTimeout(() => {
+          setIsGliding(false);
+          setGlideTiltDeg(0);
+        }, 360);
+      }
+    }
+  }, [freddyPos, tourOpen, prefersReducedMotion]);
+
+  // Play gentle speech bubble pop + harmonic bot voice blips when Freddy explains a step
+  useEffect(() => {
+    if (!tourOpen || !mounted) return;
+    if (isWaitingForSectionClick) {
+      playBubblePop();
+    } else if (currentStep.sequenceId === "celebrate") {
+      playCelebrationChord();
+    } else {
+      playBubblePop();
+      playBotVoiceBlip(effectiveTourStep);
+    }
+  }, [tourOpen, effectiveTourStep, isWaitingForSectionClick, currentStep.sequenceId, mounted]);
 
   // Persist tourOpen & tourStep in sessionStorage so route transitions or mobile remounts never drop the tour
   useEffect(() => {
@@ -755,6 +853,7 @@ export function HelpAndOnboardingSuite() {
   if (isAuthPage || !mounted) return null;
 
   const handleEnterCurrentSection = () => {
+    playClickHerePulse();
     if (needsMobileMoreMenu && typeof window !== "undefined") {
       window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
       return;
@@ -769,19 +868,48 @@ export function HelpAndOnboardingSuite() {
   const handleAdvanceTour = () => {
     setTourMode("full");
     if (effectiveTourStep < FREDDY_STEPS.length - 1) {
+      playClickHerePulse();
       goToStep(effectiveTourStep + 1);
     } else {
+      playCelebrationChord();
       completeTour();
     }
+  };
+
+  const handleFinishTourWithCelebration = () => {
+    playCelebrationChord();
+    completeTour();
   };
 
   const activeX = tourOpen ? freddyPos.x : restingPos.x;
   const activeY = tourOpen ? freddyPos.y : restingPos.y;
   const freddyRenderSize = tourOpen ? (isMobileView ? 76 : 96) : 64;
+  const activeSequenceId = tourOpen
+    ? isWaitingForSectionClick
+      ? "curious"
+      : currentStep.sequenceId
+    : idleWave
+    ? "excited"
+    : "idle";
+
+  const auraColors =
+    activeSequenceId === "celebrate" || activeSequenceId === "excited"
+      ? { c1: "#10b981", c2: "#f59e0b", c3: "#ec4899" }
+      : activeSequenceId === "curious" || activeSequenceId === "listening"
+      ? { c1: "#10b981", c2: "#06b6d4", c3: "#3b82f6" }
+      : { c1: "#10b981", c2: "#34d399", c3: "#6366f1" };
+
+  const showSparkles =
+    !prefersReducedMotion &&
+    (tourOpen || idleWave) &&
+    (activeSequenceId === "celebrate" ||
+      activeSequenceId === "excited" ||
+      activeSequenceId === "happy" ||
+      isGliding);
 
   return (
     <>
-      {/* 1. Spotlight Highlight Ring + Directional "Click here" Arrow Pointing at the Section */}
+      {/* 1. Spotlight Highlight Ring + Dual Sonar Ripple + Directional "Click here" Arrow Pointing at the Section */}
       <AnimatePresence>
         {tourOpen && spotlight && (
           <>
@@ -801,10 +929,25 @@ export function HelpAndOnboardingSuite() {
               className={cn(
                 "fixed z-[70] rounded-2xl pointer-events-none",
                 isWaitingForSectionClick
-                  ? "ring-2 ring-emerald-400 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.45)] animate-pulse"
+                  ? "ring-2 ring-emerald-400 bg-emerald-500/10 shadow-[0_0_26px_rgba(16,185,129,0.45)]"
                   : "ring-2 ring-primary-500 bg-primary-500/[0.06] shadow-[0_0_24px_rgba(16,185,129,0.28)]"
               )}
-            />
+            >
+              {/* Expanding Sonar Ripple on Compositor Thread (transform + opacity only) */}
+              {!prefersReducedMotion && isWaitingForSectionClick && (
+                <motion.span
+                  aria-hidden="true"
+                  initial={{ opacity: 0.65, scale: 1 }}
+                  animate={{ opacity: 0, scale: 1.14 }}
+                  transition={{
+                    repeat: Infinity,
+                    duration: 1.5,
+                    ease: [0.22, 1, 0.36, 1],
+                  }}
+                  className="absolute inset-0 rounded-2xl ring-2 ring-emerald-400/80 pointer-events-none"
+                />
+              )}
+            </motion.div>
 
             {/* Directional "Click here" Arrow Badge pointing directly at the highlighted nav section */}
             {isWaitingForSectionClick && (
@@ -820,7 +963,7 @@ export function HelpAndOnboardingSuite() {
                         scale: 1,
                         top: Math.max(12, spotlight.top - 34),
                         left: Math.max(8, spotlight.left + spotlight.width * 0.5 - 48),
-                        y: [0, 5, 0],
+                        y: prefersReducedMotion ? 0 : [0, 5, 0],
                       }
                     : {
                         opacity: 1,
@@ -830,7 +973,7 @@ export function HelpAndOnboardingSuite() {
                           (typeof window !== "undefined" ? window.innerWidth : 1200) - 96,
                           spotlight.left + spotlight.width + 6
                         ),
-                        x: [0, -6, 0],
+                        x: prefersReducedMotion ? 0 : [0, -6, 0],
                       }
                 }
                 exit={{ opacity: 0, scale: 0.9 }}
@@ -840,16 +983,16 @@ export function HelpAndOnboardingSuite() {
                   x: { repeat: Infinity, duration: 1.1, ease: "easeInOut" },
                   y: { repeat: Infinity, duration: 1.1, ease: "easeInOut" },
                 }}
-                className="fixed z-[70] pointer-events-auto px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 text-slate-950 text-[11px] font-extrabold tracking-tight flex items-center gap-1 shadow-[0_0_20px_rgba(16,185,129,0.65)] whitespace-nowrap touch-manipulation"
+                className="fixed z-[70] pointer-events-auto px-2.5 py-1 rounded-full bg-emerald-500 hover:bg-emerald-400 active:scale-[0.97] text-slate-950 text-[11px] font-extrabold tracking-tight flex items-center gap-1 shadow-[0_0_20px_rgba(16,185,129,0.65)] whitespace-nowrap touch-manipulation transition-transform duration-150"
               >
                 {pointerMode === "down" ? (
                   <>
                     <span>Click here</span>
-                    <ArrowDown size={13} strokeWidth={2.75} />
+                    <ArrowDown size={13} strokeWidth={2.75} aria-hidden="true" />
                   </>
                 ) : (
                   <>
-                    <ArrowLeft size={13} strokeWidth={2.75} />
+                    <ArrowLeft size={13} strokeWidth={2.75} aria-hidden="true" />
                     <span>Click here</span>
                   </>
                 )}
@@ -878,13 +1021,27 @@ export function HelpAndOnboardingSuite() {
             tourOpen && bubbleSide === "left" && "flex-row-reverse"
           )}
         >
-          {/* Hovering 3D Freddy Bot (Eyes & Expression Track Mouse Arrow) */}
+          {/* Hovering 3D Freddy Bot with ShaderGradient Aura, Squash-and-Stretch Flight & Sparkle Particles */}
           <motion.div
-            animate={{ y: [0, -7, 0] }}
+            animate={
+              prefersReducedMotion
+                ? { y: 0, rotate: 0, scaleX: 1, scaleY: 1 }
+                : {
+                    y: [0, -7, 0],
+                    rotate: isGliding ? glideTiltDeg : 0,
+                    scaleX: isGliding ? 1.07 : 1,
+                    scaleY: isGliding ? 0.94 : 1,
+                  }
+            }
             transition={{
-              repeat: Infinity,
-              duration: 2.4,
-              ease: "easeInOut",
+              y: {
+                repeat: prefersReducedMotion ? 0 : Infinity,
+                duration: 2.4,
+                ease: "easeInOut",
+              },
+              rotate: { type: "spring", stiffness: 260, damping: 18 },
+              scaleX: { type: "spring", stiffness: 300, damping: 16 },
+              scaleY: { type: "spring", stiffness: 300, damping: 16 },
             }}
             onMouseEnter={() => {
               if (!tourOpen) setIdleWave(true);
@@ -894,6 +1051,51 @@ export function HelpAndOnboardingSuite() {
             }}
             className="relative shrink-0 pointer-events-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)] touch-manipulation"
           >
+            {/* ShaderGradient Fluid Mesh Aura Behind Freddy */}
+            {(tourOpen || idleWave) && (
+              <ShaderGradientAura
+                variant="orb"
+                color1={auraColors.c1}
+                color2={auraColors.c2}
+                color3={auraColors.c3}
+                uSpeed={isGliding ? 0.55 : 0.28}
+                uStrength={1.8}
+                uDensity={1.5}
+                grain="on"
+                pixelDensity={1}
+                className="absolute -inset-2.5 w-[calc(100%+20px)] h-[calc(100%+20px)] rounded-full -z-10"
+              />
+            )}
+
+            {/* Expressive Floating SVG Sparkle Particles (Decorative, aria-hidden="true") */}
+            <AnimatePresence>
+              {showSparkles && (
+                <motion.div
+                  key="freddy-sparkles"
+                  aria-hidden="true"
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  className="pointer-events-none absolute inset-0 -z-10"
+                >
+                  <motion.span
+                    animate={{ y: [0, -8, 0], scale: [0.85, 1.15, 0.85], opacity: [0.4, 1, 0.4] }}
+                    transition={{ repeat: Infinity, duration: 1.8, ease: "easeInOut" }}
+                    className="absolute -top-1.5 -left-1 text-amber-400"
+                  >
+                    <Sparkles size={13} />
+                  </motion.span>
+                  <motion.span
+                    animate={{ y: [0, -6, 0], scale: [1, 0.8, 1], opacity: [0.5, 0.95, 0.5] }}
+                    transition={{ repeat: Infinity, duration: 2.1, delay: 0.35, ease: "easeInOut" }}
+                    className="absolute -top-1 -right-1.5 text-emerald-400"
+                  >
+                    <Sparkles size={12} />
+                  </motion.span>
+                </motion.div>
+              )}
+            </AnimatePresence>
+
             {/* Idle Hover Tooltip when Tour is Closed */}
             <AnimatePresence>
               {!tourOpen && idleWave && (
@@ -901,6 +1103,7 @@ export function HelpAndOnboardingSuite() {
                   initial={{ opacity: 0, x: 6, scale: 0.95 }}
                   animate={{ opacity: 1, x: 0, scale: 1 }}
                   exit={{ opacity: 0, x: 6, scale: 0.95 }}
+                  transition={{ duration: 0.18, ease: [0.22, 1, 0.36, 1] }}
                   className="pointer-events-none hidden sm:block absolute right-full mr-2.5 top-1/2 -translate-y-1/2 bg-card/95 text-card-foreground backdrop-blur-xl px-3 py-1.5 rounded-xl border border-border/80 shadow-lg text-[11px] font-medium whitespace-nowrap"
                 >
                   Tap to explain this section!
@@ -910,15 +1113,7 @@ export function HelpAndOnboardingSuite() {
 
             <Avatar3DRenderer
               avatarId={FREDDY_AVATAR_ID}
-              sequenceId={
-                tourOpen
-                  ? isWaitingForSectionClick
-                    ? "curious"
-                    : currentStep.sequenceId
-                  : idleWave
-                  ? "excited"
-                  : "idle"
-              }
+              sequenceId={activeSequenceId}
               size={freddyRenderSize}
               interactiveGaze={true}
               onClick={() => {
@@ -950,38 +1145,74 @@ export function HelpAndOnboardingSuite() {
             {tourOpen && (
               <motion.div
                 key={`${currentStep.id}-${isWaitingForSectionClick ? "nav" : "inside"}`}
-                initial={{ opacity: 0, y: 4, scale: 0.96 }}
+                initial={{ opacity: 0, y: 5, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.96 }}
-                transition={{ duration: 0.15 }}
+                transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
                 className="pointer-events-auto relative w-[min(226px,calc(100vw-102px))] sm:w-[242px] bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-3 sm:p-3.5 shadow-2xl border border-border/80 space-y-1.5"
               >
-                {/* Top Header: Section Badge + Close Button */}
+                {/* Top Header: Section Badge + Sound Mute Toggle + Close Button */}
                 <div className="flex items-center justify-between gap-1.5">
-                  <span
-                    className={cn(
-                      "text-[10px] font-bold uppercase tracking-wider truncate",
-                      isWaitingForSectionClick
-                        ? "text-emerald-600 dark:text-emerald-400"
-                        : "text-primary-600 dark:text-primary-400"
-                    )}
-                  >
-                    {isWaitingForSectionClick
-                      ? `Open ${currentStep.sectionLabel}`
-                      : `${currentStep.sectionLabel} · ${effectiveTourStep + 1}/${FREDDY_STEPS.length}`}
-                  </span>
-                  <button
-                    type="button"
-                    onClick={completeTour}
-                    aria-label="Close Freddy guide"
-                    className="p-1 -mr-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors touch-manipulation"
-                  >
-                    <X size={13} />
-                  </button>
+                  <div className="flex items-center gap-1.5 min-w-0">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "w-1.5 h-1.5 rounded-full shrink-0",
+                        isWaitingForSectionClick
+                          ? "bg-emerald-500 animate-ping"
+                          : "bg-primary-500"
+                      )}
+                    />
+                    <span
+                      className={cn(
+                        "text-[10px] font-bold uppercase tracking-wider truncate",
+                        isWaitingForSectionClick
+                          ? "text-emerald-600 dark:text-emerald-400"
+                          : "text-primary-600 dark:text-primary-400"
+                      )}
+                    >
+                      {isWaitingForSectionClick
+                        ? `Open ${currentStep.sectionLabel}`
+                        : `${currentStep.sectionLabel} · ${effectiveTourStep + 1}/${FREDDY_STEPS.length}`}
+                    </span>
+                  </div>
+
+                  <div className="flex items-center gap-0.5 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const nextMuted = toggleSoundMuted();
+                        setSoundMutedState(nextMuted);
+                      }}
+                      aria-label={soundMuted ? "Unmute Freddy tour sound effects" : "Mute Freddy tour sound effects"}
+                      aria-pressed={!soundMuted}
+                      title={soundMuted ? "Unmute sound effects" : "Mute sound effects"}
+                      className="p-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 touch-manipulation"
+                    >
+                      {soundMuted ? (
+                        <VolumeX size={13} aria-hidden="true" />
+                      ) : (
+                        <Volume2 size={13} aria-hidden="true" className="text-emerald-500" />
+                      )}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={completeTour}
+                      aria-label="Close Freddy guide"
+                      className="p-1 -mr-1 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 touch-manipulation"
+                    >
+                      <X size={13} aria-hidden="true" />
+                    </button>
+                  </div>
                 </div>
 
-                {/* Title & Minimalist 1-Line Explanation */}
-                <div className="space-y-1">
+                {/* Title & Minimalist 1-Line Explanation with Intentional Easing Reveal */}
+                <motion.div
+                  initial={{ opacity: 0, y: 3 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ duration: 0.24, delay: 0.03, ease: [0.22, 1, 0.36, 1] }}
+                  className="space-y-1"
+                >
                   <p className="text-xs font-bold text-foreground leading-snug">
                     {currentStep.title}
                   </p>
@@ -992,7 +1223,7 @@ export function HelpAndOnboardingSuite() {
                         : currentStep.navPrompt
                       : currentStep.text}
                   </p>
-                </div>
+                </motion.div>
 
                 {/* Bottom Controls: Step Dots + Back / Next / Skip */}
                 <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-border/60">
@@ -1001,8 +1232,11 @@ export function HelpAndOnboardingSuite() {
                       <button
                         key={s.id}
                         type="button"
-                        onClick={() => goToStep(idx)}
-                        aria-label={`Step ${idx + 1}`}
+                        onClick={() => {
+                          playClickHerePulse();
+                          goToStep(idx);
+                        }}
+                        aria-label={`Step ${idx + 1}: ${s.sectionLabel}`}
                         className={cn(
                           "h-1.5 rounded-full transition-all touch-manipulation",
                           idx === effectiveTourStep
@@ -1017,11 +1251,14 @@ export function HelpAndOnboardingSuite() {
                     {effectiveTourStep > 0 && (
                       <button
                         type="button"
-                        onClick={() => goToStep(effectiveTourStep - 1)}
+                        onClick={() => {
+                          playClickHerePulse();
+                          goToStep(effectiveTourStep - 1);
+                        }}
                         className="min-h-[28px] px-1.5 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 flex items-center justify-center touch-manipulation"
                         aria-label="Previous step"
                       >
-                        <ChevronLeft size={14} />
+                        <ChevronLeft size={14} aria-hidden="true" />
                       </button>
                     )}
 
@@ -1029,7 +1266,7 @@ export function HelpAndOnboardingSuite() {
                       <button
                         type="button"
                         onClick={handleAdvanceTour}
-                        className="min-h-[28px] px-2 py-0.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors touch-manipulation"
+                        className="min-h-[28px] px-2 py-0.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 touch-manipulation"
                       >
                         Skip
                       </button>
@@ -1040,12 +1277,12 @@ export function HelpAndOnboardingSuite() {
                         className="min-h-[28px] px-3 py-1 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[11px] font-bold flex items-center gap-0.5 shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
                         Next
-                        <ChevronRight size={12} />
+                        <ChevronRight size={12} aria-hidden="true" />
                       </button>
                     ) : (
                       <button
                         type="button"
-                        onClick={completeTour}
+                        onClick={handleFinishTourWithCelebration}
                         className="min-h-[28px] px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
                         Finish
@@ -1139,8 +1376,20 @@ export function HelpAndOnboardingSuite() {
               {/* Scrollable Content Body */}
               <div className="flex-1 overflow-y-auto py-4 pr-1 space-y-4 custom-scrollbar">
                 {activeHelpTab === "guide" && (
-                  <div className="p-4 rounded-2xl bg-muted/40 border border-border/70 flex flex-col sm:flex-row items-center justify-between gap-4">
-                    <div className="flex items-center gap-3">
+                  <div className="relative overflow-hidden p-4 rounded-2xl bg-muted/40 border border-border/70 flex flex-col sm:flex-row items-center justify-between gap-4">
+                    <ShaderGradientAura
+                      variant="card"
+                      color1="#10b981"
+                      color2="#06b6d4"
+                      color3="#6366f1"
+                      uSpeed={0.22}
+                      uStrength={1.5}
+                      uDensity={1.4}
+                      grain="on"
+                      pixelDensity={1}
+                      className="absolute inset-0 w-full h-full z-0"
+                    />
+                    <div className="relative z-10 flex items-center gap-3">
                       <Avatar3DRenderer
                         avatarId={FREDDY_AVATAR_ID}
                         sequenceId="happy"
@@ -1156,19 +1405,38 @@ export function HelpAndOnboardingSuite() {
                         </p>
                       </div>
                     </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setHelpOpen(false);
-                        setTourMode("full");
-                        setTourStep(0);
-                        setTourOpen(true);
-                      }}
-                      className="px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-md transition-all active:scale-95"
-                    >
-                      <PlayCircle size={15} />
-                      Full Tour
-                    </button>
+                    <div className="relative z-10 flex items-center gap-2 shrink-0">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          const nextMuted = toggleSoundMuted();
+                          setSoundMutedState(nextMuted);
+                        }}
+                        aria-label={soundMuted ? "Unmute Freddy tour sound effects" : "Mute Freddy tour sound effects"}
+                        aria-pressed={!soundMuted}
+                        className="p-2.5 rounded-xl bg-card/85 hover:bg-card text-foreground border border-border/70 shadow-sm transition-all active:scale-95"
+                        title={soundMuted ? "Unmute sound effects" : "Mute sound effects"}
+                      >
+                        {soundMuted ? (
+                          <VolumeX size={15} aria-hidden="true" className="text-muted-foreground" />
+                        ) : (
+                          <Volume2 size={15} aria-hidden="true" className="text-emerald-500" />
+                        )}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setHelpOpen(false);
+                          setTourMode("full");
+                          setTourStep(0);
+                          setTourOpen(true);
+                        }}
+                        className="px-4 py-2.5 rounded-xl bg-primary-600 hover:bg-primary-500 text-white text-xs font-bold flex items-center gap-1.5 shrink-0 shadow-md transition-all active:scale-95"
+                      >
+                        <PlayCircle size={15} aria-hidden="true" />
+                        Full Tour
+                      </button>
+                    </div>
                   </div>
                 )}
 
