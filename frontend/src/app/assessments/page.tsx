@@ -12,6 +12,7 @@ import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { EmptyState, NoSearchResults } from "@/components/ui-states/ui-states-catalog";
+import { playOptionSelectPop, playCelebrationChord, playNavTap } from "@/lib/sound-effects";
 
 interface Option {
   label: string;
@@ -499,17 +500,20 @@ export default function AssessmentsPage() {
   };
 
   const handleSelectOption = (questionId: string, value: number) => {
+    playOptionSelectPop(value);
     setAnswers((prev) => ({ ...prev, [questionId]: value }));
   };
 
   const handleNext = () => {
     if (currentIndex < questions.length - 1) {
+      playNavTap();
       setCurrentIndex((prev) => prev + 1);
     }
   };
 
   const handlePrev = () => {
     if (currentIndex > 0) {
+      playNavTap();
       setCurrentIndex((prev) => prev - 1);
     }
   };
@@ -546,6 +550,7 @@ export default function AssessmentsPage() {
         const res = await api.post(`/assessments/${activeAssessment.id}/submit`, payload);
         const serverResult = res.data.data;
         setResult(serverResult);
+        playCelebrationChord();
         toast.success("Assessment evaluated by MindSync AI!");
         setHistory((prev) => [serverResult, ...prev]);
         if (typeof window !== "undefined") {
@@ -693,6 +698,7 @@ export default function AssessmentsPage() {
         localStorage.setItem("mindsync_assessment_history", JSON.stringify([localResult, ...arr]));
       } catch {}
     }
+    playCelebrationChord();
     toast.success("Assessment evaluated by MindSync AI!");
     setSubmitting(false);
   };

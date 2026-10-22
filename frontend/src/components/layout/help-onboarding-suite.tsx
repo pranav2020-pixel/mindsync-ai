@@ -34,6 +34,8 @@ import {
   playBotVoiceBlip,
   playClickHerePulse,
   playCelebrationChord,
+  playNavTap,
+  playSliderTick,
 } from "@/lib/sound-effects";
 
 const getOnboardingStorageKey = (userId: string) => `mindsync_onboarding_completed_v2_${userId}`;
@@ -392,14 +394,15 @@ export function HelpAndOnboardingSuite() {
     }
   }, [pathname]);
 
-  // Capture clicks on any Sidebar or BottomNav link so even clicking the current active section
-  // immediately syncs Freddy to that section and continues the tour without closing!
+  // Capture clicks on any Sidebar or BottomNav link + global range slider ticks
+  // so every section switch and slider interaction across the app has tactile audio feedback!
   useEffect(() => {
     if (typeof window === "undefined") return;
     const handleNavLinkClick = (e: MouseEvent) => {
       const target = e.target as HTMLElement | null;
       const anchor = target?.closest?.("aside a[href], nav a[href]") as HTMLAnchorElement | null;
       if (!anchor) return;
+      playNavTap();
       const href = anchor.getAttribute("href");
       if (!href) return;
       const matchIdx = FREDDY_STEPS.findIndex((s) => s.route === href);
@@ -408,8 +411,24 @@ export function HelpAndOnboardingSuite() {
         setTourStep(matchIdx);
       }
     };
+
+    const handleGlobalRangeInput = (e: Event) => {
+      const target = e.target as HTMLInputElement | null;
+      if (!target || target.tagName !== "INPUT" || target.type !== "range") return;
+      const val = Number(target.value);
+      const min = target.min !== "" ? Number(target.min) : 1;
+      const max = target.max !== "" ? Number(target.max) : 10;
+      if (!Number.isNaN(val)) {
+        playSliderTick(val, min, max);
+      }
+    };
+
     document.addEventListener("click", handleNavLinkClick, true);
-    return () => document.removeEventListener("click", handleNavLinkClick, true);
+    document.addEventListener("input", handleGlobalRangeInput, true);
+    return () => {
+      document.removeEventListener("click", handleNavLinkClick, true);
+      document.removeEventListener("input", handleGlobalRangeInput, true);
+    };
   }, []);
 
   // 1. Tapping Freddy in the corner: Explain the CURRENT section & allow continuing the tour!

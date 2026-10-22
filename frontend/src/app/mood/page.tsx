@@ -7,6 +7,7 @@ import { Heart, Zap, Frown, Moon, Droplets, Users, Dumbbell } from "lucide-react
 import api from "@/lib/api";
 import toast from "react-hot-toast";
 import { useChartTheme } from "@/lib/chart-theme";
+import { playJournalSaveShimmer, playClickHerePulse } from "@/lib/sound-effects";
 
 export default function MoodPage() {
   const chartTheme = useChartTheme();
@@ -43,6 +44,7 @@ export default function MoodPage() {
     setLoading(true);
     try {
       await api.post("/moods", form);
+      playJournalSaveShimmer();
       toast.success(todayLog ? "Mood updated successfully!" : "Today's mood logged!");
       fetchData();
     } catch (err: any) {
@@ -85,8 +87,8 @@ export default function MoodPage() {
             </div>
           </div>
           <div className="flex gap-3">
-            <ToggleButton active={form.exercise} onClick={() => setForm({ ...form, exercise: !form.exercise })} icon={Dumbbell} label="Exercise" />
-            <ToggleButton active={form.socialInteraction} onClick={() => setForm({ ...form, socialInteraction: !form.socialInteraction })} icon={Users} label="Social" />
+            <ToggleButton active={form.exercise} onClick={() => { playClickHerePulse(); setForm({ ...form, exercise: !form.exercise }); }} icon={Dumbbell} label="Exercise" />
+            <ToggleButton active={form.socialInteraction} onClick={() => { playClickHerePulse(); setForm({ ...form, socialInteraction: !form.socialInteraction }); }} icon={Users} label="Social" />
           </div>
           <button onClick={handleSubmit} disabled={loading} className="w-full py-3 rounded-xl font-medium bg-primary-600 hover:bg-primary-500 text-white transition-colors disabled:opacity-50 shadow-sm">
             {loading ? "Saving..." : todayLog ? "Update Today's Mood" : "Log Mood"}

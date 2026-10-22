@@ -43,6 +43,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/layout/theme-provider";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
+import { playJournalSaveShimmer, playSoftDeleteSweep } from "@/lib/sound-effects";
 import { toast } from "react-hot-toast";
 
 export default function SettingsPage() {
@@ -171,6 +172,7 @@ export default function SettingsPage() {
       if (res.data?.data) {
         updateUser(res.data.data);
       }
+      playJournalSaveShimmer();
       toast.success("Profile updated successfully!");
       setIsEditingProfile(false);
     } catch (err: any) {
@@ -423,6 +425,7 @@ export default function SettingsPage() {
       if (res.data?.data) {
         updateUser(res.data.data);
       }
+      playJournalSaveShimmer();
       toast.success("Profile picture updated successfully!");
       setAvatarModalOpen(false);
     } catch (err: any) {
@@ -440,6 +443,7 @@ export default function SettingsPage() {
       if (res.data?.data) {
         updateUser(res.data.data);
       }
+      playSoftDeleteSweep();
       toast.success("Profile photo removed");
     } catch (err: any) {
       toast.error(err.response?.data?.error || "Failed to remove photo");

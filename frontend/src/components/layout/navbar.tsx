@@ -19,6 +19,10 @@ import {
   isSoundMuted,
   toggleSoundMuted,
   SOUND_MUTE_CHANGE_EVENT,
+  playThemeSwitchChime,
+  playBubblePop,
+  playSoftDeleteSweep,
+  playNavTap,
 } from "@/lib/sound-effects";
 
 export function Navbar() {
@@ -193,6 +197,7 @@ export function Navbar() {
   };
 
   const handleMarkAllRead = async () => {
+    playBubblePop();
     try {
       await api.patch("/notifications/read-all");
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
@@ -202,6 +207,7 @@ export function Navbar() {
   };
 
   const handleClearAll = async () => {
+    playSoftDeleteSweep();
     try {
       await api.delete("/notifications/clear");
       setNotifications([]);
@@ -330,6 +336,7 @@ export function Navbar() {
         <div ref={notificationRef} className="relative">
           <button
             onClick={() => {
+              playNavTap();
               setShowNotifications(!showNotifications);
               setShowProfile(false);
             }}

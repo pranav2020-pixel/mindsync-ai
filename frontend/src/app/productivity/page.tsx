@@ -15,6 +15,13 @@ import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
 import { useChartTheme } from "@/lib/chart-theme";
+import {
+  playTimerStartChime,
+  playTimerPauseTick,
+  playTimerCompleteGong,
+  playJournalSaveShimmer,
+  playNavTap,
+} from "@/lib/sound-effects";
 
 type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
 
@@ -75,6 +82,7 @@ export default function ProductivityPage() {
 
   const handleTimerComplete = async () => {
     setIsRunning(false);
+    playTimerCompleteGong();
     if (mode === "pomodoro") {
       toast.success("Focus block completed! 25 minutes logged.");
       try {
@@ -96,18 +104,21 @@ export default function ProductivityPage() {
   };
 
   const switchMode = (newMode: TimerMode) => {
+    playNavTap();
     setIsRunning(false);
     setMode(newMode);
     setTimeLeft(TIMER_CONFIGS[newMode].defaultMinutes * 60);
   };
 
   const resetTimer = () => {
+    playTimerPauseTick();
     setIsRunning(false);
     setTimeLeft(TIMER_CONFIGS[mode].defaultMinutes * 60);
   };
 
   const adjustMinutes = (delta: number) => {
     if (isRunning) return;
+    playNavTap();
     setTimeLeft((prev) => Math.max(60, prev + delta * 60));
   };
 
@@ -120,6 +131,7 @@ export default function ProductivityPage() {
   const handleLogTask = async () => {
     try {
       await api.post("/productivity", { tasksCompleted: 1 });
+      playJournalSaveShimmer();
       toast.success("Task completed logged! +1 Task");
       fetchStats();
     } catch (err) {
@@ -131,6 +143,7 @@ export default function ProductivityPage() {
     setSavingLog(true);
     try {
       await api.post("/productivity", { deepWorkScore: deepWorkRating });
+      playJournalSaveShimmer();
       toast.success("Deep work rating saved!");
       fetchStats();
     } catch (err) {
@@ -294,7 +307,14 @@ export default function ProductivityPage() {
               </button>
 
               <button
-                onClick={() => setIsRunning(!isRunning)}
+                onClick={() => {
+                  if (isRunning) {
+                    playTimerPauseTick();
+                  } else {
+                    playTimerStartChime();
+                  }
+                  setIsRunning(!isRunning);
+                }}
                 className={cn(
                   "px-8 py-3.5 rounded-2xl font-bold text-base flex items-center gap-2.5 transition-all transform active:scale-95 shadow-xl",
                   isRunning

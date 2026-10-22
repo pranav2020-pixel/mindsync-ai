@@ -1,6 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
+import { playThemeSwitchChime } from "@/lib/sound-effects";
 
 export type AppTheme = "dark" | "light" | "green" | "green-light";
 
@@ -46,6 +47,7 @@ export function ThemeProvider({ children }: { children: ReactNode }) {
     setThemeState(t);
     localStorage.setItem("theme", t);
     applyThemeToDOM(t);
+    playThemeSwitchChime(t);
   };
 
   const toggleTheme = () => {

@@ -7,6 +7,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import ReactMarkdown from "react-markdown";
 import toast from "react-hot-toast";
+import { playMessageSendWhoosh, playMessageReceiveChime, playNavTap } from "@/lib/sound-effects";
 
 export default function ChatPage() {
   const { user } = useAuth();
@@ -27,12 +28,14 @@ export default function ChatPage() {
   const handleSend = async () => {
     if (!input.trim() || loading) return;
     const userMessage = input.trim();
+    playMessageSendWhoosh();
     setInput(""); setLoading(true); setCrisisWarning(false);
     setMessages((prev) => [...prev, { role: "USER", content: userMessage, id: "temp" }]);
     try {
       const res = await api.post("/chat", { content: userMessage });
       const aiMessage = res.data.data;
       setMessages((prev) => [...prev.filter((m) => m.id !== "temp"), { role: "USER", content: userMessage, id: Date.now() }, aiMessage]);
+      playMessageReceiveChime();
       if (res.data.crisisDetected) setCrisisWarning(true);
     } catch (err) { toast.error("Failed to send message"); setMessages((prev) => prev.filter((m) => m.id !== "temp")); }
     finally { setLoading(false); }
@@ -72,7 +75,7 @@ export default function ChatPage() {
               <p className="text-xs sm:text-sm mt-1 max-w-sm">Share how you are feeling, ask for advice, or just vent.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 sm:mt-6 w-full max-w-md">
                 {["I am feeling anxious today", "Help me plan my week", "I had a great day!", "Tips for better sleep"].map((suggestion) => (
-                  <button key={suggestion} onClick={() => setInput(suggestion)} className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs sm:text-sm hover:bg-slate-200 dark:hover:bg-white/10 text-foreground transition-colors text-left">{suggestion}</button>
+                  <button key={suggestion} onClick={() => { playNavTap(); setInput(suggestion); }} className="px-3 py-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs sm:text-sm hover:bg-slate-200 dark:hover:bg-white/10 text-foreground transition-colors text-left">{suggestion}</button>
                 ))}
               </div>
             </div>

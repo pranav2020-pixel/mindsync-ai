@@ -10,7 +10,7 @@ import {
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { playCelebrationChord, playClickHerePulse } from "@/lib/sound-effects";
+import { playCelebrationChord, playClickHerePulse, playSoftDeleteSweep } from "@/lib/sound-effects";
 
 interface HabitItem {
   key: string;
@@ -230,6 +230,7 @@ export default function HabitsPage() {
     if (!confirm(`Are you sure you want to remove the habit "${name}"?`)) return;
     try {
       await api.delete(`/habits/custom/${id}`);
+      playSoftDeleteSweep();
       toast.success("Custom habit removed");
       fetchData(selectedDate);
       fetchStats();
@@ -244,6 +245,7 @@ export default function HabitsPage() {
     setSubmittingCustom(true);
     try {
       await api.post("/habits/custom", customForm);
+      playCelebrationChord();
       toast.success("Custom habit created!");
       setShowModal(false);
       setCustomForm({

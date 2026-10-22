@@ -10,6 +10,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
+import { playJournalSaveShimmer, playSoftDeleteSweep } from "@/lib/sound-effects";
 
 export default function JournalPage() {
   const { user } = useAuth();
@@ -124,6 +125,7 @@ export default function JournalPage() {
       if (readingEntry?.id === id) {
         setReadingEntry(null);
       }
+      playSoftDeleteSweep();
       toast.success("Journal entry deleted");
     } catch (err) {
       toast.error("Failed to delete journal entry");
@@ -188,6 +190,7 @@ export default function JournalPage() {
       setContent("");
       setTags("");
       setSleepHours("");
+      playJournalSaveShimmer();
       toast.success("Journal entry saved & analyzed!");
     } catch (err: any) {
       console.error("Journal save error:", err);
@@ -221,6 +224,7 @@ export default function JournalPage() {
       setContent("");
       setTags("");
       setSleepHours("");
+      playJournalSaveShimmer();
       toast.success("Journal saved to your timeline!");
     } finally {
       setLoading(false);
