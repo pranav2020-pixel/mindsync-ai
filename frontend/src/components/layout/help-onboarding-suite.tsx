@@ -317,6 +317,10 @@ export function HelpAndOnboardingSuite() {
     if (savedOpen === "true") {
       setTourOpen(true);
     }
+    prevFreddyPosRef.current = {
+      x: Math.max(16, vw - (mobile ? 80 : 88)),
+      y: Math.max(80, vh - (mobile ? 148 : 88)),
+    };
     setMounted(true);
 
     return () => {
@@ -349,7 +353,7 @@ export function HelpAndOnboardingSuite() {
         const tilt = Math.max(-10, Math.min(10, dx * 0.034));
         // Angle pointing directly backward from flight direction
         const backwardAngle = (Math.atan2(-dy, -dx) * 180) / Math.PI;
-        const streakLen = Math.round(Math.min(210, Math.max(95, dist * 0.58)));
+        const streakLen = Math.round(Math.min(230, Math.max(110, dist * 0.65)));
         // Curve direction: determines whether the tail arcs gracefully upward or downward
         const curveDir = dx * dy >= 0 ? "up" : "down";
 
@@ -360,11 +364,11 @@ export function HelpAndOnboardingSuite() {
         setIsGliding(true);
 
         if (glideTimerRef.current) clearTimeout(glideTimerRef.current);
-        // Let the tail stay active during flight (~420ms) then initiate the gradual fade-away
+        // Let the tail stay active during flight (~420ms) then smoothly fade away on arrival
         glideTimerRef.current = setTimeout(() => {
           setIsGliding(false);
           setGlideTiltDeg(0);
-        }, 440);
+        }, 660);
       }
     }
   }, [freddyPos.x, freddyPos.y, restingPos.x, restingPos.y, tourOpen, prefersReducedMotion, mounted]);
@@ -1101,58 +1105,65 @@ export function HelpAndOnboardingSuite() {
               onMouseLeave={() => {
                 if (!tourOpen) setIdleWave(false);
               }}
+              style={{ isolation: "isolate" }}
               className="relative shrink-0 pointer-events-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)] touch-manipulation"
             >
-              {/* Luminous Curved Silk Ribbon & Stardust Tail Streaming Behind Freddy */}
+              {/* Luminous Curved Silk Ribbon & Stardust Tail Emerging Directly from Freddy's Back */}
               <AnimatePresence>
                 {!prefersReducedMotion && isGliding && (
                   <motion.div
                     key="freddy-curved-trail"
                     aria-hidden="true"
-                    initial={{ opacity: 0, scaleX: 0.2, scaleY: 0.4 }}
-                    animate={{ opacity: 0.95, scaleX: 1, scaleY: 1 }}
+                    initial={{ opacity: 0, scaleX: 0.15, scaleY: 0.35 }}
+                    animate={{ opacity: 0.96, scaleX: 1, scaleY: 1 }}
                     exit={{
                       opacity: 0,
-                      scaleX: 0.08,
-                      scaleY: 0.25,
-                      filter: "blur(3px)",
-                      transition: { duration: 0.58, ease: [0.16, 1, 0.3, 1] },
+                      scaleX: 0.06,
+                      scaleY: 0.2,
+                      filter: "blur(4px)",
+                      transition: { duration: 0.62, ease: [0.16, 1, 0.3, 1] },
                     }}
-                    transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
+                    transition={{ duration: 0.2, ease: [0.22, 1, 0.36, 1] }}
                     style={{
+                      position: "absolute",
+                      left: "50%",
+                      top: "50%",
                       width: tailLength,
-                      height: Math.round(freddyRenderSize * 0.72),
+                      height: Math.round(freddyRenderSize * 0.78),
+                      marginTop: -Math.round(freddyRenderSize * 0.39),
                       transformOrigin: "0% 50%",
-                      rotate: `${tailAngleDeg}deg`,
+                      rotate: tailAngleDeg,
+                      zIndex: -1,
                     }}
-                    className="pointer-events-none absolute top-1/2 left-1/2 -translate-y-1/2 -z-20 overflow-visible"
+                    className="pointer-events-none overflow-visible"
                   >
                     <svg
                       viewBox="0 0 200 80"
                       preserveAspectRatio="none"
-                      className="w-full h-full overflow-visible drop-shadow-[0_0_14px_rgba(16,185,129,0.7)]"
+                      className="w-full h-full overflow-visible drop-shadow-[0_0_16px_rgba(16,185,129,0.8)]"
                     >
                       <defs>
                         <linearGradient id="freddyCurvedOuterGrad" x1="0%" y1="50%" x2="100%" y2="50%">
-                          <stop offset="0%" stopColor={auraColors.c1} stopOpacity="0.75" />
-                          <stop offset="45%" stopColor={auraColors.c2} stopOpacity="0.45" />
-                          <stop offset="85%" stopColor={auraColors.c3} stopOpacity="0.12" />
+                          <stop offset="0%" stopColor={auraColors.c1} stopOpacity="0.85" />
+                          <stop offset="22%" stopColor={auraColors.c1} stopOpacity="0.8" />
+                          <stop offset="55%" stopColor={auraColors.c2} stopOpacity="0.5" />
+                          <stop offset="90%" stopColor={auraColors.c3} stopOpacity="0.15" />
                           <stop offset="100%" stopColor={auraColors.c3} stopOpacity="0" />
                         </linearGradient>
                         <linearGradient id="freddyCurvedCoreGrad" x1="0%" y1="50%" x2="100%" y2="50%">
                           <stop offset="0%" stopColor="#ffffff" stopOpacity="0.95" />
-                          <stop offset="35%" stopColor="#ecfdf5" stopOpacity="0.8" />
-                          <stop offset="75%" stopColor={auraColors.c1} stopOpacity="0.35" />
+                          <stop offset="25%" stopColor="#ecfdf5" stopOpacity="0.9" />
+                          <stop offset="65%" stopColor={auraColors.c1} stopOpacity="0.45" />
                           <stop offset="100%" stopColor={auraColors.c2} stopOpacity="0" />
                         </linearGradient>
                       </defs>
 
-                      {/* Outer Sweeping Curved Ribbon */}
+                      {/* Outer Sweeping Curved Ribbon Connected to Freddy's Back */}
                       <path
                         d={
                           tailCurve === "up"
-                            ? "M 0,24 C 55,18 115,4 195,2 C 125,28 55,50 0,56 Z"
-                            : "M 0,56 C 55,62 115,76 195,78 C 125,52 55,30 0,24 Z"
+                            ? "M 15,22 C 55,16 115,4 195,2 C 130,28 60,52 15,58 Z"
+                            : "M 15,58 C 60,52 130,28 195,78 C 115,76 55,64 15,22 Z"
                         }
                         fill="url(#freddyCurvedOuterGrad)"
                       />
@@ -1161,8 +1172,8 @@ export function HelpAndOnboardingSuite() {
                       <path
                         d={
                           tailCurve === "up"
-                            ? "M 0,36 C 45,26 100,10 160,5 C 105,18 50,38 0,44 Z"
-                            : "M 0,44 C 45,54 100,70 160,75 C 105,62 50,42 0,36 Z"
+                            ? "M 18,35 C 50,26 105,10 165,5 C 110,18 55,38 18,45 Z"
+                            : "M 18,45 C 55,38 110,18 165,75 C 105,70 50,54 18,35 Z"
                         }
                         fill="url(#freddyCurvedCoreGrad)"
                       />
@@ -1170,15 +1181,15 @@ export function HelpAndOnboardingSuite() {
                       {/* Luminous Stardust Sparkles Trailing along the Curved Arc */}
                       {tailCurve === "up" ? (
                         <>
-                          <circle cx="56" cy="25" r="2.6" fill="#ffffff" fillOpacity="0.95" />
-                          <circle cx="104" cy="14" r="2.2" fill={auraColors.c1} fillOpacity="0.85" />
-                          <circle cx="152" cy="7" r="1.6" fill={auraColors.c2} fillOpacity="0.75" />
+                          <circle cx="58" cy="25" r="3" fill="#ffffff" fillOpacity="0.95" />
+                          <circle cx="108" cy="14" r="2.5" fill={auraColors.c1} fillOpacity="0.9" />
+                          <circle cx="156" cy="6" r="2" fill={auraColors.c2} fillOpacity="0.8" />
                         </>
                       ) : (
                         <>
-                          <circle cx="56" cy="55" r="2.6" fill="#ffffff" fillOpacity="0.95" />
-                          <circle cx="104" cy="66" r="2.2" fill={auraColors.c1} fillOpacity="0.85" />
-                          <circle cx="152" cy="73" r="1.6" fill={auraColors.c2} fillOpacity="0.75" />
+                          <circle cx="58" cy="55" r="3" fill="#ffffff" fillOpacity="0.95" />
+                          <circle cx="108" cy="66" r="2.5" fill={auraColors.c1} fillOpacity="0.9" />
+                          <circle cx="156" cy="74" r="2" fill={auraColors.c2} fillOpacity="0.8" />
                         </>
                       )}
                     </svg>
