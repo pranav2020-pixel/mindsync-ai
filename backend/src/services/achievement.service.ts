@@ -150,7 +150,7 @@ export const AchievementService = {
     const [
       allAchievements,
       unlockedMap,
-      journalCount,
+      rawJournalCount,
       moodCount,
       assessmentCount,
       completedHabits,
@@ -170,6 +170,10 @@ export const AchievementService = {
       }),
       prisma.productivityLog.count({ where: { userId } }).catch(() => 0),
     ]);
+
+    // Effective journal reflections: counts both full journal entries and completed JOURNALING habit logs
+    const journalHabitCount = completedHabits.filter((h) => h.habitType === "JOURNALING").length;
+    const journalCount = Math.max(rawJournalCount, journalHabitCount);
 
     // Calculate max streak across all completed habit dates
     const dateSet = new Set<string>();
@@ -257,8 +261,17 @@ export const AchievementService = {
     // 1. Auto-evaluate and unlock newly qualified achievements
     await AchievementService.checkAndUnlockAchievements(userId);
 
-    // 2. Fetch all system achievements and user achievements
-    const [allAchievements, userAchievements, habitLogs] = await Promise.all([
+    // 2. Fetch all system achievements, user achievements, and activity records
+    const [
+      allAchievements,
+      userAchievements,
+      habitLogs,
+      rawJournalCount,
+      moodCount,
+      assessmentCount,
+      completedHabitsList,
+      deepWorkCount,
+    ] = await Promise.all([
       prisma.achievement.findMany({ orderBy: { xpValue: "asc" } }),
       prisma.userAchievement.findMany({
         where: { userId },
@@ -268,12 +281,49 @@ export const AchievementService = {
         where: { userId, completed: true },
         select: { xpEarned: true },
       }),
+      prisma.journalEntry.count({ where: { userId } }),
+      prisma.moodLog.count({ where: { userId } }),
+      prisma.assessmentResult.count({ where: { userId } }),
+      prisma.habitLog.findMany({
+        where: { userId, completed: true },
+        select: { habitType: true, date: true, customHabitId: true },
+      }),
+      prisma.productivityLog.count({ where: { userId } }).catch(() => 0),
     ]);
 
     const unlockedMap = new Map<string, Date>();
     userAchievements.forEach((ua) => {
       unlockedMap.set(ua.achievementId, ua.unlockedAt);
     });
+
+    // Effective journal reflections: counts both full journal entries and completed JOURNALING habit logs
+    const journalHabitCount = completedHabitsList.filter((h) => h.habitType === "JOURNALING").length;
+    const journalCount = Math.max(rawJournalCount, journalHabitCount);
+
+    // Calculate streak
+    const dateSet = new Set<string>();
+    completedHabitsList.forEach((h) => {
+      dateSet.add(new Date(h.date).toISOString().split("T")[0]);
+    });
+
+    let currentStreak = 0;
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+
+    for (let i = 0; i < 60; i++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const key = d.toISOString().split("T")[0];
+      if (dateSet.has(key)) {
+        currentStreak++;
+      } else if (i > 0) {
+        break;
+      }
+    }
+
+    const totalHabitsCompleted = completedHabitsList.length;
+    const meditationCount = completedHabitsList.filter((h) => h.habitType === "MEDITATION").length;
+    const exerciseCount = completedHabitsList.filter((h) => h.habitType === "EXERCISE").length;
 
     // 3. Compute accurate total XP from both Habits AND Achievements
     const habitXP = habitLogs.reduce((sum, h) => sum + (h.xpEarned || 0), 0);
@@ -286,6 +336,59 @@ export const AchievementService = {
 
     const formattedAchievements = allAchievements.map((ach) => {
       const isUnlocked = unlockedMap.has(ach.id);
+      const cond: any = ach.condition || {};
+      let targetValue = cond.count || 1;
+      let currentValue = 0;
+
+      switch (cond.type) {
+        case "journal_count":
+          targetValue = cond.count || 1;
+          currentValue = journalCount;
+          break;
+        case "mood_count":
+          targetValue = cond.count || 5;
+          currentValue = moodCount;
+          break;
+        case "assessment_count":
+          targetValue = cond.count || 1;
+          currentValue = assessmentCount;
+          break;
+        case "total_habits_completed":
+          targetValue = cond.count || 15;
+          currentValue = totalHabitsCompleted;
+          break;
+        case "habit_type_count":
+          if (cond.habitType === "MEDITATION") {
+            targetValue = cond.count || 5;
+            currentValue = meditationCount;
+          } else if (cond.habitType === "EXERCISE") {
+            targetValue = cond.count || 5;
+            currentValue = exerciseCount;
+          }
+          break;
+        case "habit_streak":
+        case "mood_streak":
+          targetValue = cond.count || 3;
+          currentValue = currentStreak;
+          break;
+        case "deep_work_count":
+          targetValue = cond.count || 5;
+          currentValue = deepWorkCount;
+          break;
+        default:
+          targetValue = cond.count || 1;
+          currentValue = isUnlocked ? targetValue : 0;
+          break;
+      }
+
+      if (isUnlocked) {
+        currentValue = Math.max(currentValue, targetValue);
+      }
+
+      const progressPercent = targetValue > 0
+        ? Math.min(100, Math.round((currentValue / targetValue) * 100))
+        : (isUnlocked ? 100 : 0);
+
       return {
         id: ach.id,
         name: ach.name,
@@ -296,6 +399,9 @@ export const AchievementService = {
         unlocked: isUnlocked,
         unlockedAt: unlockedMap.get(ach.id) || null,
         condition: ach.condition,
+        currentValue,
+        targetValue,
+        progressPercent,
       };
     });
 

@@ -191,7 +191,37 @@ export default function JournalPage() {
       setTags("");
       setSleepHours("");
       playJournalSaveShimmer();
-      toast.success("Journal entry saved & analyzed!");
+
+      const habitXp = res.data?.data?.habitXpAwarded;
+      const newlyUnlocked = res.data?.data?.newlyUnlocked;
+
+      if (habitXp && habitXp > 0) {
+        toast.success(`Reflection saved! +${habitXp} XP earned for Daily Reflection 🌟`);
+      } else {
+        toast.success("Journal reflection saved & analyzed! 📝");
+      }
+
+      if (Array.isArray(newlyUnlocked) && newlyUnlocked.length > 0) {
+        newlyUnlocked.forEach((badgeName: string) => {
+          setTimeout(() => {
+            toast.success(`🎉 Milestone Unlocked: ${badgeName}!`);
+          }, 400);
+        });
+      }
+
+      // Broadcast real-time events to sync Habits & Navbar XP instantly
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(
+          new CustomEvent("mindsync:habit-completed", {
+            detail: { habitType: "JOURNALING", xp: habitXp || 10, totalXP: res.data?.data?.totalXP },
+          })
+        );
+        window.dispatchEvent(
+          new CustomEvent("mindsync:xp-earned", {
+            detail: { xp: habitXp || 10, totalXP: res.data?.data?.totalXP },
+          })
+        );
+      }
     } catch (err: any) {
       console.error("Journal save error:", err);
       const fallbackEntry = {

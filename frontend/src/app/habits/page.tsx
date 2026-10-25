@@ -116,6 +116,19 @@ export default function HabitsPage() {
     fetchStats();
   }, [selectedDate]);
 
+  useEffect(() => {
+    const handleSync = () => {
+      fetchData(selectedDate);
+      fetchStats();
+    };
+    window.addEventListener("mindsync:habit-completed", handleSync);
+    window.addEventListener("mindsync:xp-earned", handleSync);
+    return () => {
+      window.removeEventListener("mindsync:habit-completed", handleSync);
+      window.removeEventListener("mindsync:xp-earned", handleSync);
+    };
+  }, [selectedDate]);
+
   const formatDateParam = (d: Date) => {
     const year = d.getFullYear();
     const month = String(d.getMonth() + 1).padStart(2, "0");
@@ -811,6 +824,22 @@ export default function HabitsPage() {
                           </span>
                         </div>
                         <p className="text-[11px] text-muted-foreground truncate">{ach.description || ach.desc}</p>
+                        {!isUnlocked && (ach.targetValue !== undefined && ach.targetValue > 0) && (
+                          <div className="mt-2 space-y-1">
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground font-medium">
+                              <span>Milestone Progress</span>
+                              <span className="font-semibold text-foreground/90">
+                                {ach.currentValue ?? 0} / {ach.targetValue} ({ach.progressPercent ?? 0}%)
+                              </span>
+                            </div>
+                            <div className="w-full h-1.5 bg-muted rounded-full overflow-hidden">
+                              <div
+                                className="h-full bg-gradient-to-r from-amber-500 to-primary-500 rounded-full transition-all duration-500"
+                                style={{ width: `${Math.min(100, Math.max(0, ach.progressPercent ?? 0))}%` }}
+                              />
+                            </div>
+                          </div>
+                        )}
                       </div>
                     </div>
                   );

@@ -54,10 +54,61 @@ export const JournalController = {
       },
     });
 
-    // Auto-check and unlock achievements (e.g. First Reflection +50 XP)
-    AchievementService.checkAndUnlockAchievements(req.user.id).catch((err) => {
-      console.warn("Non-fatal: Achievement check failed on journal creation:", err);
-    });
+    // Auto-complete Daily Reflection (JOURNALING) habit log for today & award 10 XP
+    let habitXpAwarded = 0;
+    try {
+      const today = new Date();
+      today.setHours(0, 0, 0, 0);
+
+      const existingHabit = await prisma.habitLog.findFirst({
+        where: {
+          userId: req.user.id,
+          date: today,
+          habitType: "JOURNALING",
+        },
+      });
+
+      if (!existingHabit) {
+        await prisma.habitLog.create({
+          data: {
+            userId: req.user.id,
+            habitType: "JOURNALING",
+            date: today,
+            completed: true,
+            xpEarned: 10,
+            notes: "Auto-completed via Journal Reflection",
+          },
+        });
+        habitXpAwarded = 10;
+      } else if (!existingHabit.completed) {
+        await prisma.habitLog.update({
+          where: { id: existingHabit.id },
+          data: {
+            completed: true,
+            xpEarned: 10,
+            notes: "Auto-completed via Journal Reflection",
+          },
+        });
+        habitXpAwarded = 10;
+      }
+    } catch (hErr) {
+      console.warn("Non-fatal: Failed to auto-complete journaling habit:", hErr);
+    }
+
+    // Auto-check and unlock achievements (e.g. First Reflection +50 XP, Prolific Writer +150 XP)
+    let newlyUnlocked: string[] = [];
+    try {
+      newlyUnlocked = await AchievementService.checkAndUnlockAchievements(req.user.id);
+    } catch (achErr) {
+      console.warn("Non-fatal: Achievement check failed on journal creation:", achErr);
+    }
+
+    let stats: any = null;
+    try {
+      stats = await AchievementService.getUserAchievementsWithProgress(req.user.id);
+    } catch (stErr) {
+      console.warn("Non-fatal: Progress retrieval failed:", stErr);
+    }
 
     let aiAnalysis: any = {
       sentiment: "neutral", sentimentScore: 0,
@@ -124,7 +175,20 @@ export const JournalController = {
       console.warn("Non-fatal: Recommendation generation failed:", recErr);
     }
 
-    res.status(201).json({ success: true, data: { ...entry, content: cleanContent, aiAnalysis } });
+    res.status(201).json({
+      success: true,
+      data: {
+        ...entry,
+        content: cleanContent,
+        aiAnalysis,
+        habitXpAwarded,
+        newlyUnlocked,
+        totalXP: stats?.totalXP,
+        level: stats?.level,
+        levelProgress: stats?.levelProgress,
+        xpToNextLevel: stats?.xpToNextLevel,
+      },
+    });
   }),
 
   update: asyncHandler(async (req: any, res: Response) => {

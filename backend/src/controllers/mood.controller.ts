@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../server";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
+import { AchievementService } from "../services/achievement.service";
 
 export const MoodController = {
   getAll: asyncHandler(async (req: any, res: Response) => {
@@ -52,7 +53,16 @@ export const MoodController = {
     } else {
       log = await prisma.moodLog.create({ data: { userId: req.user.id, ...moodData } });
     }
-    res.status(201).json({ success: true, data: log });
+
+    // Auto-check and unlock achievements (e.g. Emotional Awareness +100 XP)
+    let newlyUnlocked: string[] = [];
+    try {
+      newlyUnlocked = await AchievementService.checkAndUnlockAchievements(req.user.id);
+    } catch (achErr) {
+      console.warn("Non-fatal: Achievement check failed on mood creation:", achErr);
+    }
+
+    res.status(201).json({ success: true, data: log, newlyUnlocked });
   }),
 
   getStats: asyncHandler(async (req: any, res: Response) => {
