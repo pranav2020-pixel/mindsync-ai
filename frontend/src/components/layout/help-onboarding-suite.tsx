@@ -19,6 +19,7 @@ import {
   Volume2,
   VolumeX,
   Sparkles,
+  Search,
 } from "lucide-react";
 import { useRouter, usePathname } from "next/navigation";
 import { useAuth } from "@/hooks/use-auth";
@@ -173,18 +174,95 @@ const FREDDY_STEPS: FreddyTourStep[] = [
   },
 ];
 
-const FAQ_ITEMS = [
+export interface FaqItem {
+  q: string;
+  a: string;
+  category:
+    | "Privacy & Security"
+    | "Freddy 3D"
+    | "Audio & Sound"
+    | "AI & Coaching"
+    | "Habits & XP"
+    | "Assessments"
+    | "Themes & Visuals";
+}
+
+const FAQ_CATEGORIES = [
+  "All",
+  "Privacy & Security",
+  "Freddy 3D",
+  "Audio & Sound",
+  "AI & Coaching",
+  "Habits & XP",
+  "Assessments",
+  "Themes & Visuals",
+] as const;
+
+const FAQ_ITEMS: FaqItem[] = [
   {
-    q: "Are my journal entries and checkups private?",
-    a: "Yes. All journal entries are encrypted using AES-256-CBC before storage and strictly scoped to your account.",
+    category: "Privacy & Security",
+    q: "Are my journal entries, mood check-ins, and personal data private?",
+    a: "Yes, 100%. All journal reflections and personal entries are encrypted client-side using industry-standard AES-256-CBC encryption before being stored in our serverless PostgreSQL database. Every record is strictly isolated and scoped to your unique account identifier, ensuring no other user or external service can access your private thoughts.",
   },
   {
-    q: "How do Wellness Levels and XP work?",
-    a: "Completing daily habits and unlocking badges earns XP. Every 100 XP levels up your Wellness Rank.",
+    category: "Privacy & Security",
+    q: "How does the two-step account deletion process work?",
+    a: "To permanently delete your account, visit Settings > Danger Zone. For maximum security, deletion requires two-step verification: entering your current account password followed by a verified 6-digit email confirmation code. Upon confirmation, all your journals, moods, habits, XP, and profile records are irrevocably purged from the database.",
   },
   {
-    q: "How often can I change my @username and photo?",
-    a: "You can change your Display Name and Profile Photo anytime in Settings. Your unique @username can be changed once every 60 days.",
+    category: "Privacy & Security",
+    q: "How often can I change my @username and profile photo?",
+    a: "You can update your Display Name and upload, crop, or download your high-resolution profile photo at any time. To protect community trust and prevent handle hoarding, claiming or modifying your unique @username handle has a 60-day cooldown policy.",
+  },
+  {
+    category: "Freddy 3D",
+    q: "Who is Freddy and how does he interact with me?",
+    a: "Freddy is MindSync AI's resident 3D wellness companion, rendered live at 60fps via WebGL Signed Distance Field (SDF) raymarching. Freddy's eyes dynamically track your cursor across the screen, his head turns naturally, and his expressions morph based on your mouse velocity and proximity (from curious peeks to happy winks).",
+  },
+  {
+    category: "Freddy 3D",
+    q: "What is the difference between Section Guide Mode and the Full Tour?",
+    a: "Tapping Freddy in the corner opens Section Guide Mode, which immediately explains the specific section of the app you are currently viewing with 1-click tips. Clicking '3D Tour' in the top navbar launches the Full Guided Tour, which guides you step-by-step through all 9 sections with animated directional arrows and milestone celebration chords.",
+  },
+  {
+    category: "Audio & Sound",
+    q: "How does the procedural sound engine work and how do I mute it?",
+    a: "MindSync AI features an in-browser Web Audio API synthesizer that produces warm acoustic chords, marimba pops, kalimba slider ticks, and zen singing bowls without downloading external audio files. You can toggle sound on or off anytime via the speaker icon in Freddy's speech bubble, the top navbar, or in Settings > Sound Effects & Audio.",
+  },
+  {
+    category: "AI & Coaching",
+    q: "What AI models power MindSync AI's sentiment analysis and chat?",
+    a: "MindSync AI is powered by Google's state-of-the-art Gemini AI architecture (Gemini 4 Argon with resilient fallback to Gemini 1.5 Flash and Pro). The AI delivers empathetic reflection prompts, cognitive reframing, and mood trend summaries while maintaining emotional warmth and psychological safety.",
+  },
+  {
+    category: "AI & Coaching",
+    q: "Is MindSync AI a replacement for professional therapy or medical care?",
+    a: "No. MindSync AI is an emotional self-reflection, mindfulness, and cognitive habit companion, not a licensed healthcare provider or diagnostic tool. If you are experiencing acute distress or a crisis, please navigate to the '24/7 Helplines' tab in this Help modal or contact local emergency mental health services immediately.",
+  },
+  {
+    category: "Habits & XP",
+    q: "How do Wellness Levels, XP multipliers, and streaks work?",
+    a: "Completing daily wellness habits grants +10 XP, completing clinical assessments grants +25 XP, and maintaining daily streaks unlocks active flame badges and a +15% XP multiplier boost. Every 100 XP levels up your Wellness Rank—progressing from Novice Seeker to Mindful Voyager, Zen Architect, and Wellness Grandmaster.",
+  },
+  {
+    category: "Habits & XP",
+    q: "What happens if I miss a day in my daily streak?",
+    a: "Your consecutive day counter resets, but your accumulated Total XP, level rank, and unlocked milestone badges are permanently saved. MindSync AI emphasizes self-compassion—taking a break is a normal part of life, and starting a new streak is always just one habit check-in away.",
+  },
+  {
+    category: "Assessments",
+    q: "What standardized clinical assessments are available?",
+    a: "MindSync AI includes 10 peer-reviewed psychological instruments: WHO-5 (Well-being), PHQ-9 (Depression Screener), GAD-7 (Anxiety Screener), PSS-10 (Perceived Stress), PANAS (Positive/Negative Affect), RSES (Self-Esteem), SWLS (Life Satisfaction), UCLA Loneliness (Social Belonging), PSQI (Sleep Quality), and the Big Five Personality Inventory.",
+  },
+  {
+    category: "Assessments",
+    q: "Can I review my past assessment answers and AI interpretations?",
+    a: "Yes! On the Assessments page, the 'Assessments Taken Last Week' section and 'Assessment History' modal provide question-by-question response breakdowns (original prompt, selected answer, category weighting) alongside clinical subscale visualizers and AI synthesis reports.",
+  },
+  {
+    category: "Themes & Visuals",
+    q: "What visual themes are available and which is best for eye strain?",
+    a: "MindSync AI offers 3 scientifically calibrated palettes in Settings and the Navbar:\n• Forest Emerald (Dark): Deep circadian moss & sage tones scientifically proven to calm optic nerves and lower autonomic cortisol.\n• Monolithic Black (Dark): Pure 0%-saturation OLED true black for maximum contrast and battery conservation.\n• Daylight Clean (Light): Crisp porcelain surface with anti-glare slate boundaries for bright daytime reading.",
   },
 ];
 
@@ -223,6 +301,19 @@ export function HelpAndOnboardingSuite() {
   const [helpOpen, setHelpOpen] = useState(false);
   const [activeHelpTab, setActiveHelpTab] = useState<"guide" | "faq" | "shortcuts" | "crisis">("guide");
   const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(0);
+  const [faqCategory, setFaqCategory] = useState<string>("All");
+  const [faqSearch, setFaqSearch] = useState<string>("");
+
+  const filteredFaqs = FAQ_ITEMS.filter((item) => {
+    const matchesCat = faqCategory === "All" || item.category === faqCategory;
+    const q = faqSearch.trim().toLowerCase();
+    const matchesSearch =
+      !q ||
+      item.q.toLowerCase().includes(q) ||
+      item.a.toLowerCase().includes(q) ||
+      item.category.toLowerCase().includes(q);
+    return matchesCat && matchesSearch;
+  });
 
   const rafPendingRef = useRef<number | null>(null);
   const tourOpenedAtRef = useRef<number>(0);
@@ -1592,36 +1683,135 @@ export function HelpAndOnboardingSuite() {
                 )}
 
                 {activeHelpTab === "faq" && (
-                  <div className="space-y-2.5">
-                    {FAQ_ITEMS.map((item, idx) => {
-                      const isOpen = openFaqIndex === idx;
-                      return (
-                        <div
-                          key={idx}
-                          className="rounded-2xl border border-border/70 bg-muted/30 overflow-hidden"
-                        >
+                  <div className="space-y-3.5">
+                    {/* Search & Topic Filter Header */}
+                    <div className="space-y-2">
+                      <div className="relative">
+                        <Search
+                          size={14}
+                          className="absolute left-3.5 top-1/2 -translate-y-1/2 text-muted-foreground pointer-events-none"
+                          aria-hidden="true"
+                        />
+                        <input
+                          type="text"
+                          value={faqSearch}
+                          onChange={(e) => {
+                            setFaqSearch(e.target.value);
+                            setOpenFaqIndex(null);
+                          }}
+                          placeholder="Search questions by keyword..."
+                          aria-label="Search FAQs"
+                          className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl pl-9 pr-8 py-2 text-xs sm:text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                        />
+                        {faqSearch && (
                           <button
                             type="button"
-                            onClick={() => setOpenFaqIndex(isOpen ? null : idx)}
-                            className="w-full px-4 py-3 text-left flex items-center justify-between gap-3 text-xs sm:text-sm font-semibold text-foreground hover:bg-muted/50 transition-colors"
+                            onClick={() => setFaqSearch("")}
+                            aria-label="Clear search"
+                            className="absolute right-2.5 top-1/2 -translate-y-1/2 p-1 text-muted-foreground hover:text-foreground rounded-lg transition-colors"
                           >
-                            <span>{item.q}</span>
-                            <ChevronDown
-                              size={16}
-                              className={cn(
-                                "text-muted-foreground shrink-0 transition-transform duration-200",
-                                isOpen && "rotate-180 text-primary-500"
-                              )}
-                            />
+                            <X size={13} aria-hidden="true" />
                           </button>
-                          {isOpen && (
-                            <div className="px-4 pb-3.5 text-xs text-muted-foreground leading-relaxed border-t border-border/40 pt-2.5">
-                              {item.a}
+                        )}
+                      </div>
+
+                      {/* Horizontal Category Filter Pills */}
+                      <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs no-scrollbar">
+                        {FAQ_CATEGORIES.map((cat) => {
+                          const active = faqCategory === cat;
+                          const count =
+                            cat === "All"
+                              ? FAQ_ITEMS.length
+                              : FAQ_ITEMS.filter((i) => i.category === cat).length;
+                          return (
+                            <button
+                              key={cat}
+                              type="button"
+                              onClick={() => {
+                                playClickHerePulse();
+                                setFaqCategory(cat);
+                                setOpenFaqIndex(null);
+                              }}
+                              className={cn(
+                                "px-2.5 py-1 rounded-lg text-[11px] font-semibold whitespace-nowrap transition-all active:scale-95 shrink-0 border",
+                                active
+                                  ? "bg-primary-600 text-white border-primary-600 shadow-xs"
+                                  : "bg-muted/40 text-muted-foreground border-border/60 hover:text-foreground hover:bg-muted"
+                              )}
+                            >
+                              {cat} ({count})
+                            </button>
+                          );
+                        })}
+                      </div>
+                    </div>
+
+                    {/* FAQ Accordion List or Empty Fallback */}
+                    {filteredFaqs.length === 0 ? (
+                      <div className="p-6 rounded-2xl border border-border/70 bg-muted/20 text-center space-y-2">
+                        <HelpCircle size={28} className="mx-auto text-muted-foreground/50" />
+                        <p className="text-xs font-semibold text-foreground">No questions found</p>
+                        <p className="text-[11px] text-muted-foreground">
+                          No FAQs match &quot;{faqSearch}&quot;. Try another search term or reset filters.
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setFaqSearch("");
+                            setFaqCategory("All");
+                          }}
+                          className="text-xs font-semibold text-primary-600 dark:text-primary-400 hover:underline pt-1 inline-block"
+                        >
+                          Reset FAQ filters
+                        </button>
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {filteredFaqs.map((item, idx) => {
+                          const isOpen = openFaqIndex === idx;
+                          return (
+                            <div
+                              key={`${item.category}-${item.q}`}
+                              className={cn(
+                                "rounded-2xl border transition-all duration-200 overflow-hidden",
+                                isOpen
+                                  ? "border-primary-500/40 bg-card shadow-xs"
+                                  : "border-border/70 bg-muted/30 hover:border-border"
+                              )}
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  playNavTap();
+                                  setOpenFaqIndex(isOpen ? null : idx);
+                                }}
+                                aria-expanded={isOpen}
+                                className="w-full px-4 py-3 text-left flex items-start justify-between gap-3 text-xs sm:text-sm font-semibold text-foreground hover:bg-muted/40 transition-colors"
+                              >
+                                <div className="space-y-1 pr-2">
+                                  <span className="inline-block text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20 uppercase tracking-wider">
+                                    {item.category}
+                                  </span>
+                                  <p className="leading-snug">{item.q}</p>
+                                </div>
+                                <ChevronDown
+                                  size={16}
+                                  className={cn(
+                                    "text-muted-foreground shrink-0 mt-1 transition-transform duration-200",
+                                    isOpen && "rotate-180 text-primary-500"
+                                  )}
+                                />
+                              </button>
+                              {isOpen && (
+                                <div className="px-4 pb-3.5 text-xs text-muted-foreground leading-relaxed border-t border-border/40 pt-2.5 whitespace-pre-line">
+                                  {item.a}
+                                </div>
+                              )}
                             </div>
-                          )}
-                        </div>
-                      );
-                    })}
+                          );
+                        })}
+                      </div>
+                    )}
                   </div>
                 )}
 
