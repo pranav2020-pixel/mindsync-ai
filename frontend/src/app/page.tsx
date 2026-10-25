@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
@@ -11,12 +11,14 @@ import {
 } from "recharts";
 import {
   TrendingUp, TrendingDown, BookOpen, Heart, Zap, Brain,
-  Sparkles, Calendar, Activity
+  Sparkles, Calendar, Activity, ArrowRight, Loader2
 } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useChartTheme } from "@/lib/chart-theme";
+import { playNavTap, playCelebrationChord } from "@/lib/sound-effects";
+import toast from "react-hot-toast";
 
 const container = {
   hidden: { opacity: 0 },
@@ -36,6 +38,30 @@ export default function Dashboard() {
   const [moodData, setMoodData] = useState<any[]>([]);
   const [insights, setInsights] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [generatingInsights, setGeneratingInsights] = useState(false);
+
+  const greeting = useMemo(() => {
+    const hour = new Date().getHours();
+    if (hour < 12) return "Good morning";
+    if (hour < 18) return "Good afternoon";
+    return "Good evening";
+  }, []);
+
+  const handleGenerateInsights = async () => {
+    playNavTap();
+    setGeneratingInsights(true);
+    try {
+      const res = await api.get("/insights?limit=3");
+      const freshInsights = res.data.data || [];
+      setInsights(freshInsights);
+      playCelebrationChord();
+      toast.success("AI Insights refreshed!");
+    } catch (err) {
+      toast.error("Could not refresh insights. Visit AI Chat!");
+    } finally {
+      setGeneratingInsights(false);
+    }
+  };
 
   useEffect(() => {
     if (authLoading) return;
@@ -87,7 +113,7 @@ export default function Dashboard() {
 
   if (loading || authLoading) {
     return (
-      <div className="space-y-6">
+      <div role="status" aria-live="polite" aria-label="Loading wellness overview" className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
             <div key={i} className="h-32 glass-card rounded-2xl animate-pulse" />
@@ -98,16 +124,32 @@ export default function Dashboard() {
     );
   }
 
+  const firstName = user?.name ? user.name.split(" ")[0] : "there";
+
   return (
     <motion.div variants={container} initial="hidden" animate="show" className="space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl sm:text-3xl font-bold">Welcome back</h1>
-          <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">Here is your wellness overview for today</p>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">
+            {greeting}, {firstName}
+          </h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">
+            Here is your daily cognitive calm &amp; wellness overview
+          </p>
         </div>
-        <button className="glass-card px-4 py-2 rounded-xl text-xs sm:text-sm font-medium flex items-center gap-2 hover-lift self-start sm:self-auto">
-          <Sparkles size={16} className="text-wellness-energy" />
-          Generate Insights
+        <button
+          type="button"
+          onClick={handleGenerateInsights}
+          disabled={generatingInsights}
+          aria-label="Refresh AI Wellness Insights"
+          className="glass-card px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 hover-lift self-start sm:self-auto active:scale-95 disabled:opacity-60 transition-all border border-border/80"
+        >
+          {generatingInsights ? (
+            <Loader2 size={16} className="text-wellness-energy animate-spin" />
+          ) : (
+            <Sparkles size={16} className="text-wellness-energy" />
+          )}
+          {generatingInsights ? "Synthesizing..." : "Generate Insights"}
         </button>
       </div>
 
@@ -200,22 +242,34 @@ export default function Dashboard() {
 
 function StatCard({ title, value, subtitle, icon: Icon, trend, trendUp, color, bgColor }: any) {
   return (
-    <motion.div variants={item} className="glass-card rounded-2xl p-5 hover-lift">
+    <motion.div
+      variants={item}
+      role="region"
+      aria-label={`${title}: ${value} ${subtitle}`}
+      className="glass-card rounded-2xl p-4 sm:p-5 hover-lift relative overflow-hidden"
+    >
       <div className="flex items-start justify-between">
-        <div className={cn("p-2.5 rounded-xl", bgColor)}>
-          <Icon size={20} className={color} />
+        <div className={cn("p-2.5 rounded-xl border border-border/40", bgColor)}>
+          <Icon size={20} className={color} aria-hidden="true" />
         </div>
-        <div className={cn("flex items-center gap-1 text-xs font-medium", trendUp ? "text-wellness-calm" : "text-wellness-stress")}>
-          {trendUp ? <TrendingUp size={14} /> : <TrendingDown size={14} />}
+        <div
+          className={cn(
+            "flex items-center gap-1 text-xs font-semibold px-2 py-0.5 rounded-full border border-border/50 tabular-nums",
+            trendUp ? "text-wellness-calm bg-wellness-calm/10" : "text-wellness-stress bg-wellness-stress/10"
+          )}
+        >
+          {trendUp ? <TrendingUp size={12} aria-hidden="true" /> : <TrendingDown size={12} aria-hidden="true" />}
           {trend}
         </div>
       </div>
       <div className="mt-4">
-        <div className="flex items-baseline gap-1">
-          <span className="text-2xl font-bold text-foreground">{value}</span>
-          <span className="text-sm text-muted-foreground">{subtitle}</span>
+        <div className="flex items-baseline gap-1.5">
+          <span className="text-2xl sm:text-3xl font-extrabold text-foreground tabular-nums tracking-tight">
+            {value}
+          </span>
+          <span className="text-xs sm:text-sm font-medium text-muted-foreground">{subtitle}</span>
         </div>
-        <p className="text-sm text-muted-foreground mt-1">{title}</p>
+        <p className="text-xs sm:text-sm font-medium text-muted-foreground mt-1">{title}</p>
       </div>
     </motion.div>
   );
@@ -223,14 +277,20 @@ function StatCard({ title, value, subtitle, icon: Icon, trend, trendUp, color, b
 
 function QuickAction({ href, icon: Icon, label, desc, color }: any) {
   return (
-    <Link href={href} className="flex items-center gap-3 p-3 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all group hover-lift-subtle border border-transparent hover:border-border">
-      <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-110", color)}>
-        <Icon size={18} />
+    <Link
+      href={href}
+      onClick={() => playNavTap()}
+      aria-label={`${label} — ${desc}`}
+      className="flex items-center gap-3 p-3.5 rounded-xl hover:bg-slate-100 dark:hover:bg-white/5 transition-all group hover-lift-subtle border border-transparent hover:border-border min-h-[48px] focus-visible:ring-2 focus-visible:ring-primary-500 active:scale-[0.98]"
+    >
+      <div className={cn("p-2.5 rounded-xl transition-transform group-hover:scale-105 border border-border/40 shrink-0", color)}>
+        <Icon size={18} aria-hidden="true" />
       </div>
-      <div className="flex-1">
-        <p className="font-medium text-sm text-foreground">{label}</p>
-        <p className="text-xs text-muted-foreground">{desc}</p>
+      <div className="flex-1 min-w-0">
+        <p className="font-semibold text-sm text-foreground truncate">{label}</p>
+        <p className="text-xs text-muted-foreground truncate">{desc}</p>
       </div>
+      <ArrowRight size={14} className="text-muted-foreground/40 group-hover:text-foreground group-hover:translate-x-0.5 transition-all shrink-0" aria-hidden="true" />
     </Link>
   );
 }

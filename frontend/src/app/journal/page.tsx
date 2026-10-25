@@ -10,7 +10,7 @@ import api from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { playJournalSaveShimmer, playSoftDeleteSweep } from "@/lib/sound-effects";
+import { playJournalSaveShimmer, playSoftDeleteSweep, playSliderTick } from "@/lib/sound-effects";
 
 export default function JournalPage() {
   const { user } = useAuth();
@@ -248,17 +248,17 @@ export default function JournalPage() {
           {/* New Reflection Form */}
           <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200/80 dark:border-slate-700/50 shadow-sm dark:shadow-lg">
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Title (Optional)</label>
+              <label className="text-xs font-semibold text-foreground/90 mb-1.5 block">Title (Optional)</label>
               <input
                 value={title}
                 onChange={(e) => setTitle(e.target.value)}
                 placeholder="E.g., Morning Thoughts, Overcoming a hurdle..."
-                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-base font-semibold text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-4 py-2.5 text-base font-semibold text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
               />
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">
+              <label className="text-xs font-semibold text-foreground/90 mb-1.5 block">
                 Your Reflection <span className="text-wellness-stress">*</span>
               </label>
               <textarea
@@ -270,7 +270,7 @@ export default function JournalPage() {
                 rows={7}
                 placeholder="Write your thoughts, feelings, gratitude, goals, or reflections..."
                 className={cn(
-                  "w-full bg-slate-50 dark:bg-white/5 border rounded-xl px-4 py-3 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none leading-relaxed resize-none focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all",
+                  "w-full bg-slate-50 dark:bg-white/5 border rounded-xl px-4 py-3 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none leading-relaxed resize-none focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all",
                   contentError
                     ? "border-wellness-stress ring-1 ring-wellness-stress/30"
                     : "border-slate-200 dark:border-white/10 focus:border-primary-500"
@@ -280,14 +280,14 @@ export default function JournalPage() {
             </div>
 
             <div>
-              <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Tags (Optional)</label>
+              <label className="text-xs font-semibold text-foreground/90 mb-1.5 block">Tags (Optional)</label>
               <div className="flex items-center gap-2 bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-xl px-3 py-2.5 focus-within:border-primary-500 focus-within:bg-white dark:focus-within:bg-white/10 focus-within:ring-2 focus-within:ring-primary-500/20 transition-all">
-                <Tag size={16} className="text-slate-400 dark:text-muted-foreground shrink-0" />
+                <Tag size={16} className="text-muted-foreground shrink-0" />
                 <input
                   value={tags}
                   onChange={(e) => setTags(e.target.value)}
                   placeholder="mindfulness, work, gratitude (comma separated)"
-                  className="flex-1 bg-transparent text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none"
+                  className="flex-1 bg-transparent text-sm text-foreground placeholder:text-muted-foreground/60 outline-none"
                 />
               </div>
             </div>
@@ -297,7 +297,7 @@ export default function JournalPage() {
               <SliderField label="Energy" value={energy} onChange={setEnergy} icon={Zap} color="text-wellness-energy" />
               <SliderField label="Stress" value={stress} onChange={setStress} icon={Frown} color="text-wellness-stress" />
               <div>
-                <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 block">Sleep (hrs)</label>
+                <label className="text-xs font-semibold text-foreground/90 mb-1.5 block">Sleep (hrs)</label>
                 <input
                   type="number"
                   step="0.5"
@@ -306,7 +306,7 @@ export default function JournalPage() {
                   value={sleepHours}
                   onChange={(e) => setSleepHours(e.target.value)}
                   placeholder="7.5"
-                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-slate-900 dark:text-white placeholder:text-slate-400 dark:placeholder:text-slate-500 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all"
+                  className="w-full bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/10 rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 outline-none focus:border-primary-500 focus:bg-white dark:focus:bg-white/10 focus:ring-2 focus:ring-primary-500/20 transition-all tabular-nums"
                 />
               </div>
             </div>
@@ -733,8 +733,8 @@ export default function JournalPage() {
 function SliderField({ label, value, onChange, icon: Icon, color }: any) {
   return (
     <div>
-      <label className="text-xs font-semibold text-slate-700 dark:text-slate-300 mb-1.5 flex items-center gap-1.5">
-        <Icon size={14} className={color} /> {label}
+      <label className="text-xs font-semibold text-foreground/90 mb-1.5 flex items-center gap-1.5">
+        <Icon size={14} className={color} aria-hidden="true" /> {label}
       </label>
       <div className="space-y-1.5">
         <input
@@ -742,10 +742,18 @@ function SliderField({ label, value, onChange, icon: Icon, color }: any) {
           min={1}
           max={10}
           value={value}
-          onChange={(e) => onChange(Number(e.target.value))}
-          className="w-full accent-primary-600 dark:accent-primary-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none"
+          aria-label={`${label} intensity: ${value} out of 10`}
+          aria-valuemin={1}
+          aria-valuemax={10}
+          aria-valuenow={value}
+          onChange={(e) => {
+            const v = Number(e.target.value);
+            playSliderTick(v, 1, 10);
+            onChange(v);
+          }}
+          className="w-full accent-primary-600 dark:accent-primary-500 cursor-pointer h-2 bg-slate-200 dark:bg-slate-700 rounded-lg appearance-none focus-visible:ring-2 focus-visible:ring-primary-500"
         />
-        <div className="text-center text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-white/10 py-0.5 rounded-md border border-slate-200/50 dark:border-white/5">
+        <div className="text-center text-xs font-bold text-foreground bg-slate-100 dark:bg-white/10 py-0.5 rounded-md border border-slate-200/50 dark:border-white/5 tabular-nums">
           {value}/10
         </div>
       </div>

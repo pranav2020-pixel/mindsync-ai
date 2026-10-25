@@ -1286,6 +1286,8 @@ export function HelpAndOnboardingSuite() {
             {tourOpen && (
               <motion.div
                 key={`${currentStep.id}-${isWaitingForSectionClick ? "nav" : "inside"}`}
+                role="region"
+                aria-label="Freddy Onboarding Guide"
                 initial={{ opacity: 0, y: 5, scale: 0.96 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -4, scale: 0.96 }}
@@ -1306,7 +1308,7 @@ export function HelpAndOnboardingSuite() {
                     />
                     <span
                       className={cn(
-                        "text-[10px] font-bold uppercase tracking-wider truncate",
+                        "text-[10px] font-bold uppercase tracking-wider truncate tabular-nums",
                         isWaitingForSectionClick
                           ? "text-emerald-600 dark:text-emerald-400"
                           : "text-primary-600 dark:text-primary-400"
@@ -1366,9 +1368,9 @@ export function HelpAndOnboardingSuite() {
                   </p>
                 </motion.div>
 
-                {/* Bottom Controls: Step Dots + Back / Next / Skip */}
+                {/* Bottom Controls: Accessible Step Dots + Back / Next / Skip */}
                 <div className="pt-1.5 flex items-center justify-between gap-2 border-t border-border/60">
-                  <div className="flex items-center gap-1">
+                  <div className="flex items-center gap-0.5">
                     {FREDDY_STEPS.map((s, idx) => (
                       <button
                         key={s.id}
@@ -1377,14 +1379,18 @@ export function HelpAndOnboardingSuite() {
                           playClickHerePulse();
                           goToStep(idx);
                         }}
-                        aria-label={`Step ${idx + 1}: ${s.sectionLabel}`}
-                        className={cn(
-                          "h-1.5 rounded-full transition-all touch-manipulation",
-                          idx === effectiveTourStep
-                            ? "w-3 bg-primary-500"
-                            : "w-1.5 bg-muted-foreground/30 hover:bg-muted-foreground/60"
-                        )}
-                      />
+                        aria-label={`Step ${idx + 1} of ${FREDDY_STEPS.length}: ${s.sectionLabel}`}
+                        className="p-1 touch-manipulation group"
+                      >
+                        <span
+                          className={cn(
+                            "block h-1.5 rounded-full transition-all",
+                            idx === effectiveTourStep
+                              ? "w-3 bg-primary-500 shadow-xs"
+                              : "w-1.5 bg-muted-foreground/30 group-hover:bg-muted-foreground/60"
+                          )}
+                        />
+                      </button>
                     ))}
                   </div>
 
@@ -1407,6 +1413,7 @@ export function HelpAndOnboardingSuite() {
                       <button
                         type="button"
                         onClick={handleAdvanceTour}
+                        aria-label={`Skip navigation to ${currentStep.sectionLabel}`}
                         className="min-h-[28px] px-2 py-0.5 rounded-lg text-[11px] font-semibold text-muted-foreground hover:text-foreground hover:bg-muted transition-colors active:scale-95 touch-manipulation"
                       >
                         Skip
@@ -1415,6 +1422,7 @@ export function HelpAndOnboardingSuite() {
                       <button
                         type="button"
                         onClick={handleAdvanceTour}
+                        aria-label={`Advance to next step: ${FREDDY_STEPS[effectiveTourStep + 1]?.title || 'Next'}`}
                         className="min-h-[28px] px-3 py-1 rounded-lg bg-primary-600 hover:bg-primary-500 text-white text-[11px] font-bold flex items-center gap-0.5 shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
                         Next
@@ -1424,6 +1432,7 @@ export function HelpAndOnboardingSuite() {
                       <button
                         type="button"
                         onClick={handleFinishTourWithCelebration}
+                        aria-label="Finish and complete Freddy tour"
                         className="min-h-[28px] px-3 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-500 text-white text-[11px] font-bold shadow-sm transition-all active:scale-95 touch-manipulation"
                       >
                         Finish

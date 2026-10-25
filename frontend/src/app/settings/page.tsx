@@ -38,12 +38,22 @@ import {
   Download,
   HelpCircle,
   PlayCircle,
+  Volume2,
+  VolumeX,
 } from "lucide-react";
 import { useAuth } from "@/hooks/use-auth";
 import { useTheme } from "@/components/layout/theme-provider";
 import { cn } from "@/lib/utils";
 import api from "@/lib/api";
-import { playJournalSaveShimmer, playSoftDeleteSweep } from "@/lib/sound-effects";
+import {
+  playJournalSaveShimmer,
+  playSoftDeleteSweep,
+  isSoundMuted,
+  toggleSoundMuted,
+  SOUND_MUTE_CHANGE_EVENT,
+  playNavTap,
+  playCelebrationChord,
+} from "@/lib/sound-effects";
 import { toast } from "react-hot-toast";
 
 export default function SettingsPage() {
@@ -55,6 +65,29 @@ export default function SettingsPage() {
   const [nameInput, setNameInput] = useState(user?.name || "");
   const [usernameInput, setUsernameInput] = useState(user?.username || "");
   const [profileSaving, setProfileSaving] = useState(false);
+
+  // Sound preferences state
+  const [soundMuted, setSoundMuted] = useState(false);
+
+  useEffect(() => {
+    setSoundMuted(isSoundMuted());
+    const handleMuteChange = () => {
+      setSoundMuted(isSoundMuted());
+    };
+    window.addEventListener(SOUND_MUTE_CHANGE_EVENT, handleMuteChange);
+    return () => window.removeEventListener(SOUND_MUTE_CHANGE_EVENT, handleMuteChange);
+  }, []);
+
+  const handleToggleSound = () => {
+    const next = toggleSoundMuted();
+    setSoundMuted(next);
+    if (!next) {
+      playCelebrationChord();
+      toast.success("Procedural sound effects enabled!");
+    } else {
+      toast("Sound effects muted", { icon: "🔇" });
+    }
+  };
 
   // 60-Day Username Cooldown calculation
   const cooldownInfo = (() => {
@@ -1018,10 +1051,13 @@ export default function SettingsPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
+        <div role="radiogroup" aria-label="Theme & Visual Atmosphere" className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 pt-2">
           {/* 1. Relaxing Biophilic Green Dark */}
           <button
             type="button"
+            role="radio"
+            aria-checked={theme === "green"}
+            aria-label="Select Forest Emerald theme"
             onClick={() => setTheme("green")}
             className={cn(
               "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group hover-lift-subtle",
@@ -1056,16 +1092,19 @@ export default function SettingsPage() {
           {/* 2. Classic Obsidian Dark */}
           <button
             type="button"
+            role="radio"
+            aria-checked={theme === "dark"}
+            aria-label="Select Monolithic Black OLED theme"
             onClick={() => setTheme("dark")}
             className={cn(
               "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group hover-lift-subtle",
               theme === "dark"
-                ? "bg-slate-900/60 border-primary-500 ring-2 ring-primary-500/30 shadow-lg"
-                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary-500/40"
+                ? "bg-neutral-900 border-neutral-300 ring-2 ring-neutral-400/30 shadow-lg dark:border-neutral-200"
+                : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-neutral-400/40"
             )}
           >
             {theme === "dark" && (
-              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-primary-500 text-white flex items-center justify-center">
+              <span className="absolute top-3 right-3 w-5 h-5 rounded-full bg-white text-slate-950 flex items-center justify-center">
                 <Check size={12} className="stroke-[3]" />
               </span>
             )}
@@ -1090,11 +1129,14 @@ export default function SettingsPage() {
           {/* 3. Daylight Pristine Light */}
           <button
             type="button"
+            role="radio"
+            aria-checked={theme === "light"}
+            aria-label="Select Daylight Clean theme"
             onClick={() => setTheme("light")}
             className={cn(
               "p-4 rounded-xl text-left border transition-all flex flex-col justify-between relative group hover-lift-subtle",
               theme === "light"
-                ? "bg-slate-100 border-primary-600 ring-2 ring-primary-600/30 shadow-md"
+                ? "bg-white border-primary-600 ring-2 ring-primary-600/30 shadow-md"
                 : "bg-slate-50 dark:bg-white/5 border-slate-200 dark:border-white/10 hover:border-primary-500/40"
             )}
           >
@@ -1119,6 +1161,79 @@ export default function SettingsPage() {
                 Crisp high-contrast daytime reading mode with slate boundaries and anti-glare shadows.
               </p>
             </div>
+          </button>
+        </div>
+      </motion.div>
+
+      {/* Sound Effects & Procedural Audio Preferences Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.08 }}
+        className="glass-card rounded-2xl p-6 border border-slate-200/80 dark:border-white/10 space-y-4"
+      >
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-wellness-focus/15 text-wellness-focus flex items-center justify-center">
+              <Volume2 size={20} />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <h2 className="text-lg font-semibold text-foreground">Sound Effects &amp; Audio</h2>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-wellness-focus/15 text-wellness-focus border border-wellness-focus/25 uppercase tracking-wider">
+                  Web Audio Synthesizer
+                </span>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Harmonic chime chords, slider kalimba tones, and Freddy flight whooshes for multisensory serenity.
+              </p>
+            </div>
+          </div>
+
+          <button
+            type="button"
+            onClick={handleToggleSound}
+            aria-label={soundMuted ? "Unmute all sound effects" : "Mute all sound effects"}
+            aria-pressed={!soundMuted}
+            className={cn(
+              "px-4 py-2 rounded-xl text-xs font-semibold flex items-center gap-2 transition-all active:scale-95 border",
+              !soundMuted
+                ? "bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30 hover:bg-emerald-500/25"
+                : "bg-muted text-muted-foreground border-border hover:text-foreground"
+            )}
+          >
+            {!soundMuted ? (
+              <>
+                <Volume2 size={15} />
+                Audio Active
+              </>
+            ) : (
+              <>
+                <VolumeX size={15} />
+                Muted
+              </>
+            )}
+          </button>
+        </div>
+
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-white/5 border border-slate-200 dark:border-white/5 gap-3">
+          <div className="text-xs space-y-0.5">
+            <p className="font-semibold text-foreground">Sound Preview &amp; Verification</p>
+            <p className="text-muted-foreground">
+              Experience the warm Major-9th celebration arpeggio synthesized procedurally via the Web Audio API.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              playCelebrationChord();
+              toast.success("Playing preview chord!");
+            }}
+            disabled={soundMuted}
+            aria-label="Play test celebration chime"
+            className="px-3.5 py-1.5 rounded-xl bg-card hover:bg-muted text-foreground text-xs font-medium border border-border shadow-xs transition-all active:scale-95 disabled:opacity-40 self-start sm:self-auto shrink-0"
+          >
+            Play Test Chime
           </button>
         </div>
       </motion.div>
