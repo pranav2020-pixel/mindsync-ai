@@ -380,6 +380,17 @@ export default function LoginPage() {
             Create one
           </Link>
         </p>
+
+        {/* Footer Legal Links */}
+        <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mt-6 pt-4 border-t border-slate-200/60 dark:border-white/10">
+          <Link href="/privacy" className="hover:text-foreground hover:underline transition-colors">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link href="/terms" className="hover:text-foreground hover:underline transition-colors">
+            Terms of Service
+          </Link>
+        </div>
       </motion.div>
     </div>
   );

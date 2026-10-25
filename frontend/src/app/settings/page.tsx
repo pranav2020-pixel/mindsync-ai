@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useRef, useCallback } from "react";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   User,
@@ -12,6 +13,9 @@ import {
   CheckCircle2,
   Loader2,
   Shield,
+  ShieldCheck,
+  FileText,
+  ExternalLink,
   Clock,
   Bug,
   Lightbulb,
@@ -1411,6 +1415,79 @@ export default function SettingsPage() {
             </button>
           </div>
         </form>
+      </motion.div>
+
+      {/* Legal & Compliance Standards Card */}
+      <motion.div
+        initial={{ opacity: 0, y: 10 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.18 }}
+        className="rounded-2xl p-6 glass-card space-y-4"
+      >
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 rounded-xl bg-primary-500/10 text-primary-600 dark:text-primary-400 flex items-center justify-center shrink-0">
+              <ShieldCheck size={20} />
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Legal &amp; Privacy Governance</h2>
+              <p className="text-xs text-muted-foreground">
+                International compliance, encryption standards, and user autonomy
+              </p>
+            </div>
+          </div>
+          <span className="hidden sm:inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 text-[11px] font-semibold border border-emerald-500/20">
+            <CheckCircle2 size={12} /> GDPR &amp; COPPA Gated
+          </span>
+        </div>
+
+        <p className="text-xs text-muted-foreground leading-relaxed">
+          MindSync AI is built on a zero-compromise privacy framework. Your emotional reflections are encrypted at rest with AES-256, personal logs are never sold or used for public AI training, and you maintain complete self-service data erasure rights.
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
+          <Link
+            href="/privacy"
+            target="_blank"
+            className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 transition-all group"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 flex items-center justify-center">
+                <ShieldCheck size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground group-hover:text-primary-500 transition-colors">
+                  Privacy Policy
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  AES-256 encryption &amp; data handling
+                </p>
+              </div>
+            </div>
+            <ExternalLink size={14} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+          </Link>
+
+          <Link
+            href="/terms"
+            target="_blank"
+            className="flex items-center justify-between p-3.5 rounded-xl bg-slate-50 dark:bg-white/5 hover:bg-slate-100 dark:hover:bg-white/10 border border-slate-200/80 dark:border-white/10 transition-all group"
+          >
+            <div className="flex items-center gap-2.5">
+              <div className="w-8 h-8 rounded-lg bg-primary-500/15 text-primary-600 dark:text-primary-400 flex items-center justify-center">
+                <FileText size={16} />
+              </div>
+              <div>
+                <p className="text-xs font-bold text-foreground group-hover:text-primary-500 transition-colors">
+                  Terms of Service
+                </p>
+                <p className="text-[11px] text-muted-foreground">
+                  Wellness disclaimers &amp; eligibility
+                </p>
+              </div>
+            </div>
+            <ExternalLink size={14} className="text-muted-foreground group-hover:text-foreground transition-colors" />
+          </Link>
+        </div>
       </motion.div>
 
       {/* Danger Zone: Delete Account / Admin Protection */}

@@ -266,6 +266,20 @@ export default function RegisterPage() {
                 </div>
               </div>
 
+              {/* Age & Legal Consent Notice (COPPA / GDPR / App Store Guidelines) */}
+              <div className="pt-1 pb-0.5">
+                <p className="text-[11px] text-muted-foreground leading-relaxed text-center">
+                  By continuing, you confirm you are at least <strong className="text-foreground">13 years old</strong> (16 in EU/UK) and agree to MindSync AI&apos;s{" "}
+                  <Link href="/terms" target="_blank" className="text-primary-500 dark:text-primary-400 font-semibold underline hover:opacity-85">
+                    Terms of Service
+                  </Link>{" "}
+                  and{" "}
+                  <Link href="/privacy" target="_blank" className="text-primary-500 dark:text-primary-400 font-semibold underline hover:opacity-85">
+                    Privacy Policy
+                  </Link>.
+                </p>
+              </div>
+
               <button
                 type="submit"
                 disabled={loading}
@@ -372,6 +386,17 @@ export default function RegisterPage() {
             Sign in
           </Link>
         </p>
+
+        {/* Footer Legal Links */}
+        <div className="flex items-center justify-center gap-3 text-xs text-muted-foreground mt-6 pt-4 border-t border-slate-200/60 dark:border-white/10">
+          <Link href="/privacy" className="hover:text-foreground hover:underline transition-colors">
+            Privacy Policy
+          </Link>
+          <span>•</span>
+          <Link href="/terms" className="hover:text-foreground hover:underline transition-colors">
+            Terms of Service
+          </Link>
+        </div>
       </motion.div>
     </div>
   );
