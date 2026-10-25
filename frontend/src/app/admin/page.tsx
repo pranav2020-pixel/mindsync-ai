@@ -222,7 +222,7 @@ export default function AdminDashboardPage() {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-500/15 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-semibold mb-2">
             <ShieldCheck size={14} /> Creator Admin Portal
           </div>
-          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Admin & Community Telemetry</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-foreground">Admin & Community Overview</h1>
           <p className="text-sm text-muted-foreground mt-0.5">
             Monitor user growth, daily active engagement, and submitted bug reports / suggestions.
           </p>

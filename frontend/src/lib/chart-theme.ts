@@ -29,7 +29,7 @@ export const SAAS_CHART_SERIES = {
     glow: "rgba(245, 158, 11, 0.4)",
   },
   violet: {
-    name: "Cognition / AI Insights",
+    name: "Wellness & AI Insights",
     stroke: "#8b5cf6",
     fill: "rgba(139, 92, 246, 0.18)",
     glow: "rgba(139, 92, 246, 0.4)",

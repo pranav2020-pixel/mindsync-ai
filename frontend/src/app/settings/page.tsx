@@ -1046,7 +1046,7 @@ export default function SettingsPage() {
               </span>
             </div>
             <p className="text-xs text-muted-foreground">
-              Scientifically engineered palettes to reduce digital eye strain, calm autonomic stress, and enhance flow.
+              Calming themes designed to reduce eye strain, ease stress, and keep you comfortable.
             </p>
           </div>
         </div>
@@ -1084,7 +1084,7 @@ export default function SettingsPage() {
                 <span className="w-3.5 h-3.5 rounded-full bg-[#8ebfa4]" />
               </div>
               <p className="text-[11px] text-muted-foreground leading-tight">
-                Deep biophilic moss &amp; sage tones. Scientifically proven to soothe optic nerves &amp; lower cortisol.
+                Soothing moss &amp; sage greens designed to rest your eyes and help you relax.
               </p>
             </div>
           </button>

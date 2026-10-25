@@ -202,7 +202,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     category: "Privacy & Security",
     q: "Are my journal entries, mood check-ins, and personal data private?",
-    a: "Yes, 100%. All journal reflections and personal entries are encrypted client-side using industry-standard AES-256-CBC encryption before being stored in our serverless PostgreSQL database. Every record is strictly isolated and scoped to your unique account identifier, ensuring no other user or external service can access your private thoughts.",
+    a: "Yes, 100%. All your journal reflections and personal entries are securely encrypted right on your device before they are saved. Your data is strictly private and tied only to your account—no one else can ever read your personal thoughts.",
   },
   {
     category: "Privacy & Security",
@@ -217,7 +217,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     category: "Freddy 3D",
     q: "Who is Freddy and how does he interact with me?",
-    a: "Freddy is MindSync AI's resident 3D wellness companion, rendered live at 60fps via WebGL Signed Distance Field (SDF) raymarching. Freddy's eyes dynamically track your cursor across the screen, his head turns naturally, and his expressions morph based on your mouse velocity and proximity (from curious peeks to happy winks).",
+    a: "Freddy is your friendly 3D companion in MindSync AI. He follows your cursor with his eyes, looks around naturally, and changes expressions as you move—from curious peeks to happy winks—to guide and cheer you on throughout the app.",
   },
   {
     category: "Freddy 3D",
@@ -227,7 +227,7 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     category: "Audio & Sound",
     q: "How does the procedural sound engine work and how do I mute it?",
-    a: "MindSync AI features an in-browser Web Audio API synthesizer that produces warm acoustic chords, marimba pops, kalimba slider ticks, and zen singing bowls without downloading external audio files. You can toggle sound on or off anytime via the speaker icon in Freddy's speech bubble, the top navbar, or in Settings > Sound Effects & Audio.",
+    a: "MindSync AI creates soft, calming sound effects right in your browser (like gentle chimes, warm chords, and soft clicks) to make interacting with the app soothing and fun. You can easily turn sound on or off anytime using the speaker icon in Freddy's speech bubble, the top navbar, or in Settings.",
   },
   {
     category: "AI & Coaching",
@@ -247,17 +247,17 @@ const FAQ_ITEMS: FaqItem[] = [
   {
     category: "Assessments",
     q: "What standardized clinical assessments are available?",
-    a: "MindSync AI includes 10 peer-reviewed psychological instruments: WHO-5 (Well-being), PHQ-9 (Depression Screener), GAD-7 (Anxiety Screener), PSS-10 (Perceived Stress), PANAS (Positive/Negative Affect), RSES (Self-Esteem), SWLS (Life Satisfaction), UCLA Loneliness (Social Belonging), PSQI (Sleep Quality), and the Big Five Personality Inventory.",
+    a: "MindSync AI includes 10 science-backed check-ins: WHO-5 (Well-being), PHQ-9 (Mood & Energy), GAD-7 (Anxiety & Worry), PSS-10 (Stress Level), PANAS (Daily Feelings), RSES (Self-Esteem), SWLS (Life Satisfaction), UCLA (Social Connection), PSQI (Sleep Quality), and the Big Five Personality Inventory.",
   },
   {
     category: "Assessments",
     q: "Can I review my past assessment answers and AI interpretations?",
-    a: "Yes! On the Assessments page, the 'Assessments Taken Last Week' section and 'Assessment History' modal provide question-by-question response breakdowns (original prompt, selected answer, category weighting) alongside clinical subscale visualizers and AI synthesis reports.",
+    a: "Yes! On the Assessments page, the 'Assessments Taken Last Week' section and 'Assessment History' modal provide question-by-question response breakdowns alongside category score charts and personalized AI wellness insights.",
   },
   {
     category: "Themes & Visuals",
     q: "What visual themes are available and which is best for eye strain?",
-    a: "MindSync AI offers 3 scientifically calibrated palettes in Settings and the Navbar:\n• Forest Emerald (Dark): Deep circadian moss & sage tones scientifically proven to calm optic nerves and lower autonomic cortisol.\n• Monolithic Black (Dark): Pure 0%-saturation OLED true black for maximum contrast and battery conservation.\n• Daylight Clean (Light): Crisp porcelain surface with anti-glare slate boundaries for bright daytime reading.",
+    a: "MindSync AI offers 3 comfortable themes you can switch anytime in Settings or the Navbar:\n• Forest Emerald (Dark): Soothing moss and sage greens that are easy on your eyes and help you relax.\n• Monolithic Black (Dark): Clean, pure black dark mode that saves battery and looks great at night.\n• Daylight Clean (Light): Bright, clean, and glare-free design for daytime reading.",
   },
 ];
 

@@ -139,7 +139,7 @@ export default function AnalyticsPage() {
     playNavTap();
   };
 
-  // Base raw timeline data from backend or realistic fallback telemetry for clean first-load
+  // Base raw timeline data from backend or realistic fallback data for clean first-load
   const rawTimeline = useMemo(() => {
     if (moodStats?.timeline && moodStats.timeline.length > 0) {
       return moodStats.timeline;
@@ -189,14 +189,14 @@ export default function AnalyticsPage() {
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary-500 mb-1">
             <Layers size={14} />
-            <span>SaaS Observability & Analytics</span>
+            <span>Wellness Insights & Trends</span>
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
             <BarChart2 className="text-primary-500" />
-            Analytics & Holistic Telemetry
+            Personal Insights & Trends
           </h1>
           <p className="text-sm text-muted-foreground mt-1 max-w-2xl">
-            Correlate longitudinal sleep duration, daytime affective valence, autonomic tension, and deep work velocity.
+            See how your sleep, mood, daily stress, and focus connect over time.
           </p>
         </div>
 
@@ -207,17 +207,17 @@ export default function AnalyticsPage() {
             className="glass-card px-4 py-2.5 rounded-xl text-sm font-semibold flex items-center gap-2 hover:bg-white/10 dark:hover:bg-white/10 transition-colors disabled:opacity-50 border border-slate-200 dark:border-white/10"
           >
             <Sparkles size={16} className={generatingInsights ? "animate-spin text-amber-500" : "text-amber-500"} />
-            {generatingInsights ? "Synthesizing..." : "Discover Patterns"}
+            {generatingInsights ? "Finding Patterns..." : "Discover Patterns"}
           </button>
         </div>
       </div>
 
-      {/* Aggregate Overview Tiles — ui-ux-pro-max KPI Metric Card Tokens */}
+      {/* Aggregate Overview Tiles — Simple & Clear Wellness Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        {/* KPI Tile 1: Mood & Valence */}
+        {/* KPI Tile 1: Mood */}
         <div
           role="region"
-          aria-label={`Average Mood Valence: ${moodStats?.avgMood || "7.6"} of 10, trending up 4.2%`}
+          aria-label={`Average Mood: ${moodStats?.avgMood || "7.6"} of 10, trending up 4.2%`}
           className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between min-h-[132px] group hover:border-emerald-500/40 transition-all"
         >
           <div className="flex items-center justify-between gap-2">
@@ -226,25 +226,25 @@ export default function AnalyticsPage() {
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 tabular-nums">
               <TrendingUp size={12} className="shrink-0" />
-              <span>+4.2% vs last mo</span>
+              <span>+4.2% vs last month</span>
             </div>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-foreground">
               {moodStats?.avgMood || "7.6"} <span className="text-sm font-normal text-muted-foreground">/ 10</span>
             </div>
-            <div className="text-xs font-medium text-muted-foreground mt-0.5">Average Mood Valence</div>
+            <div className="text-xs font-medium text-muted-foreground mt-0.5">Average Mood</div>
           </div>
           <div className="mt-3 pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-muted-foreground tabular-nums">
-            <span>Target: 7.5 / 10</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">In Range (101%)</span>
+            <span>Goal: 7.5 / 10</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">On Track</span>
           </div>
         </div>
 
-        {/* KPI Tile 2: Sleep & Recovery */}
+        {/* KPI Tile 2: Sleep */}
         <div
           role="region"
-          aria-label={`Circadian Rest Duration: ${moodStats?.avgSleep || "7.5"} hours, 0.5 hours above baseline`}
+          aria-label={`Average Sleep: ${moodStats?.avgSleep || "7.5"} hours, 0.5 hours above usual`}
           className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between min-h-[132px] group hover:border-indigo-500/40 transition-all"
         >
           <div className="flex items-center justify-between gap-2">
@@ -253,25 +253,25 @@ export default function AnalyticsPage() {
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20 tabular-nums">
               <TrendingUp size={12} className="shrink-0" />
-              <span>+0.5 hrs baseline</span>
+              <span>+0.5 hrs vs usual</span>
             </div>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-foreground">
               {moodStats?.avgSleep || "7.5"} <span className="text-sm font-normal text-muted-foreground">hrs</span>
             </div>
-            <div className="text-xs font-medium text-muted-foreground mt-0.5">Circadian Rest Duration</div>
+            <div className="text-xs font-medium text-muted-foreground mt-0.5">Average Sleep</div>
           </div>
           <div className="mt-3 pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-muted-foreground tabular-nums">
-            <span>Target: 8.0 hrs / night</span>
+            <span>Goal: 8.0 hrs / night</span>
             <span className="text-indigo-600 dark:text-indigo-400 font-semibold">94% of Goal</span>
           </div>
         </div>
 
-        {/* KPI Tile 3: Stress Index */}
+        {/* KPI Tile 3: Stress */}
         <div
           role="region"
-          aria-label={`Autonomic Stress Index: ${moodStats?.avgStress || "3.8"} of 10, 12.5% reduction`}
+          aria-label={`Stress Level: ${moodStats?.avgStress || "3.8"} of 10, 12.5% reduction`}
           className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between min-h-[132px] group hover:border-rose-500/40 transition-all"
         >
           <div className="flex items-center justify-between gap-2">
@@ -280,25 +280,25 @@ export default function AnalyticsPage() {
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 tabular-nums">
               <TrendingDown size={12} className="shrink-0" />
-              <span>-12.5% tension</span>
+              <span>-12.5% less stress</span>
             </div>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-foreground">
               {moodStats?.avgStress || "3.8"} <span className="text-sm font-normal text-muted-foreground">/ 10</span>
             </div>
-            <div className="text-xs font-medium text-muted-foreground mt-0.5">Autonomic Stress Index</div>
+            <div className="text-xs font-medium text-muted-foreground mt-0.5">Stress Level</div>
           </div>
           <div className="mt-3 pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-muted-foreground tabular-nums">
-            <span>Ceiling: &lt; 4.0 / 10</span>
-            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Controlled Load</span>
+            <span>Healthy target: under 4.0</span>
+            <span className="text-emerald-600 dark:text-emerald-400 font-semibold">Feeling Good</span>
           </div>
         </div>
 
-        {/* KPI Tile 4: Cognitive Flow */}
+        {/* KPI Tile 4: Focus & Productivity */}
         <div
           role="region"
-          aria-label={`Cognitive Flow Rating: ${productivityStats?.avgDeepWork || "7.8"} of 10, trending up 8.4%`}
+          aria-label={`Focus & Productivity: ${productivityStats?.avgDeepWork || "7.8"} of 10, trending up 8.4%`}
           className="glass-card rounded-2xl p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between min-h-[132px] group hover:border-sky-500/40 transition-all"
         >
           <div className="flex items-center justify-between gap-2">
@@ -307,27 +307,27 @@ export default function AnalyticsPage() {
             </div>
             <div className="flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20 tabular-nums">
               <TrendingUp size={12} className="shrink-0" />
-              <span>+8.4% velocity</span>
+              <span>+8.4% increase</span>
             </div>
           </div>
           <div className="mt-3">
             <div className="text-2xl sm:text-3xl font-extrabold tracking-tight tabular-nums text-foreground">
               {productivityStats?.avgDeepWork || "7.8"} <span className="text-sm font-normal text-muted-foreground">/ 10</span>
             </div>
-            <div className="text-xs font-medium text-muted-foreground mt-0.5">Cognitive Flow Rating</div>
+            <div className="text-xs font-medium text-muted-foreground mt-0.5">Focus & Productivity</div>
           </div>
           <div className="mt-3 pt-2 border-t border-slate-100 dark:border-white/5 flex items-center justify-between text-[11px] text-muted-foreground tabular-nums">
-            <span>Benchmark: 7.5+ flow</span>
-            <span className="text-sky-600 dark:text-sky-400 font-semibold">High Engagement</span>
+            <span>Goal: 7.5+ rating</span>
+            <span className="text-sky-600 dark:text-sky-400 font-semibold">Great Focus</span>
           </div>
         </div>
       </div>
 
-      {/* Time Horizon Segmented Filter Controls — Section 4 Tokens */}
+      {/* Time Horizon Segmented Filter Controls */}
       <div className="flex flex-wrap items-center justify-between gap-3 pt-1">
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">
-            Observation Horizon:
+            Time Range:
           </span>
           <div
             role="tablist"
@@ -358,27 +358,27 @@ export default function AnalyticsPage() {
 
         <div className="flex items-center gap-2 text-xs text-muted-foreground">
           <span className="inline-block w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-          <span className="tabular-nums">Live Telemetry Active &bull; {filteredTimeline.length} Points Filtered</span>
+          <span className="tabular-nums">Live Data &bull; {filteredTimeline.length} days recorded</span>
         </div>
       </div>
 
       {/* Main Multi-Metric Correlation Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* Chart 1: Sleep vs. Mood Correlation (Standardized Emerald + Indigo Series) */}
+          {/* Chart 1: Sleep vs. Mood Correlation */}
           <div className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200 dark:border-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-base flex items-center gap-2">
                   <TrendingUp size={18} className="text-emerald-500" />
-                  Sleep Duration vs. Daytime Mood
+                  Sleep vs. Daytime Mood
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Tracks the direct impact of sleep duration on emotional well-being and stability
+                  See how a good night&apos;s rest lifts your mood the next day
                 </p>
               </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 tabular-nums">
-                Correlation (r = 0.72)
+                Strong Connection
               </span>
             </div>
 
@@ -399,12 +399,12 @@ export default function AnalyticsPage() {
                     y={8.0}
                     stroke={chartTheme.series.slate.stroke}
                     strokeDasharray="4 4"
-                    label={{ value: "Target (8h)", fill: chartTheme.series.slate.stroke, fontSize: 10, position: "insideTopRight" }}
+                    label={{ value: "Goal (8h)", fill: chartTheme.series.slate.stroke, fontSize: 10, position: "insideTopRight" }}
                   />
                   <Line
                     type="monotone"
                     dataKey="mood"
-                    name="Mood Valence (1-10)"
+                    name="Mood (1–10)"
                     stroke={chartTheme.series.emerald.stroke}
                     strokeWidth={2.5}
                     connectNulls
@@ -414,7 +414,7 @@ export default function AnalyticsPage() {
                   <Line
                     type="monotone"
                     dataKey="sleepHours"
-                    name="Rest Duration (hrs)"
+                    name="Sleep (hrs)"
                     stroke={chartTheme.series.indigo.stroke}
                     strokeWidth={2}
                     connectNulls
@@ -426,20 +426,20 @@ export default function AnalyticsPage() {
             </div>
           </div>
 
-          {/* Chart 2: Stress vs. Energy Breakdown (Standardized Amber + Rose Series) */}
+          {/* Chart 2: Stress vs. Energy Breakdown */}
           <div className="glass-card rounded-2xl p-6 space-y-4 border border-slate-200 dark:border-white/10">
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-semibold text-base flex items-center gap-2">
                   <Activity size={18} className="text-rose-500" />
-                  Stress Level vs. Physical Energy
+                  Stress Level vs. Daily Energy
                 </h3>
                 <p className="text-xs text-muted-foreground mt-0.5">
-                  Identifies energy depletion dynamics under elevated autonomic stress conditions
+                  Notice how daily stress impacts your energy levels throughout the day
                 </p>
               </div>
               <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 tabular-nums">
-                Dynamic Ratio
+                Daily Balance
               </span>
             </div>
 
@@ -460,17 +460,17 @@ export default function AnalyticsPage() {
                     y={5.0}
                     stroke={chartTheme.series.slate.stroke}
                     strokeDasharray="4 4"
-                    label={{ value: "Stress Ceiling (5.0)", fill: chartTheme.series.slate.stroke, fontSize: 10, position: "insideTopRight" }}
+                    label={{ value: "High Stress Alert (5.0)", fill: chartTheme.series.slate.stroke, fontSize: 10, position: "insideTopRight" }}
                   />
                   <Bar
                     dataKey="energy"
-                    name="Energy / Vitality (1-10)"
+                    name="Energy (1–10)"
                     fill={chartTheme.series.amber.stroke}
                     radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="stress"
-                    name="Stress Load (1-10)"
+                    name="Stress (1–10)"
                     fill={chartTheme.series.rose.stroke}
                     radius={[4, 4, 0, 0]}
                   />
@@ -626,21 +626,21 @@ export default function AnalyticsPage() {
         </div>
       </div>
 
-      {/* Section 5: Data-Dense Table & Correlation Grid Tokens */}
+      {/* Section 5: Daily History & Overview Table */}
       <div className="glass-card rounded-2xl p-6 border border-slate-200 dark:border-white/10 space-y-4">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div>
             <h3 className="font-semibold text-base flex items-center gap-2 text-foreground">
               <FileSpreadsheet size={18} className="text-primary-500" />
-              Longitudinal Behavioral Correlation Matrix
+              Daily Wellness History & Overview
             </h3>
             <p className="text-xs text-muted-foreground mt-0.5">
-              Tabular breakdown of daily biometric proxies, cognitive flow ratings, and clinical diagnostic equilibrium.
+              A day-by-day record of your sleep, mood, stress, and daily balance.
             </p>
           </div>
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-white/10 text-muted-foreground border border-slate-200 dark:border-white/10 tabular-nums">
-              {filteredTimeline.length} Telemetry Records
+              {filteredTimeline.length} Daily Entries
             </span>
           </div>
         </div>
@@ -649,12 +649,12 @@ export default function AnalyticsPage() {
           <table className="w-full text-left text-xs border-collapse">
             <thead>
               <tr className="sticky top-0 bg-slate-100/90 dark:bg-slate-900/90 backdrop-blur-md border-b border-slate-200 dark:border-white/10 text-[11px] font-bold text-muted-foreground uppercase tracking-wider">
-                <th scope="col" className="py-3 px-4">Observation Date</th>
-                <th scope="col" className="py-3 px-4">Mood Valence</th>
-                <th scope="col" className="py-3 px-4">Rest Duration</th>
-                <th scope="col" className="py-3 px-4">Autonomic Stress</th>
-                <th scope="col" className="py-3 px-4">Vitality & Energy</th>
-                <th scope="col" className="py-3 px-4">Diagnostic Equilibrium</th>
+                <th scope="col" className="py-3 px-4">Date</th>
+                <th scope="col" className="py-3 px-4">Mood</th>
+                <th scope="col" className="py-3 px-4">Sleep</th>
+                <th scope="col" className="py-3 px-4">Stress</th>
+                <th scope="col" className="py-3 px-4">Energy</th>
+                <th scope="col" className="py-3 px-4">Daily Balance</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-100 dark:divide-white/5">
@@ -717,19 +717,19 @@ export default function AnalyticsPage() {
                     <td className="py-2.5 px-4">
                       {isOptimal ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
-                          <CheckCircle2 size={12} /> Optimal Equilibrium
+                          <CheckCircle2 size={12} /> Feeling Great
                         </span>
                       ) : isElevatedStress ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-600 dark:text-rose-400 border border-rose-500/20">
-                          <Activity size={12} /> Elevated Tension
+                          <Activity size={12} /> Higher Stress
                         </span>
                       ) : isSleepDeficit ? (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20">
-                          <Moon size={12} /> Recovery Deficit
+                          <Moon size={12} /> Low Sleep
                         </span>
                       ) : (
                         <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-semibold bg-sky-500/10 text-sky-600 dark:text-sky-400 border border-sky-500/20">
-                          <ShieldCheck size={12} /> Resilient Baseline
+                          <ShieldCheck size={12} /> Balanced &amp; Steady
                         </span>
                       )}
                     </td>

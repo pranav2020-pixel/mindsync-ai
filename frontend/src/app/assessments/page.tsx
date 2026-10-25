@@ -147,7 +147,7 @@ const FALLBACK_ASSESSMENTS: Assessment[] = [
     name: "Patient Health Questionnaire (PHQ-9)",
     target: "Depressive symptoms & emotional energy",
     badgeCategory: "Clinical",
-    description: "The gold-standard clinical screener for identifying presence and severity of depressive symptoms and cognitive fatigue.",
+    description: "A widely trusted check-in to understand your mood, energy levels, and emotional well-being.",
     instructions: "Over the last 2 weeks, how often have you been bothered by any of the following problems?",
     estimatedMinutes: 5,
     _count: { questions: 9 },
@@ -171,7 +171,7 @@ const FALLBACK_ASSESSMENTS: Assessment[] = [
     name: "Generalized Anxiety Disorder (GAD-7)",
     target: "Anxiety & worry patterns",
     badgeCategory: "Clinical",
-    description: "Standardized psychometric instrument used to detect generalized anxiety, uncontrollable worry, and nervous tension.",
+    description: "A trusted 7-question check-in to understand anxiety, everyday worries, and nervous tension.",
     instructions: "Over the last 2 weeks, how often have you been bothered by the following problems?",
     estimatedMinutes: 4,
     _count: { questions: 7 },
@@ -601,7 +601,7 @@ export default function AssessmentsPage() {
 
       case "PHQ_9":
         if (totalScore <= 4) {
-          aiInterp = "Your PHQ-9 score falls in the minimal range. You demonstrate stable emotional equilibrium and healthy daily motivation.";
+          aiInterp = "Your score is in the healthy range. You're showing good emotional balance and positive daily motivation.";
         } else if (totalScore <= 9) {
           aiInterp = "Your score indicates mild depressive symptoms. Gentle structure, sunlight exposure, and scheduling low-pressure social interactions can help lift emotional heaviness.";
         } else if (totalScore <= 14) {
@@ -731,11 +731,11 @@ export default function AssessmentsPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
             <div>
               <span className="text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 mb-1">
-                <CheckCircle2 size={16} className="text-emerald-500" /> Evaluation Completed • Clinical T-Score Calibrated
+                <CheckCircle2 size={16} className="text-emerald-500" /> Check-In Complete • Insights Ready
               </span>
               <h2 className="text-2xl font-bold text-foreground">{activeAssessment.name}</h2>
               {activeAssessment.target && (
-                <p className="text-xs text-muted-foreground mt-0.5">Clinical Focus: {activeAssessment.target}</p>
+                <p className="text-xs text-muted-foreground mt-0.5">Focus: {activeAssessment.target}</p>
               )}
             </div>
             <div className="flex items-center gap-3">
@@ -746,15 +746,15 @@ export default function AssessmentsPage() {
             </div>
           </div>
 
-          {/* AI Clinical Synthesis Box (Sora / Gemini Co-pilot) */}
+          {/* AI Insights Box */}
           <div className="p-5 rounded-2xl bg-primary-500/10 border border-primary-500/25 space-y-2.5 shadow-sm">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-bold text-sm">
                 <Sparkles size={16} />
-                <span>MindSync AI Clinical Synthesis</span>
+                <span>MindSync AI Wellness Insights</span>
               </div>
               <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-primary-500/20 text-primary-600 dark:text-primary-300">
-                Cognitive Co-Pilot
+                AI Coach
               </span>
             </div>
             <p className="text-sm leading-relaxed italic text-foreground/90 font-medium">
@@ -1000,7 +1000,7 @@ export default function AssessmentsPage() {
                   className="w-full sm:w-auto px-6 py-2.5 rounded-xl bg-primary-500 hover:bg-primary-600 disabled:opacity-50 text-white font-bold text-sm flex items-center justify-center gap-2 transition-all shadow-lg hover-press"
                 >
                   <Sparkles size={16} className={submitting ? "animate-spin" : ""} />
-                  {submitting ? "Analyzing Responses..." : "Submit for AI Clinical Synthesis"}
+                  {submitting ? "Analyzing Responses..." : "Submit & View My Insights"}
                 </button>
               ) : (
                 <button
@@ -1025,14 +1025,14 @@ export default function AssessmentsPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1">
-            <ShieldAlert size={14} /> Clinical Validity & Assessment Suite
+            <ShieldAlert size={14} /> Science-Backed Wellness Assessments
           </div>
           <h1 className="text-3xl font-bold flex items-center gap-3 text-foreground">
             <Brain className="text-primary-500" />
             Psychological Assessments
           </h1>
           <p className="text-muted-foreground mt-1 text-sm max-w-3xl leading-relaxed">
-            10 standardized psychometric instruments paired with MindSync AI analysis to monitor emotional resilience, depressive symptoms, anxiety, life satisfaction, sleep quality, and personality dimensions.
+            10 science-backed wellness check-ins with personalized AI insights to help you understand your mood, stress, sleep, and personal growth.
           </p>
         </div>
 
@@ -1138,7 +1138,7 @@ export default function AssessmentsPage() {
       <div className="flex items-center gap-2 overflow-x-auto pb-2 scrollbar-none">
         {[
           { id: "ALL", label: `All Tools (${assessments.length})` },
-          { id: "Clinical", label: "Clinical Screeners (PHQ-9, GAD-7, PSS-10)" },
+          { id: "Clinical", label: "Mental Health & Stress (PHQ-9, GAD-7, PSS-10)" },
           { id: "Well-Being", label: "Well-Being & Affect (WHO-5, PANAS, SWLS)" },
           { id: "Self & Social", label: "Self & Social (RSES, UCLA, Big Five)" },
           { id: "Sleep & Habits", label: "Sleep Quality (PSQI)" },
@@ -1249,7 +1249,7 @@ export default function AssessmentsPage() {
         <div className="glass-card rounded-2xl p-5 space-y-2 border border-border bg-card">
           <h4 className="font-semibold text-sm flex items-center gap-2 text-foreground">
             <Compass size={16} className="text-indigo-500" />
-            10 Psychometrically Validated Instruments
+            10 Science-Backed Wellness Check-Ins
           </h4>
           <p className="text-xs text-muted-foreground leading-relaxed">
             Covers comprehensive domains: WHO-5 (Well-being), PHQ-9 (Depression), GAD-7 (Anxiety), PSS-10 (Stress), PANAS (Affect), RSES (Self-Esteem), SWLS (Life Satisfaction), UCLA (Social Belonging), PSQI (Sleep), and BFI-10 (Personality).
@@ -1262,7 +1262,7 @@ export default function AssessmentsPage() {
             Empathetic AI Interpretations
           </h4>
           <p className="text-xs text-muted-foreground leading-relaxed">
-            After answering questions, MindSync AI translates aggregate scores into personalized cognitive advice and restorative self-care practices without pathologizing normal life stress.
+            After answering questions, MindSync AI turns your answers into friendly, supportive advice and easy self-care tips you can use every day.
           </p>
         </div>
       </div>
@@ -1286,7 +1286,7 @@ export default function AssessmentsPage() {
                   <div>
                     <h3 className="text-base sm:text-lg font-bold text-foreground">Assessment History & Responses</h3>
                     <p className="text-xs text-muted-foreground">
-                      Review previous evaluations, clinical syntheses, and recorded question-by-question responses.
+                      Review past check-ins, AI insights, and your question-by-question responses.
                     </p>
                   </div>
                 </div>
@@ -1379,7 +1379,7 @@ export default function AssessmentsPage() {
                           <div className="p-4 rounded-xl bg-primary-500/10 border border-primary-500/20 space-y-2">
                             <div className="flex items-center gap-2 text-primary-600 dark:text-primary-400 font-semibold text-xs sm:text-sm">
                               <Sparkles size={16} />
-                              MindSync AI Clinical Synthesis
+                              MindSync AI Wellness Insights
                             </div>
                             <p className="text-xs sm:text-sm leading-relaxed italic text-foreground/90">
                               &ldquo;{selectedHistoryItem.aiInterpretation}&rdquo;

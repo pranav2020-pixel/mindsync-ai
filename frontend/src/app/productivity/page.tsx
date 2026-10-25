@@ -370,7 +370,7 @@ export default function ProductivityPage() {
                 </button>
               </div>
               <p className="text-xs text-muted-foreground">
-                Mark tasks as you check them off your daily to-do list to maintain completion velocity.
+                Mark tasks as you check them off your daily to-do list to keep your momentum going.
               </p>
             </div>
 
@@ -408,7 +408,7 @@ export default function ProductivityPage() {
               <div className="flex items-center justify-between">
                 <h3 className="font-semibold text-base flex items-center gap-2">
                   <BarChart3 size={18} className="text-primary-400" />
-                  Weekly Focus Velocity
+                  Weekly Focus Momentum
                 </h3>
                 <span className="text-xs text-muted-foreground">Last 4 Weeks</span>
               </div>

@@ -26,8 +26,8 @@ interface HabitItem {
 const DEFAULT_HABITS: HabitItem[] = [
   { key: "MEDITATION", type: "MEDITATION", name: "Mindful Meditation", category: "Cognitive Calm", description: "At least 10 minutes of mindfulness or breathwork", icon: Brain, color: "text-purple-600 dark:text-purple-400 border-purple-500/30 bg-purple-500/10", xp: 10 },
   { key: "EXERCISE", type: "EXERCISE", name: "Physical Exercise", category: "Physical Movement", description: "30+ minutes of cardio, strength, or active movement", icon: Dumbbell, color: "text-orange-600 dark:text-orange-400 border-orange-500/30 bg-orange-500/10", xp: 20 },
-  { key: "WATER", type: "WATER", name: "Hydration Goal", category: "Somatic Health", description: "Drink at least 8 glasses (2L) of water today", icon: Droplets, color: "text-sky-600 dark:text-sky-400 border-sky-500/30 bg-sky-500/10", xp: 10 },
-  { key: "SLEEP", type: "SLEEP", name: "7+ Hours Sleep", category: "Restorative Recovery", description: "Restful, restorative sleep for cognitive recovery", icon: Moon, color: "text-indigo-600 dark:text-indigo-400 border-indigo-500/30 bg-indigo-500/10", xp: 10 },
+  { key: "WATER", type: "WATER", name: "Hydration Goal", category: "Physical Health", description: "Drink at least 8 glasses (2L) of water today", icon: Droplets, color: "text-sky-600 dark:text-sky-400 border-sky-500/30 bg-sky-500/10", xp: 10 },
+  { key: "SLEEP", type: "SLEEP", name: "7+ Hours Sleep", category: "Rest & Sleep", description: "Restful, restorative sleep to wake up refreshed", icon: Moon, color: "text-indigo-600 dark:text-indigo-400 border-indigo-500/30 bg-indigo-500/10", xp: 10 },
   { key: "READING", type: "READING", name: "Daily Reading", category: "Intellectual Growth", description: "Read 15+ pages of a book, article, or research", icon: BookOpen, color: "text-pink-600 dark:text-pink-400 border-pink-500/30 bg-pink-500/10", xp: 10 },
   { key: "LEARNING", type: "LEARNING", name: "Skill Learning", category: "Skill Mastery", description: "Deliberate practice or studying a new concept", icon: Compass, color: "text-amber-600 dark:text-amber-400 border-amber-500/30 bg-amber-500/10", xp: 10 },
   { key: "JOURNALING", type: "JOURNALING", name: "Daily Reflection", category: "Emotional Clarity", description: "Write thoughts and feelings in your MindSync journal", icon: Heart, color: "text-emerald-600 dark:text-emerald-400 border-emerald-500/30 bg-emerald-500/10", xp: 10 },
@@ -390,7 +390,7 @@ export default function HabitsPage() {
             </div>
           </div>
 
-          {/* Telemetry Breakdown Pills */}
+          {/* XP Summary Breakdown Pills */}
           <div className="flex items-center gap-2 pt-3 mt-2 border-t border-border/60 text-xs text-muted-foreground flex-wrap">
             <span className="px-2 py-0.5 rounded-lg bg-card border border-border font-medium flex items-center gap-1">
               <span className="w-1.5 h-1.5 rounded-full bg-primary-500" />
