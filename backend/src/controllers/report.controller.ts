@@ -9,6 +9,14 @@ export const ReportController = {
     res.json({ success: true, data: reports });
   }),
 
+  getMonthlyWellnessPreview: asyncHandler(async (req: any, res: Response) => {
+    const now = new Date();
+    const targetMonth = req.query.month ? Number(req.query.month) : (now.getMonth() + 1);
+    const targetYear = req.query.year ? Number(req.query.year) : now.getFullYear();
+    const data = await ReportService.generateMonthlyWellnessReport(req.user.id, targetMonth, targetYear);
+    res.json({ success: true, data });
+  }),
+
   generate: asyncHandler(async (req: any, res: Response) => {
     const { type, format, month, year } = req.body;
     const now = new Date();
@@ -38,7 +46,7 @@ export const ReportController = {
         format,
         title: `${type} Report - ${formattedMonth}/${targetYear}`,
         fileUrl,
-        content: reportData || {},
+        content: (reportData as any) || {},
         dateRange: { from: `${targetYear}-${formattedMonth}-01`, to: `${targetYear}-${formattedMonth}-${lastDayOfMonth}` }
       },
     });

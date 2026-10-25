@@ -5,8 +5,9 @@ import { motion, AnimatePresence } from "framer-motion";
 import {
   BarChart2, TrendingUp, TrendingDown, Sparkles, Download, FileText,
   Calendar, Pin, CheckCircle2, ShieldCheck, Zap, Heart,
-  Moon, Activity, ChevronRight, Clock, FileSpreadsheet, ArrowUpRight, ArrowDownRight, Layers
+  Moon, Activity, ChevronRight, Clock, FileSpreadsheet, ArrowUpRight, ArrowDownRight, Layers, Eye
 } from "lucide-react";
+import { WellnessReportModal } from "@/components/reports/wellness-report-modal";
 import {
   LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
   Tooltip, ResponsiveContainer, Legend, ReferenceLine
@@ -28,6 +29,9 @@ export default function AnalyticsPage() {
   const [reportFormat, setReportFormat] = useState<"PDF" | "CSV">("PDF");
   const [timeHorizon, setTimeHorizon] = useState<"7D" | "14D" | "30D" | "90D" | "All">("30D");
   const [loading, setLoading] = useState(true);
+  const [isReportModalOpen, setIsReportModalOpen] = useState(false);
+  const [selectedReportData, setSelectedReportData] = useState<any>(null);
+  const [autoDownloadModal, setAutoDownloadModal] = useState(false);
 
   useEffect(() => {
     fetchAllData();
@@ -91,6 +95,27 @@ export default function AnalyticsPage() {
     }
   };
 
+  const handleOpenPreview = async (reportContent?: any) => {
+    playNavTap();
+    if (reportContent) {
+      setSelectedReportData(reportContent);
+      setAutoDownloadModal(false);
+      setIsReportModalOpen(true);
+      return;
+    }
+
+    try {
+      const res = await api.get("/reports/monthly-wellness");
+      if (res.data?.data) {
+        setSelectedReportData(res.data.data);
+      }
+    } catch (err) {
+      console.warn("Could not load preview data, using defaults", err);
+    }
+    setAutoDownloadModal(false);
+    setIsReportModalOpen(true);
+  };
+
   const handleGenerateReport = async () => {
     playNavTap();
     setGeneratingReport(true);
@@ -103,10 +128,16 @@ export default function AnalyticsPage() {
         year: now.getFullYear(),
       });
 
-      toast.success(`${reportFormat} Report generated!`);
-      if (res.data.download) {
-        // Trigger download of generated report base64 buffer
-        const mimeType = reportFormat === "PDF" ? "application/pdf" : "text/csv";
+      toast.success(`${reportFormat} Report ready!`);
+
+      if (reportFormat === "PDF") {
+        const reportContent = res.data?.data?.content || null;
+        setSelectedReportData(reportContent);
+        setAutoDownloadModal(true);
+        setIsReportModalOpen(true);
+      } else if (res.data.download) {
+        // Trigger download of generated CSV buffer
+        const mimeType = "text/csv";
         const byteCharacters = atob(res.data.download);
         const byteNumbers = new Array(byteCharacters.length);
         for (let i = 0; i < byteCharacters.length; i++) {
@@ -117,7 +148,7 @@ export default function AnalyticsPage() {
         const url = URL.createObjectURL(blob);
         const a = document.createElement("a");
         a.href = url;
-        a.download = `MindSync_Report_${now.getMonth() + 1}_${now.getFullYear()}.${reportFormat.toLowerCase()}`;
+        a.download = `MindSync_Report_${now.getMonth() + 1}_${now.getFullYear()}.csv`;
         document.body.appendChild(a);
         a.click();
         document.body.removeChild(a);
@@ -592,28 +623,49 @@ export default function AnalyticsPage() {
               </button>
             </div>
 
-            <button
-              onClick={handleGenerateReport}
-              disabled={generatingReport}
-              className="w-full py-2.5 rounded-xl bg-primary-600 hover:bg-primary-700 text-white text-sm font-semibold transition-colors flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-primary-500/20 focus-visible:ring-2 focus-visible:ring-primary-500"
-            >
-              <Download size={16} />
-              {generatingReport ? "Generating Document..." : `Download ${reportFormat} Report`}
-            </button>
+            <div className="space-y-2 pt-1">
+              <button
+                onClick={handleGenerateReport}
+                disabled={generatingReport}
+                className="w-full py-2.5 rounded-xl bg-gradient-to-r from-[#3d8b76] to-[#2dd4bf] hover:opacity-95 active:scale-[0.99] text-white text-sm font-semibold transition-all flex items-center justify-center gap-2 disabled:opacity-50 shadow-md shadow-[#3d8b76]/20 focus-visible:ring-2 focus-visible:ring-[#3d8b76]"
+              >
+                <Download size={16} />
+                {generatingReport ? "Preparing Document..." : `Download ${reportFormat} Report`}
+              </button>
+
+              <button
+                onClick={() => handleOpenPreview()}
+                type="button"
+                className="w-full py-2 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-foreground text-xs font-semibold transition-colors flex items-center justify-center gap-1.5 border border-slate-200 dark:border-white/10"
+              >
+                <Eye size={14} className="text-[#3d8b76]" />
+                Preview Illustrated Report
+              </button>
+            </div>
 
             {/* Previous Reports History */}
             {reports.length > 0 && (
               <div className="pt-2 border-t border-slate-200 dark:border-white/10 space-y-2">
                 <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                  Recent Exports
+                  Recent Exports (Click to View)
                 </span>
                 <div className="space-y-1.5 max-h-36 overflow-y-auto">
                   {reports.slice(0, 4).map((r) => (
                     <div
                       key={r.id}
-                      className="p-2 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200/60 dark:border-white/5 text-xs flex items-center justify-between text-muted-foreground"
+                      onClick={() => {
+                        if (r.content && typeof r.content === "object" && Object.keys(r.content).length > 0) {
+                          handleOpenPreview(r.content);
+                        } else {
+                          handleOpenPreview();
+                        }
+                      }}
+                      className="p-2 rounded-lg bg-slate-100 hover:bg-slate-200/80 dark:bg-white/5 dark:hover:bg-white/10 border border-slate-200/60 dark:border-white/5 text-xs flex items-center justify-between text-muted-foreground cursor-pointer transition-colors"
+                      title="Click to view and export"
                     >
-                      <span className="truncate max-w-[170px] text-foreground">{r.title}</span>
+                      <span className="truncate max-w-[170px] text-foreground hover:underline font-medium">
+                        {r.title}
+                      </span>
                       <span className="text-[10px] px-1.5 py-0.5 rounded bg-slate-200 dark:bg-white/10 text-foreground uppercase font-mono">
                         {r.format}
                       </span>
@@ -740,6 +792,14 @@ export default function AnalyticsPage() {
           </table>
         </div>
       </div>
+
+      {/* Aesthetic Illustrated Wellness Report Preview & Export Modal */}
+      <WellnessReportModal
+        isOpen={isReportModalOpen}
+        onClose={() => setIsReportModalOpen(false)}
+        reportData={selectedReportData}
+        autoDownloadOnOpen={autoDownloadModal}
+      />
     </div>
   );
 }
