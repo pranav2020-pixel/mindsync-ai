@@ -5,12 +5,17 @@ import { usePathname } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
-  ClipboardList, MessageCircle, BarChart3, Brain, X, Flame, Settings, Download, ShieldCheck
+  ClipboardList, MessageCircle, BarChart3, Brain, X, Flame, Settings, Download, ShieldCheck,
+  ChevronLeft, ChevronRight
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useAuth } from "@/hooks/use-auth";
 import api from "@/lib/api";
+import { playNavTap } from "@/lib/sound-effects";
+
+export const DESKTOP_COLLAPSED_STORAGE_KEY = "mindsync_desktop_sidebar_collapsed_v1";
+export const DESKTOP_SIDEBAR_EVENT = "mindsync:desktop-sidebar-change";
 
 const icons: Record<string, any> = {
   LayoutDashboard, BookOpen, Heart, CheckCircle2, Zap,
@@ -33,7 +38,46 @@ export function Sidebar() {
   const pathname = usePathname();
   const { user } = useAuth();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [desktopCollapsed, setDesktopCollapsed] = useState(false);
   const [streak, setStreak] = useState<number>(user?.streak || 0);
+
+  const toggleDesktopCollapse = () => {
+    playNavTap();
+    setDesktopCollapsed((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(DESKTOP_COLLAPSED_STORAGE_KEY, next ? "true" : "false");
+      } catch {
+        // Ignore storage quota errors
+      }
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent(DESKTOP_SIDEBAR_EVENT, { detail: { collapsed: next } }));
+      }
+      return next;
+    });
+  };
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem(DESKTOP_COLLAPSED_STORAGE_KEY);
+      if (saved === "true") {
+        setDesktopCollapsed(true);
+        window.dispatchEvent(new CustomEvent(DESKTOP_SIDEBAR_EVENT, { detail: { collapsed: true } }));
+      }
+    } catch {
+      // Ignore storage errors
+    }
+
+    const handleToggle = () => {
+      toggleDesktopCollapse();
+    };
+
+    window.addEventListener("mindsync:toggle-desktop-sidebar", handleToggle);
+    return () => {
+      window.removeEventListener("mindsync:toggle-desktop-sidebar", handleToggle);
+    };
+  }, []);
 
   useEffect(() => {
     if (user?.streak !== undefined) {
@@ -99,36 +143,52 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen w-72 lg:w-64 bg-white/95 dark:bg-black/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-neutral-800/80 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)]",
+          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen bg-white/95 dark:bg-black/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-neutral-800/80 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-hidden",
           mobileOpen
-            ? "translate-x-0 shadow-2xl pointer-events-auto visible"
-            : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto invisible lg:visible"
+            ? "translate-x-0 w-72 shadow-2xl pointer-events-auto visible"
+            : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto invisible lg:visible",
+          desktopCollapsed
+            ? "lg:w-0 lg:min-w-0 lg:border-r-0 lg:opacity-0 lg:pointer-events-none"
+            : "lg:w-64 lg:min-w-[16rem] lg:opacity-100"
         )}
       >
-        {/* Header Branding with Mobile Close Button */}
-        <div className="p-5 flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 lg:border-none">
-          <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md">
-              <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
-            </div>
-            <div>
-              <h1 className="font-bold text-xl text-gradient leading-tight">MindSync</h1>
-              <p className="text-xs text-muted-foreground">AI Wellness</p>
-            </div>
-          </Link>
+        <div className="w-64 min-w-[16rem] h-full flex flex-col justify-between">
+          {/* Header Branding with Desktop Collapse & Mobile Close */}
+          <div className="p-5 flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 lg:border-none">
+            <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 min-w-0">
+              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md shrink-0">
+                <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
+              </div>
+              <div className="min-w-0">
+                <h1 className="font-bold text-xl text-gradient leading-tight truncate">MindSync</h1>
+                <p className="text-xs text-muted-foreground">AI Wellness</p>
+              </div>
+            </Link>
 
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              setMobileOpen(false);
-            }}
-            className="lg:hidden p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 text-slate-600 dark:text-white transition-all border border-slate-200/80 dark:border-white/10 shadow-sm"
-            aria-label="Close menu"
-          >
-            <X size={20} />
-          </button>
-        </div>
+            {/* Desktop Hide/Collapse Arrow Button */}
+            <button
+              type="button"
+              onClick={toggleDesktopCollapse}
+              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 active:scale-95 text-muted-foreground hover:text-foreground transition-all border border-slate-200/60 dark:border-white/5 shadow-xs cursor-pointer"
+              title="Hide menu"
+              aria-label="Hide sidebar menu"
+            >
+              <ChevronLeft size={18} />
+            </button>
+
+            {/* Mobile Close Button */}
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                setMobileOpen(false);
+              }}
+              className="lg:hidden p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 text-slate-600 dark:text-white transition-all border border-slate-200/80 dark:border-white/10 shadow-sm"
+              aria-label="Close menu"
+            >
+              <X size={20} />
+            </button>
+          </div>
 
         {/* Navigation Items */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
@@ -208,7 +268,22 @@ export function Sidebar() {
             </p>
           </div>
         </div>
-      </aside>
+      </div>
+    </aside>
+
+    {/* Docked Floating Edge Arrow Button when desktop sidebar is hidden */}
+    {desktopCollapsed && (
+      <button
+        type="button"
+        onClick={toggleDesktopCollapse}
+        className="fixed left-0 top-20 z-40 hidden lg:flex items-center gap-1.5 py-2 px-3 rounded-r-xl bg-white/95 dark:bg-neutral-900/95 backdrop-blur-xl border border-l-0 border-slate-200/80 dark:border-neutral-800/80 text-muted-foreground hover:text-foreground hover:bg-slate-100 dark:hover:bg-white/10 shadow-lg transition-all hover:translate-x-0.5 active:scale-95 group cursor-pointer"
+        title="Show sidebar menu"
+        aria-label="Show sidebar menu"
+      >
+        <ChevronRight size={16} className="text-primary-500 group-hover:translate-x-0.5 transition-transform" />
+        <span className="text-xs font-semibold pr-0.5">Menu</span>
+      </button>
+    )}
     </>
   );
 }

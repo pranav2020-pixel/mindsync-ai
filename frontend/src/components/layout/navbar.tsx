@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import {
   Sun, Moon, Leaf, Bell, LogOut, User, Settings, Check, Trash2,
   Shield, FileText, Sparkles, Inbox, Menu, X, HelpCircle, PlayCircle,
-  Volume2, VolumeX
+  Volume2, VolumeX, ChevronRight
 } from "lucide-react";
 import { HelpAndOnboardingSuite } from "./help-onboarding-suite";
 import {
@@ -34,6 +34,7 @@ export function Navbar() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loadingNotifications, setLoadingNotifications] = useState(false);
   const [soundMuted, setSoundMuted] = useState(false);
+  const [desktopSidebarCollapsed, setDesktopSidebarCollapsed] = useState(false);
 
   const [isVisible, setIsVisible] = useState(true);
   const lastScrollYRef = useRef(0);
@@ -49,6 +50,30 @@ export function Navbar() {
     setIsVisible(true);
     lastScrollYRef.current = 0;
   }, [pathname]);
+
+  useEffect(() => {
+    if (typeof window === "undefined") return;
+    try {
+      const saved = localStorage.getItem("mindsync_desktop_sidebar_collapsed_v1");
+      if (saved === "true") {
+        setDesktopSidebarCollapsed(true);
+      }
+    } catch {
+      // Ignore storage read error
+    }
+
+    const handleSidebarChange = (e: Event) => {
+      const custom = e as CustomEvent<{ collapsed: boolean }>;
+      if (typeof custom.detail?.collapsed === "boolean") {
+        setDesktopSidebarCollapsed(custom.detail.collapsed);
+      }
+    };
+
+    window.addEventListener("mindsync:desktop-sidebar-change", handleSidebarChange);
+    return () => {
+      window.removeEventListener("mindsync:desktop-sidebar-change", handleSidebarChange);
+    };
+  }, []);
 
   useEffect(() => {
     if (typeof window === "undefined") return;
@@ -233,25 +258,44 @@ export function Navbar() {
     >
       <div className="h-16 flex items-center justify-between px-3.5 sm:px-6">
         <div className="flex items-center gap-2 sm:gap-3">
-        <button
-          onClick={() => {
-            if (typeof window !== "undefined") {
-              window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
-            }
-          }}
-          className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors"
-          aria-label="Open navigation menu"
-        >
-          <Menu size={22} />
-        </button>
+          <button
+            onClick={() => {
+              if (typeof window !== "undefined") {
+                window.dispatchEvent(new CustomEvent("open-mobile-sidebar"));
+              }
+            }}
+            className="lg:hidden p-2 rounded-xl text-muted-foreground hover:text-foreground hover:bg-muted transition-colors cursor-pointer"
+            aria-label="Open navigation menu"
+          >
+            <Menu size={22} />
+          </button>
 
-        <Link href="/" className="flex lg:hidden items-center gap-2">
-          <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-sm">
-            <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
-          </div>
-          <span className="font-bold text-base text-gradient tracking-tight">MindSync</span>
-        </Link>
-      </div>
+          {/* Desktop Show Menu Arrow Button */}
+          {desktopSidebarCollapsed && (
+            <button
+              type="button"
+              onClick={() => {
+                playNavTap();
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("mindsync:toggle-desktop-sidebar"));
+                }
+              }}
+              className="hidden lg:flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 text-foreground border border-slate-200/80 dark:border-white/10 text-xs font-semibold shadow-xs transition-all active:scale-95 cursor-pointer"
+              title="Show sidebar menu"
+              aria-label="Show sidebar menu"
+            >
+              <ChevronRight size={16} className="text-primary-500" />
+              <span>Show Menu</span>
+            </button>
+          )}
+
+          <Link href="/" className="flex lg:hidden items-center gap-2">
+            <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-sm">
+              <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
+            </div>
+            <span className="font-bold text-base text-gradient tracking-tight">MindSync</span>
+          </Link>
+        </div>
 
       <div className="flex items-center gap-2 sm:gap-3">
         {/* Direct 3D Companion Tour Trigger (TASK-604) */}
