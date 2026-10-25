@@ -229,7 +229,6 @@ export function HelpAndOnboardingSuite() {
   const glideTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const freddyAvatarBoxRef = useRef<HTMLDivElement | null>(null);
   const trailCanvasRef = useRef<HTMLCanvasElement | null>(null);
-  const wakeTrailLoopRef = useRef<(() => void) | null>(null);
   const auraColorsRef = useRef<{ c1: string; c2: string; c3: string }>({
     c1: "#10b981",
     c2: "#34d399",
@@ -340,20 +339,19 @@ export function HelpAndOnboardingSuite() {
     const dx = targetX - prev.x;
     const dy = targetY - prev.y;
     const dist = Math.hypot(dx, dy);
-    if (dist > 24) {
+    if (dist > 18) {
       if (tourOpen) {
         playGlideWhoosh();
       }
       if (!prefersReducedMotion) {
-        const tilt = Math.max(-11, Math.min(11, dx * 0.038));
+        const tilt = Math.max(-10, Math.min(10, dx * 0.034));
         setGlideTiltDeg(tilt);
         setIsGliding(true);
-        wakeTrailLoopRef.current?.();
         if (glideTimerRef.current) clearTimeout(glideTimerRef.current);
         glideTimerRef.current = setTimeout(() => {
           setIsGliding(false);
           setGlideTiltDeg(0);
-        }, 780);
+        }, 460);
       }
     }
   }, [freddyPos.x, freddyPos.y, restingPos.x, restingPos.y, tourOpen, prefersReducedMotion, mounted]);
@@ -392,13 +390,15 @@ export function HelpAndOnboardingSuite() {
     let lastY: number | null = null;
     let lastNx = 0;
     let lastNy = -1;
-    let settledFrames = 0;
+    let hadNodes = false;
 
     const tick = (now: number) => {
       const dt = Math.min(48, Math.max(8, now - lastTime));
       lastTime = now;
 
       const box = freddyAvatarBoxRef.current;
+      let isMoving = false;
+
       if (box) {
         const rect = box.getBoundingClientRect();
         const cx = rect.left + rect.width * 0.5;
@@ -411,16 +411,17 @@ export function HelpAndOnboardingSuite() {
 
         const dx = cx - lastX;
         const dy = cy - lastY;
-        const stepDist = Math.hypot(dx, dy);
+        const dist = Math.hypot(dx, dy);
 
-        if (stepDist > 0.6) {
-          settledFrames = 0;
-          const inv = 1 / stepDist;
-          // Smoothly blend normal vector to avoid sharp kinks in the ribbon
+        if (dist >= 1.2) {
+          isMoving = true;
+          const inv = 1 / dist;
           const rawNx = -dy * inv;
           const rawNy = dx * inv;
-          lastNx = lastNx * 0.65 + rawNx * 0.35;
-          lastNy = lastNy * 0.65 + rawNy * 0.35;
+
+          // Smoothly blend normal vector to avoid sharp kinks in the ribbon
+          lastNx = lastNx * 0.6 + rawNx * 0.4;
+          lastNy = lastNy * 0.6 + rawNy * 0.4;
           const normLen = Math.hypot(lastNx, lastNy) || 1;
           lastNx /= normLen;
           lastNy /= normLen;
@@ -431,16 +432,17 @@ export function HelpAndOnboardingSuite() {
             nx: lastNx,
             ny: lastNy,
             age: 0,
-            maxAge: 540,
-            phase: now * 0.0085,
+            maxAge: 380,
+            phase: now * 0.01,
           });
-          if (nodes.length > 44) {
+
+          if (nodes.length > 38) {
             nodes.shift();
           }
+
           lastX = cx;
           lastY = cy;
         } else {
-          settledFrames += 1;
           lastX = cx;
           lastY = cy;
         }
@@ -454,6 +456,18 @@ export function HelpAndOnboardingSuite() {
         }
       }
 
+      if (nodes.length === 0 && !isMoving) {
+        // Clear canvas once when completely rested, then idle
+        if (hadNodes) {
+          ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+          ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+          hadNodes = false;
+        }
+        rafId = window.requestAnimationFrame(tick);
+        return;
+      }
+
+      hadNodes = true;
       ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
       ctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
 
@@ -467,7 +481,7 @@ export function HelpAndOnboardingSuite() {
           const u = i / (total - 1);
           const life = Math.max(0, 1 - n.age / n.maxAge);
           // Subtle perpendicular sine wave so the ribbon always flows in a graceful S-curve
-          const wave = Math.sin((1 - u) * Math.PI * 1.55 + n.phase) * 9 * (1 - u) * u;
+          const wave = Math.sin((1 - u) * Math.PI * 1.6 + n.phase) * 7.5 * (1 - u) * u;
           pts.push({
             x: n.x + n.nx * wave,
             y: n.y + n.ny * wave,
@@ -487,7 +501,6 @@ export function HelpAndOnboardingSuite() {
         ctx.save();
         ctx.lineCap = "round";
         ctx.lineJoin = "round";
-        const { c1, c2 } = auraColorsRef.current;
 
         // Draw smooth quadratic-Bezier ribbon segments with progressive width & opacity taper
         for (let i = 1; i < pts.length - 1; i++) {
@@ -500,74 +513,57 @@ export function HelpAndOnboardingSuite() {
           const mid2X = (p1.x + p2.x) * 0.5;
           const mid2Y = (p1.y + p2.y) * 0.5;
 
-          // Envelope: smoothly 0 at tail tip, full in middle-front, and smoothly tucked into Freddy's center
-          const shapeEnv = Math.sin(p1.u * Math.PI) * Math.pow(p1.u, 0.45);
-          const fadeAlpha = Math.pow(p1.life, 1.65) * shapeEnv;
-          if (fadeAlpha <= 0.008) continue;
+          // Shape envelope: smoothly 0 at tail tip, expanding toward Freddy
+          const uShape = Math.sin(p1.u * Math.PI * 0.5);
+          const lifeFactor = Math.pow(p1.life, 1.15);
+          const alpha = lifeFactor * uShape;
+          if (alpha <= 0.015) continue;
 
-          const widthScale = Math.pow(p1.life, 1.15) * shapeEnv;
+          const baseWidth = Math.max(1.2, 19 * uShape * lifeFactor);
 
-          // 1. Soft outer ambient glow ribbon
+          // 1. Broad outer emerald glowing aura
           ctx.beginPath();
           ctx.moveTo(mid1X, mid1Y);
           ctx.quadraticCurveTo(p1.x, p1.y, mid2X, mid2Y);
-          ctx.strokeStyle = c2;
-          ctx.globalAlpha = fadeAlpha * 0.24;
-          ctx.lineWidth = Math.max(1.5, 24 * widthScale);
+          ctx.strokeStyle = `rgba(16, 185, 129, ${(alpha * 0.44).toFixed(3)})`;
+          ctx.lineWidth = baseWidth * 1.8;
           ctx.stroke();
 
-          // 2. Primary emerald/cyan curved silk ribbon
+          // 2. Vibrant emerald/cyan silk ribbon
           ctx.beginPath();
           ctx.moveTo(mid1X, mid1Y);
           ctx.quadraticCurveTo(p1.x, p1.y, mid2X, mid2Y);
-          ctx.strokeStyle = c1;
-          ctx.globalAlpha = fadeAlpha * 0.52;
-          ctx.lineWidth = Math.max(1, 11.5 * widthScale);
+          ctx.strokeStyle = `rgba(52, 211, 153, ${(alpha * 0.85).toFixed(3)})`;
+          ctx.lineWidth = baseWidth;
           ctx.stroke();
 
-          // 3. Inner luminous pearlescent filament
+          // 3. Bright pearlescent core filament
           ctx.beginPath();
           ctx.moveTo(mid1X, mid1Y);
           ctx.quadraticCurveTo(p1.x, p1.y, mid2X, mid2Y);
-          ctx.strokeStyle = "#ecfdf5";
-          ctx.globalAlpha = fadeAlpha * 0.72;
-          ctx.lineWidth = Math.max(0.6, 3.6 * widthScale);
+          ctx.strokeStyle = `rgba(255, 255, 255, ${(alpha * 0.95).toFixed(3)})`;
+          ctx.lineWidth = Math.max(1, baseWidth * 0.28);
           ctx.stroke();
 
-          // Subtle stardust motes along the curved arc that dissolve as the tail fades
-          if (i % 5 === 0 && fadeAlpha > 0.08) {
+          // 4. Subtle stardust motes along the curved arc that dissolve as the tail fades
+          if (i % 4 === 0 && alpha > 0.12) {
             ctx.beginPath();
-            ctx.arc(p1.x, p1.y, Math.max(0.8, 2.4 * widthScale), 0, Math.PI * 2);
-            ctx.fillStyle = "#ffffff";
-            ctx.globalAlpha = fadeAlpha * 0.65;
+            ctx.arc(p1.x, p1.y, Math.max(0.8, 2.2 * lifeFactor), 0, Math.PI * 2);
+            ctx.fillStyle = `rgba(255, 255, 255, ${(alpha * 0.9).toFixed(3)})`;
             ctx.fill();
           }
         }
         ctx.restore();
       }
 
-      // Keep running until all trail points have completely faded out and Freddy has settled
-      if (nodes.length > 0 || settledFrames < 28) {
-        rafId = window.requestAnimationFrame(tick);
-      } else {
-        rafId = 0;
-      }
+      rafId = window.requestAnimationFrame(tick);
     };
 
-    const wakeLoop = () => {
-      settledFrames = 0;
-      if (!rafId) {
-        lastTime = performance.now();
-        rafId = window.requestAnimationFrame(tick);
-      }
-    };
-
-    wakeTrailLoopRef.current = wakeLoop;
+    rafId = window.requestAnimationFrame(tick);
 
     return () => {
       window.removeEventListener("resize", resizeCanvas);
       if (rafId) window.cancelAnimationFrame(rafId);
-      wakeTrailLoopRef.current = null;
     };
   }, [mounted, prefersReducedMotion]);
 
@@ -1254,7 +1250,8 @@ export function HelpAndOnboardingSuite() {
             <canvas
               ref={trailCanvasRef}
               aria-hidden="true"
-              className="fixed inset-0 z-[69] pointer-events-none"
+              className="fixed inset-0 pointer-events-none z-[69]"
+              style={{ width: "100vw", height: "100vh" }}
             />
           )}
 
@@ -1267,15 +1264,15 @@ export function HelpAndOnboardingSuite() {
             transition={{
               x: {
                 type: "spring",
-                stiffness: 58,
-                damping: 16,
-                mass: 1.05,
+                stiffness: 120,
+                damping: 18,
+                mass: 0.95,
               },
               y: {
                 type: "spring",
-                stiffness: 40,
-                damping: 14,
-                mass: 1.28,
+                stiffness: 100,
+                damping: 16,
+                mass: 1.05,
               },
             }}
             className={cn(
@@ -1283,7 +1280,7 @@ export function HelpAndOnboardingSuite() {
               tourOpen && bubbleSide === "left" && "flex-row-reverse"
             )}
           >
-            {/* Hovering 3D Freddy Bot with ShaderGradient Aura, Squash-and-Stretch Curved Flight & Sparkle Particles */}
+            {/* Hovering 3D Freddy Bot with Luminous Aura, Squash-and-Stretch Curved Flight & Sparkle Particles */}
             <motion.div
               ref={freddyAvatarBoxRef}
               animate={
@@ -1292,7 +1289,7 @@ export function HelpAndOnboardingSuite() {
                   : {
                       y: [0, -7, 0],
                       rotate: isGliding ? glideTiltDeg : 0,
-                      scaleX: isGliding ? 1.06 : 1,
+                      scaleX: isGliding ? 1.05 : 1,
                       scaleY: isGliding ? 0.95 : 1,
                     }
               }
@@ -1302,9 +1299,9 @@ export function HelpAndOnboardingSuite() {
                   duration: 2.4,
                   ease: "easeInOut",
                 },
-                rotate: { type: "spring", stiffness: 180, damping: 18 },
-                scaleX: { type: "spring", stiffness: 220, damping: 16 },
-                scaleY: { type: "spring", stiffness: 220, damping: 16 },
+                rotate: { type: "spring", stiffness: 220, damping: 18 },
+                scaleX: { type: "spring", stiffness: 240, damping: 16 },
+                scaleY: { type: "spring", stiffness: 240, damping: 16 },
               }}
               onMouseEnter={() => {
                 if (!tourOpen) setIdleWave(true);
@@ -1314,19 +1311,14 @@ export function HelpAndOnboardingSuite() {
               }}
               className="relative shrink-0 pointer-events-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)] touch-manipulation"
             >
-              {/* ShaderGradient Fluid Mesh Aura Behind Freddy */}
+              {/* Luminous Ambient Aura Behind Freddy (Compositor-Thread Accelerated) */}
               {(tourOpen || idleWave) && (
-                <ShaderGradientAura
-                  variant="orb"
-                  color1={auraColors.c1}
-                  color2={auraColors.c2}
-                  color3={auraColors.c3}
-                  uSpeed={0.32}
-                  uStrength={1.8}
-                  uDensity={1.5}
-                  grain="on"
-                  pixelDensity={1}
-                  className="absolute -inset-2.5 w-[calc(100%+20px)] h-[calc(100%+20px)] rounded-full -z-10"
+                <div
+                  aria-hidden="true"
+                  className="absolute -inset-3 rounded-full -z-10 pointer-events-none blur-[6px] transition-opacity duration-300"
+                  style={{
+                    background: `radial-gradient(circle, ${auraColors.c1}88 0%, ${auraColors.c2}44 48%, transparent 72%)`,
+                  }}
                 />
               )}
 
