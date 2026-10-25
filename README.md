@@ -22,8 +22,21 @@
 
 ---
 
+## 🌐 Live Web Application
+
+Experience MindSync AI live in your browser:
+
+### 🚀 **[https://mindsync-ai-six.vercel.app](https://mindsync-ai-six.vercel.app)**
+
+| Demo Account | Password | Experience |
+|:---|:---|:---|
+| `demo@mindsync.ai` | `password123` | Pre-populated demo profile (or click **Register** to create your own account) |
+
+---
+
 ## 📑 Table of Contents
 
+- [🌐 Live Web Application](#-live-web-application)
 - [Overview & Philosophy](#-overview--philosophy)
 - [Key Features](#-key-features)
   - [🎨 Handcrafted Illustrated Wellness Reports (A4 PDF & Print)](#1--handcrafted-illustrated-wellness-reports-a4-pdf--print)
@@ -37,12 +50,6 @@
 - [System Architecture](#-system-architecture)
 - [Technology Stack](#-technology-stack)
 - [Repository Structure](#-repository-structure)
-- [Getting Started & Local Development](#-getting-started--local-development)
-  - [Prerequisites](#prerequisites)
-  - [1. Clone Repository](#1-clone-repository)
-  - [2. Backend Setup](#2-backend-setup)
-  - [3. Frontend Setup](#3-frontend-setup)
-- [Environment Variables](#-environment-variables)
 - [REST API Reference](#-rest-api-reference)
 - [Safety, Ethics & Data Privacy](#-safety-ethics--data-privacy)
 - [Roadmap](#-roadmap)
@@ -224,115 +231,6 @@ mindsync-ai/
 │   ├── tailwind.config.ts
 │   └── tsconfig.json
 └── README.md
-```
-
----
-
-## 🚀 Getting Started & Local Development
-
-### Prerequisites
-
-Ensure you have the following installed on your machine:
-* **Node.js**: `v18.0.0` or higher (Node.js 20+ recommended)
-* **npm**: `v9.0.0` or higher
-* **PostgreSQL**: `v14+` or `v16+` (or a hosted instance like Neon / Supabase)
-* **Redis**: Optional for local development (fallback in-memory store provided)
-
----
-
-### 1. Clone Repository
-
-```bash
-git clone https://github.com/pranav2020-pixel/mindsync-ai.git
-cd mindsync-ai
-```
-
----
-
-### 2. Backend Setup
-
-```bash
-# Navigate to backend directory
-cd backend
-
-# Install dependencies
-npm install
-
-# Configure environment variables (create .env based on example below)
-cp .env.example .env
-
-# Run database migrations and generate Prisma Client
-npx prisma migrate dev --name init
-npx prisma generate
-
-# Seed clinical assessments and achievements
-npx prisma db seed
-
-# Start development server
-npm run dev
-```
-
-*The Express backend will start at `http://localhost:4000`.*
-
----
-
-### 3. Frontend Setup
-
-```bash
-# Open a new terminal and navigate to frontend directory
-cd frontend
-
-# Install dependencies
-npm install
-
-# Configure environment variables
-cp .env.local.example .env.local
-
-# Start Next.js development server
-npm run dev
-```
-
-*The frontend application will start at `http://localhost:3000`.*
-
----
-
-## 🔑 Environment Variables
-
-### Backend (`backend/.env`)
-
-```env
-PORT=4000
-NODE_ENV=development
-
-# Database Connection (PostgreSQL / Neon)
-DATABASE_URL="postgresql://postgres:password@localhost:5432/mindsync?schema=public"
-
-# Redis Cache (Optional for local dev)
-REDIS_URL="redis://localhost:6379"
-
-# Authentication Secrets
-JWT_SECRET="your-super-secret-jwt-key"
-JWT_REFRESH_SECRET="your-super-secret-refresh-key"
-JWT_EXPIRES_IN="15m"
-JWT_REFRESH_EXPIRES_IN="7d"
-
-# AI Provider Keys
-OPENAI_API_KEY="sk-..."
-GEMINI_API_KEY="AIzaSy..."
-
-# Email OTP Service (Nodemailer via Gmail App Password)
-SMTP_USER="your-email@gmail.com"
-SMTP_PASS="your-16-char-app-password"
-
-# Google OAuth
-GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
-```
-
-### Frontend (`frontend/.env.local`)
-
-```env
-NEXT_PUBLIC_API_URL="http://localhost:4000/api/v1"
-NEXT_PUBLIC_GOOGLE_CLIENT_ID="your-client-id.apps.googleusercontent.com"
 ```
 
 ---
