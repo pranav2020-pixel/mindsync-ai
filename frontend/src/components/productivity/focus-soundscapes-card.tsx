@@ -76,10 +76,16 @@ export function FocusSoundscapesCard({
 }: FocusSoundscapesCardProps) {
   const [activeType, setActiveType] = useState<SoundscapeType | null>(null);
   const [volume, setVolume] = useState<number>(0.55);
-  const [previewActive, setPreviewActive] = useState<boolean>(false);
 
   const isUnlocked = userLevel >= 10;
   const xpRemaining = Math.max(0, 900 - totalXP);
+
+  // Stop any active soundscape if user is not unlocked
+  useEffect(() => {
+    if (!isUnlocked && getActiveSoundscape()) {
+      stopSoundscape();
+    }
+  }, [isUnlocked]);
 
   // Sync state with global Web Audio soundscape engine
   useEffect(() => {
@@ -108,17 +114,9 @@ export function FocusSoundscapesCard({
     playNavTap();
 
     if (!isUnlocked) {
-      // Allow instant 45-second preview for users under Level 10
-      if (activeType === id) {
-        stopSoundscape();
-        setPreviewActive(false);
-        toast("Preview stopped", { icon: "⏹️" });
-      } else {
-        startSoundscape(id, volume);
-        setPreviewActive(true);
-        toast.success(`Playing preview of ${SOUNDSCAPES.find((s) => s.id === id)?.title}!`, {
-          icon: "🎧",
-        });
+      toast("Focus Soundscapes unlock at Level 10 (900 XP) 🔒", { icon: "🔒" });
+      if (onOpenRewardsModal) {
+        onOpenRewardsModal();
       }
       return;
     }
@@ -199,9 +197,8 @@ export function FocusSoundscapesCard({
               onClick={() => {
                 playNavTap();
                 stopSoundscape();
-                setPreviewActive(false);
               }}
-              className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 border border-border"
+              className="px-3 py-1.5 rounded-xl bg-muted hover:bg-muted/80 text-foreground text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95 border border-border cursor-pointer"
             >
               <Square size={12} className="fill-current text-rose-500" />
               <span>Stop Audio</span>
@@ -210,21 +207,21 @@ export function FocusSoundscapesCard({
         )}
       </div>
 
-      {/* Level Unlock Notice / Preview Banner */}
+      {/* Level Unlock Notice Banner */}
       {!isUnlocked && (
         <div className="p-3.5 rounded-xl bg-amber-500/10 border border-amber-500/25 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
           <div className="flex items-center gap-2.5">
-            <Sparkles size={16} className="text-amber-500 shrink-0" />
+            <Lock size={16} className="text-amber-500 shrink-0" />
             <span className="text-muted-foreground">
-              You are currently <strong className="text-foreground">Level {userLevel}</strong>. Reaching{" "}
-              <strong className="text-foreground">Level 10 (900 XP)</strong> unlocks permanent soundscape playback. Enjoy live previews below!
+              You are currently <strong className="text-foreground">Level {userLevel}</strong>. Reach{" "}
+              <strong className="text-foreground">Level 10 (900 XP)</strong> to unlock Focus Soundscapes! Custom non-copyrighted tracks will be added soon.
             </span>
           </div>
           {onOpenRewardsModal && (
             <button
               type="button"
               onClick={onOpenRewardsModal}
-              className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline shrink-0 flex items-center gap-1"
+              className="text-xs font-bold text-primary-600 dark:text-primary-400 hover:underline shrink-0 flex items-center gap-1 cursor-pointer"
             >
               <span>View Rewards</span>
               <span>&rarr;</span>
@@ -245,7 +242,9 @@ export function FocusSoundscapesCard({
               className={`p-4 rounded-2xl border transition-all cursor-pointer relative overflow-hidden group ${
                 isPlaying
                   ? "bg-primary-500/10 border-primary-500/40 shadow-md ring-2 ring-primary-500/20"
-                  : "bg-slate-50 dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:border-primary-500/30 hover:bg-slate-100/80 dark:hover:bg-white/10"
+                  : isUnlocked
+                  ? "bg-slate-50 dark:bg-white/5 border-slate-200/80 dark:border-white/10 hover:border-primary-500/30 hover:bg-slate-100/80 dark:hover:bg-white/10"
+                  : "bg-slate-50/60 dark:bg-white/5 border-slate-200/60 dark:border-white/5 opacity-80 hover:opacity-100"
               }`}
             >
               <div className="flex items-start justify-between mb-2">
@@ -259,24 +258,33 @@ export function FocusSoundscapesCard({
                     e.stopPropagation();
                     handleToggle(sound.id);
                   }}
-                  className={`p-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center shadow-xs ${
+                  className={`p-2 rounded-xl text-xs font-bold transition-all active:scale-95 flex items-center justify-center shadow-xs cursor-pointer ${
                     isPlaying
                       ? "bg-primary-500 text-white"
-                      : "bg-muted text-muted-foreground group-hover:text-foreground group-hover:bg-primary-500/20"
+                      : isUnlocked
+                      ? "bg-muted text-muted-foreground group-hover:text-foreground group-hover:bg-primary-500/20"
+                      : "bg-muted/70 text-muted-foreground border border-border"
                   }`}
                   aria-label={isPlaying ? `Stop ${sound.title}` : `Play ${sound.title}`}
                 >
                   {isPlaying ? (
                     <Square size={14} className="fill-current" />
-                  ) : (
+                  ) : isUnlocked ? (
                     <Play size={14} className="fill-current ml-0.5" />
+                  ) : (
+                    <Lock size={13} className="text-amber-500" />
                   )}
                 </button>
               </div>
 
               <div className="space-y-1">
-                <h3 className="text-sm font-bold text-foreground group-hover:text-primary-500 transition-colors">
-                  {sound.title}
+                <h3 className="text-sm font-bold text-foreground group-hover:text-primary-500 transition-colors flex items-center gap-1.5">
+                  <span>{sound.title}</span>
+                  {!isUnlocked && (
+                    <span className="inline-flex items-center px-1.5 py-0.2 rounded-full text-[9px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-400">
+                      Lvl 10
+                    </span>
+                  )}
                 </h3>
                 <p className="text-[11px] text-muted-foreground leading-tight line-clamp-2">
                   {sound.tagline}
@@ -285,8 +293,8 @@ export function FocusSoundscapesCard({
 
               <div className="mt-3 pt-2 border-t border-border/50 flex items-center justify-between text-[10px] text-muted-foreground">
                 <span className="font-mono">{sound.frequencyHint}</span>
-                <span className={isPlaying ? "text-emerald-500 font-bold" : ""}>
-                  {isPlaying ? "Playing" : isUnlocked ? "Ready" : "Preview"}
+                <span className={isPlaying ? "text-emerald-500 font-bold" : !isUnlocked ? "text-amber-500 font-medium" : ""}>
+                  {isPlaying ? "Playing" : isUnlocked ? "Ready" : "Locked"}
                 </span>
               </div>
             </div>
@@ -295,10 +303,13 @@ export function FocusSoundscapesCard({
       </div>
 
       {/* Volume Slider & Controls */}
-      <div className="p-3 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-border/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs">
+      <div className={`p-3 rounded-xl bg-slate-50/70 dark:bg-white/5 border border-border/60 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 text-xs transition-opacity ${
+        !isUnlocked ? "opacity-60 pointer-events-none" : ""
+      }`}>
         <div className="flex items-center gap-3 w-full sm:w-auto">
           <button
             type="button"
+            disabled={!isUnlocked}
             onClick={() => {
               const nextVol = volume > 0 ? 0 : 0.55;
               setVolume(nextVol);
@@ -317,6 +328,7 @@ export function FocusSoundscapesCard({
             min={0}
             max={1}
             step={0.05}
+            disabled={!isUnlocked}
             value={volume}
             onChange={handleVolumeChange}
             className="w-full sm:w-44 accent-primary-600 dark:accent-primary-400 cursor-pointer h-1.5 bg-muted rounded-lg"
@@ -329,7 +341,9 @@ export function FocusSoundscapesCard({
         </div>
 
         <p className="text-[11px] text-muted-foreground/80 hidden sm:block">
-          Synthesized live using zero-dependency Web Audio API
+          {isUnlocked
+            ? "Synthesized live using zero-dependency Web Audio API"
+            : "Volume controls unlock alongside Level 10 Focus Soundscapes"}
         </p>
       </div>
     </div>
