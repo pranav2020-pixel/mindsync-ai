@@ -838,6 +838,10 @@ export default function HabitsPage() {
                                 style={{ width: `${Math.min(100, Math.max(0, ach.progressPercent ?? 0))}%` }}
                               />
                             </div>
+                            <div className="flex items-center justify-between text-[10px] text-muted-foreground/80 pt-0.5">
+                              <span>{Math.max(0, ach.targetValue - (ach.currentValue ?? 0))} more needed to unlock</span>
+                              <span className="text-amber-500 font-semibold">+{ach.xpValue || ach.xp} XP</span>
+                            </div>
                           </div>
                         )}
                       </div>
