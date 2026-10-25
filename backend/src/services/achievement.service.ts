@@ -154,7 +154,7 @@ export const AchievementService = {
       moodCount,
       assessmentCount,
       completedHabits,
-      deepWorkCount,
+      productivityLogs,
     ] = await Promise.all([
       prisma.achievement.findMany(),
       prisma.userAchievement.findMany({
@@ -168,8 +168,17 @@ export const AchievementService = {
         where: { userId, completed: true },
         select: { habitType: true, date: true, customHabitId: true },
       }),
-      prisma.productivityLog.count({ where: { userId } }).catch(() => 0),
+      prisma.productivityLog.findMany({
+        where: { userId },
+        select: { pomodoroSessions: true, deepWorkScore: true },
+      }).catch(() => []),
     ]);
+
+    // Effective deep work / focus sessions count: sums pomodoro focus sessions and deep work ratings
+    const deepWorkCount = productivityLogs.reduce(
+      (sum, p) => sum + Math.max(p.pomodoroSessions || 0, p.deepWorkScore ? 1 : 0),
+      0
+    );
 
     // Effective journal reflections: counts both full journal entries and completed JOURNALING habit logs
     const journalHabitCount = completedHabits.filter((h) => h.habitType === "JOURNALING").length;
@@ -270,7 +279,7 @@ export const AchievementService = {
       moodCount,
       assessmentCount,
       completedHabitsList,
-      deepWorkCount,
+      productivityLogs,
     ] = await Promise.all([
       prisma.achievement.findMany({ orderBy: { xpValue: "asc" } }),
       prisma.userAchievement.findMany({
@@ -288,13 +297,22 @@ export const AchievementService = {
         where: { userId, completed: true },
         select: { habitType: true, date: true, customHabitId: true },
       }),
-      prisma.productivityLog.count({ where: { userId } }).catch(() => 0),
+      prisma.productivityLog.findMany({
+        where: { userId },
+        select: { pomodoroSessions: true, deepWorkScore: true },
+      }).catch(() => []),
     ]);
 
     const unlockedMap = new Map<string, Date>();
     userAchievements.forEach((ua) => {
       unlockedMap.set(ua.achievementId, ua.unlockedAt);
     });
+
+    // Effective deep work / focus sessions count: sums pomodoro focus sessions and deep work ratings
+    const deepWorkCount = productivityLogs.reduce(
+      (sum, p) => sum + Math.max(p.pomodoroSessions || 0, p.deepWorkScore ? 1 : 0),
+      0
+    );
 
     // Effective journal reflections: counts both full journal entries and completed JOURNALING habit logs
     const journalHabitCount = completedHabitsList.filter((h) => h.habitType === "JOURNALING").length;

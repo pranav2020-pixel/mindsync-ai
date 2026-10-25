@@ -101,11 +101,29 @@ export default function ProductivityPage() {
       toast.success(`Focus block completed! ${completedMinutes} ${unitLabel} logged.`);
 
       try {
-        await api.post("/productivity", {
+        const res = await api.post("/productivity", {
           pomodoroSessions: 1,
           focusTimeMinutes: completedMinutes,
         });
         fetchStats();
+
+        const newlyUnlocked = res.data?.newlyUnlocked;
+        if (Array.isArray(newlyUnlocked) && newlyUnlocked.length > 0) {
+          newlyUnlocked.forEach((badgeName: string) => {
+            setTimeout(() => {
+              toast.success(`🎉 Milestone Unlocked: ${badgeName}! (+150 XP)`);
+            }, 400);
+          });
+        }
+
+        if (typeof window !== "undefined") {
+          window.dispatchEvent(new CustomEvent("mindsync:habit-completed"));
+          window.dispatchEvent(
+            new CustomEvent("mindsync:xp-earned", {
+              detail: { xp: 10, totalXP: res.data?.totalXP },
+            })
+          );
+        }
       } catch (err) {
         console.error("Failed to log pomodoro completion:", err);
       }
@@ -169,10 +187,28 @@ export default function ProductivityPage() {
   const handleSaveDeepWork = async () => {
     setSavingLog(true);
     try {
-      await api.post("/productivity", { deepWorkScore: deepWorkRating });
+      const res = await api.post("/productivity", { deepWorkScore: deepWorkRating });
       playJournalSaveShimmer();
       toast.success("Deep work rating saved!");
       fetchStats();
+
+      const newlyUnlocked = res.data?.newlyUnlocked;
+      if (Array.isArray(newlyUnlocked) && newlyUnlocked.length > 0) {
+        newlyUnlocked.forEach((badgeName: string) => {
+          setTimeout(() => {
+            toast.success(`🎉 Milestone Unlocked: ${badgeName}! (+150 XP)`);
+          }, 400);
+        });
+      }
+
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("mindsync:habit-completed"));
+        window.dispatchEvent(
+          new CustomEvent("mindsync:xp-earned", {
+            detail: { totalXP: res.data?.totalXP },
+          })
+        );
+      }
     } catch (err) {
       toast.error("Failed to save rating");
     } finally {

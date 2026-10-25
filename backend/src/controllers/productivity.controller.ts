@@ -2,6 +2,7 @@ import { Request, Response } from "express";
 import { prisma } from "../server";
 import { AppError } from "../utils/AppError";
 import { asyncHandler } from "../utils/asyncHandler";
+import { AchievementService } from "../services/achievement.service";
 
 export const ProductivityController = {
   getAll: asyncHandler(async (req: any, res: Response) => {
@@ -30,7 +31,31 @@ export const ProductivityController = {
     } else {
       log = await prisma.productivityLog.create({ data: { userId: req.user.id, pomodoroSessions: pomodoroSessions || 0, tasksCompleted: tasksCompleted || 0, focusTimeMinutes: focusTimeMinutes || 0, interruptions: interruptions || 0, workHours, learningHours, screenTimeMinutes, deepWorkScore } });
     }
-    res.status(201).json({ success: true, data: log });
+
+    // Auto-check and unlock achievements (e.g. Deep Thinker +150 XP for 5 focus sessions)
+    let newlyUnlocked: string[] = [];
+    try {
+      newlyUnlocked = await AchievementService.checkAndUnlockAchievements(req.user.id);
+    } catch (achErr) {
+      console.warn("Non-fatal: Achievement check failed on productivity log:", achErr);
+    }
+
+    let progressData: any = null;
+    try {
+      progressData = await AchievementService.getUserAchievementsWithProgress(req.user.id);
+    } catch (prErr) {
+      console.warn("Non-fatal: Achievement progress fetch failed:", prErr);
+    }
+
+    res.status(201).json({
+      success: true,
+      data: log,
+      newlyUnlocked,
+      totalXP: progressData?.totalXP,
+      level: progressData?.level,
+      levelProgress: progressData?.levelProgress,
+      xpToNextLevel: progressData?.xpToNextLevel,
+    });
   }),
 
   getStats: asyncHandler(async (req: any, res: Response) => {
