@@ -736,7 +736,7 @@ export function playOptionSelectPop(optionIdx = 0): void {
 }
 
 /**
- * 16. Atmospheric chord tailored to the selected visual theme (Forest Emerald, Emerald Glass, Daylight, OLED Black).
+ * 16. Atmospheric chord tailored to the selected visual theme (Forest Emerald, Daylight, OLED Black).
  */
 export function playThemeSwitchChime(themeName?: string): void {
   if (isSoundMuted()) return;
@@ -745,7 +745,6 @@ export function playThemeSwitchChime(themeName?: string): void {
 
   const chords: Record<string, number[]> = {
     green: [440, 554.37, 659.25], // A major warm forest
-    "green-light": [523.25, 659.25, 783.99], // C major bright glass
     light: [587.33, 739.99, 880.0], // D major sunny daylight
     dark: [329.63, 440.0, 523.25], // A minor calm night
   };

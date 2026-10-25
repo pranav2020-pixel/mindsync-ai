@@ -70,29 +70,6 @@
     --input: 155 35% 14%;
     --ring: 152 76% 40%;
   }
-
-  /* Scientifically Eye & Mood Relaxing Biophilic Forest Green Light Theme (Design 1-3 Light) */
-  .green-light {
-    --background: 145 35% 97.5%;         /* Soft soothing mint cream mist #f1f8f4 */
-    --foreground: 155 60% 8%;            /* Deep forest pine charcoal #072213 for clear typography */
-    --card: 150 30% 99%;                 /* Translucent frosted pearl mint #fafffc */
-    --card-foreground: 155 60% 8%;
-    --popover: 150 30% 99%;
-    --popover-foreground: 155 60% 8%;
-    --primary: 152 76% 36%;              /* Biophilic emerald anchor #0fa65d */
-    --primary-foreground: 0 0% 100%;
-    --secondary: 145 30% 92%;            /* Tender mint secondary #def2e6 */
-    --secondary-foreground: 155 60% 12%;
-    --muted: 145 25% 93%;
-    --muted-foreground: 152 28% 40%;     /* Rich sage text #43765c for high legibility */
-    --accent: 145 35% 90%;
-    --accent-foreground: 155 60% 8%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 152 35% 86%;               /* Soft emerald border line #c6ebd7 */
-    --input: 152 35% 86%;
-    --ring: 152 76% 36%;
-  }
 }
 
 @layer base {
@@ -250,146 +227,6 @@
     box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important;
   }
 
-  /* Forest Emerald Light Theme (Design 1-3 Light) - Glassmorphism & Biophilic Aura */
-  .green-light {
-    background-image: radial-gradient(at 100% 0%, rgba(16, 185, 129, 0.08) 0px, transparent 50%),
-                      radial-gradient(at 0% 100%, rgba(5, 150, 105, 0.06) 0px, transparent 50%);
-    background-attachment: fixed;
-  }
-  .green-light .glass {
-    background-color: rgba(255, 255, 255, 0.8) !important;
-    border-color: rgba(16, 185, 129, 0.22) !important;
-    backdrop-filter: blur(16px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(16px) saturate(180%) !important;
-  }
-  .green-light .glass-card {
-    background-color: rgba(255, 255, 255, 0.88) !important;
-    border-color: rgba(16, 185, 129, 0.24) !important;
-    backdrop-filter: blur(20px) saturate(180%) !important;
-    -webkit-backdrop-filter: blur(20px) saturate(180%) !important;
-    box-shadow: 0 10px 30px -10px rgba(16, 185, 129, 0.12), 0 2px 10px 0 rgba(0, 0, 0, 0.03) !important;
-  }
-  .green-light .text-gradient {
-    background-image: linear-gradient(135deg, #047857, #10b981, #059669) !important;
-  }
-
-  /* Green Light Sidebar & Bottom Navigation Bars */
-  .green-light aside {
-    background-color: rgba(243, 250, 246, 0.94) !important;
-    border-right-color: rgba(16, 185, 129, 0.22) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-  }
-  .green-light nav[class*="fixed bottom-0"] {
-    background-color: rgba(243, 250, 246, 0.94) !important;
-    border-top-color: rgba(16, 185, 129, 0.22) !important;
-    backdrop-filter: blur(16px) !important;
-    -webkit-backdrop-filter: blur(16px) !important;
-    box-shadow: 0 -8px 24px -4px rgba(16, 185, 129, 0.1), 0 0 12px 0 rgba(0, 0, 0, 0.04) !important;
-  }
-  .green-light header.glass {
-    background-color: rgba(243, 250, 246, 0.92) !important;
-    border-bottom-color: rgba(16, 185, 129, 0.2) !important;
-  }
-  .green-light aside [class*="bg-slate-950"],
-  .green-light nav [class*="bg-slate-950"] {
-    background-color: rgba(235, 247, 240, 0.95) !important;
-  }
-  .green-light aside [class*="border-white/10"],
-  .green-light nav [class*="border-white/10"] {
-    border-color: rgba(16, 185, 129, 0.2) !important;
-  }
-  .green-light aside [class*="border-white/5"],
-  .green-light nav [class*="border-white/5"] {
-    border-color: rgba(16, 185, 129, 0.12) !important;
-  }
-  .green-light aside [class*="bg-white/[0.04]"],
-  .green-light aside [class*="bg-white/10"] {
-    background-color: rgba(16, 185, 129, 0.08) !important;
-    border-color: rgba(16, 185, 129, 0.22) !important;
-  }
-  /* Green Light Theme: Global Primary Color Harmonization */
-  .green-light [class*="text-primary-"],
-  .green-light .text-primary-300,
-  .green-light .text-primary-400,
-  .green-light .text-primary-500,
-  .green-light .text-primary-600,
-  .green-light svg[class*="text-primary-"] {
-    color: #059669 !important; /* Crisp botanical emerald for light theme */
-    stroke: #059669 !important;
-  }
-  .green-light .text-primary-700 {
-    color: #064e3b !important;
-    stroke: #064e3b !important;
-  }
-  .green-light [class*="hover:text-primary-"]:hover,
-  .green-light .hover\:text-primary-500:hover,
-  .green-light .hover\:text-primary-600:hover {
-    color: #047857 !important;
-    stroke: #047857 !important;
-  }
-  .green-light [class*="bg-primary-500/"],
-  .green-light [class*="bg-primary-50"],
-  .green-light .bg-primary-500\/10,
-  .green-light .bg-primary-500\/15,
-  .green-light .bg-primary-500\/20 {
-    background-color: rgba(16, 185, 129, 0.12) !important;
-    box-shadow: none !important;
-  }
-  .green-light [class*="border-primary-500"],
-  .green-light [class*="border-primary-200"],
-  .green-light [class*="border-primary-300"],
-  .green-light .border-primary-500\/20,
-  .green-light .border-primary-500\/30,
-  .green-light .border-primary-500\/40 {
-    border-color: rgba(16, 185, 129, 0.28) !important;
-  }
-  .green-light [class*="hover:border-primary-500"]:hover {
-    border-color: rgba(16, 185, 129, 0.45) !important;
-  }
-  .green-light button[class*="bg-primary-500/15"],
-  .green-light a[class*="bg-primary-500/15"] {
-    background-color: rgba(16, 185, 129, 0.14) !important;
-    border-color: rgba(16, 185, 129, 0.3) !important;
-    color: #059669 !important;
-    box-shadow: none !important;
-  }
-  .green-light button[class*="bg-primary-500/15"]:hover,
-  .green-light a[class*="bg-primary-500/15"]:hover,
-  .green-light [class*="hover:bg-primary-500"]:hover {
-    background-color: #059669 !important;
-    color: #ffffff !important;
-  }
-  /* Green Light Theme: Solid Primary Elements Harmonization (Eliminates jarring cyan/blue on light mint theme) */
-  .green-light .bg-primary-500,
-  .green-light .bg-primary-600,
-  .green-light [class~="bg-primary-500"],
-  .green-light [class~="bg-primary-600"] {
-    background-color: #059669 !important;
-  }
-  .green-light button[class~="bg-primary-500"],
-  .green-light button[class~="bg-primary-600"],
-  .green-light a[class~="bg-primary-500"],
-  .green-light a[class~="bg-primary-600"] {
-    color: #ffffff !important;
-  }
-  .green-light [class~="border-primary-500"],
-  .green-light [class~="border-primary-600"] {
-    border-color: #059669 !important;
-  }
-  .green-light button[class~="bg-primary-500"]:hover,
-  .green-light button[class~="bg-primary-600"]:hover,
-  .green-light a[class~="bg-primary-500"]:hover,
-  .green-light a[class~="bg-primary-600"]:hover,
-  .green-light [class*="hover:bg-primary-600"]:hover {
-    background-color: #047857 !important;
-    color: #ffffff !important;
-  }
-  .green-light #bottomNavIndicator {
-    background-color: #10b981 !important;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.4) !important;
-  }
-
   .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-wellness-focus; }
 
   /* Universal Interactive Hover Lift Dynamics across all 4 themes */
@@ -409,11 +246,6 @@
     transform: translateY(-4px) !important;
     box-shadow: 0 20px 30px -10px rgba(0, 0, 0, 0.85), 0 0 20px 0 rgba(16, 185, 129, 0.18) !important;
     border-color: rgba(34, 197, 94, 0.4) !important;
-  }
-  .green-light .hover-lift:hover {
-    transform: translateY(-4px) !important;
-    box-shadow: 0 20px 35px -10px rgba(16, 185, 129, 0.22), 0 0 15px 0 rgba(255, 255, 255, 0.9) !important;
-    border-color: rgba(16, 185, 129, 0.4) !important;
   }
 
   /* Universal Tactile Button & Link Hover/Active Feedback */
@@ -435,10 +267,6 @@
   }
   .green .stitch-bg {
     background-image: radial-gradient(rgba(34, 197, 94, 0.1) 1px, transparent 1px);
-    background-size: 24px 24px;
-  }
-  .green-light .stitch-bg {
-    background-image: radial-gradient(rgba(16, 185, 129, 0.12) 1px, transparent 1px);
     background-size: 24px 24px;
   }
 
@@ -488,13 +316,6 @@
     color: #edfcf2 !important;
     border: 1px solid rgba(34, 197, 94, 0.25) !important;
     box-shadow: 0 10px 30px -5px rgba(0, 0, 0, 0.6), 0 0 15px rgba(16, 185, 129, 0.15) !important;
-  }
-
-  .green-light .mindsync-toast {
-    background: #fafffc !important;
-    color: #072213 !important;
-    border: 1px solid rgba(16, 185, 129, 0.3) !important;
-    box-shadow: 0 10px 25px -5px rgba(16, 185, 129, 0.15) !important;
   }
 }
 
