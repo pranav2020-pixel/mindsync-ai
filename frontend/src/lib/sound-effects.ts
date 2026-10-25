@@ -66,7 +66,7 @@ function getPinkishNoiseBuffer(ctx: AudioContext): AudioBuffer {
   if (cachedNoiseBuffer && cachedNoiseBuffer.sampleRate === ctx.sampleRate) {
     return cachedNoiseBuffer;
   }
-  const duration = 0.28;
+  const duration = 0.48;
   const bufferSize = Math.floor(ctx.sampleRate * duration);
   const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
   const output = buffer.getChannelData(0);
@@ -90,7 +90,7 @@ function getPinkishNoiseBuffer(ctx: AudioContext): AudioBuffer {
 export function playGlideWhoosh(): void {
   if (isSoundMuted()) return;
   const nowMs = Date.now();
-  if (nowMs - lastWhooshAt < 220) return;
+  if (nowMs - lastWhooshAt < 260) return;
   lastWhooshAt = nowMs;
 
   const ctx = getAudioContext();
@@ -99,21 +99,21 @@ export function playGlideWhoosh(): void {
   try {
     const t = ctx.currentTime;
 
-    // Filtered soft air whoosh
+    // Filtered soft air whoosh matching slower swift speed
     const noiseSrc = ctx.createBufferSource();
     noiseSrc.buffer = getPinkishNoiseBuffer(ctx);
 
     const filter = ctx.createBiquadFilter();
     filter.type = "bandpass";
-    filter.Q.setValueAtTime(2.2, t);
-    filter.frequency.setValueAtTime(320, t);
-    filter.frequency.exponentialRampToValueAtTime(920, t + 0.09);
-    filter.frequency.exponentialRampToValueAtTime(380, t + 0.22);
+    filter.Q.setValueAtTime(2.0, t);
+    filter.frequency.setValueAtTime(280, t);
+    filter.frequency.exponentialRampToValueAtTime(780, t + 0.16);
+    filter.frequency.exponentialRampToValueAtTime(310, t + 0.4);
 
     const noiseGain = ctx.createGain();
     noiseGain.gain.setValueAtTime(0.001, t);
-    noiseGain.gain.linearRampToValueAtTime(0.09, t + 0.05);
-    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.22);
+    noiseGain.gain.linearRampToValueAtTime(0.085, t + 0.09);
+    noiseGain.gain.exponentialRampToValueAtTime(0.001, t + 0.4);
 
     noiseSrc.connect(filter);
     filter.connect(noiseGain);
@@ -128,19 +128,19 @@ export function playGlideWhoosh(): void {
       }
     };
     noiseSrc.start(t);
-    noiseSrc.stop(t + 0.24);
+    noiseSrc.stop(t + 0.42);
 
     // Subtle warm harmonic glide tone
     const osc = ctx.createOscillator();
     const oscGain = ctx.createGain();
     osc.type = "sine";
-    osc.frequency.setValueAtTime(290, t);
-    osc.frequency.exponentialRampToValueAtTime(440, t + 0.12);
-    osc.frequency.exponentialRampToValueAtTime(360, t + 0.2);
+    osc.frequency.setValueAtTime(260, t);
+    osc.frequency.exponentialRampToValueAtTime(410, t + 0.18);
+    osc.frequency.exponentialRampToValueAtTime(330, t + 0.36);
 
     oscGain.gain.setValueAtTime(0.001, t);
-    oscGain.gain.linearRampToValueAtTime(0.032, t + 0.04);
-    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.2);
+    oscGain.gain.linearRampToValueAtTime(0.03, t + 0.07);
+    oscGain.gain.exponentialRampToValueAtTime(0.001, t + 0.36);
 
     osc.connect(oscGain);
     oscGain.connect(ctx.destination);
@@ -153,7 +153,7 @@ export function playGlideWhoosh(): void {
       }
     };
     osc.start(t);
-    osc.stop(t + 0.21);
+    osc.stop(t + 0.38);
   } catch {
     // Ignore audio context state restrictions
   }

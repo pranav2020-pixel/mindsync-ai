@@ -215,6 +215,8 @@ export function HelpAndOnboardingSuite() {
   const [soundMuted, setSoundMutedState] = useState(false);
   const [isGliding, setIsGliding] = useState(false);
   const [glideTiltDeg, setGlideTiltDeg] = useState(0);
+  const [tailAngleDeg, setTailAngleDeg] = useState(180);
+  const [tailLength, setTailLength] = useState(110);
   const [prefersReducedMotion, setPrefersReducedMotion] = useState(false);
 
   const [helpOpen, setHelpOpen] = useState(false);
@@ -319,35 +321,40 @@ export function HelpAndOnboardingSuite() {
     };
   }, []);
 
-  // Flight physics & whoosh sound when Freddy glides across the viewport
+  // Flight physics, comet tail vector & whoosh sound whenever Freddy swifts across the viewport
   useEffect(() => {
-    if (!tourOpen) {
-      prevFreddyPosRef.current = null;
-      setIsGliding(false);
-      setGlideTiltDeg(0);
-      return;
-    }
+    if (!mounted) return;
+    const targetX = tourOpen ? freddyPos.x : restingPos.x;
+    const targetY = tourOpen ? freddyPos.y : restingPos.y;
+
     const prev = prevFreddyPosRef.current;
-    prevFreddyPosRef.current = freddyPos;
+    prevFreddyPosRef.current = { x: targetX, y: targetY };
     if (!prev) return;
 
-    const dx = freddyPos.x - prev.x;
-    const dy = freddyPos.y - prev.y;
+    const dx = targetX - prev.x;
+    const dy = targetY - prev.y;
     const dist = Math.hypot(dx, dy);
-    if (dist > 28) {
-      playGlideWhoosh();
+    if (dist > 24) {
+      if (tourOpen) {
+        playGlideWhoosh();
+      }
       if (!prefersReducedMotion) {
-        const tilt = Math.max(-11, Math.min(11, dx * 0.045));
+        const tilt = Math.max(-12, Math.min(12, dx * 0.042));
+        // Angle pointing directly backward toward where Freddy launched from
+        const backwardAngle = (Math.atan2(-dy, -dx) * 180) / Math.PI;
+        const streakLen = Math.round(Math.min(185, Math.max(78, dist * 0.52)));
         setGlideTiltDeg(tilt);
+        setTailAngleDeg(backwardAngle);
+        setTailLength(streakLen);
         setIsGliding(true);
         if (glideTimerRef.current) clearTimeout(glideTimerRef.current);
         glideTimerRef.current = setTimeout(() => {
           setIsGliding(false);
           setGlideTiltDeg(0);
-        }, 360);
+        }, 720);
       }
     }
-  }, [freddyPos, tourOpen, prefersReducedMotion]);
+  }, [freddyPos.x, freddyPos.y, restingPos.x, restingPos.y, tourOpen, prefersReducedMotion, mounted]);
 
   // Play gentle speech bubble pop + harmonic bot voice blips when Freddy explains a step
   useEffect(() => {
@@ -903,6 +910,13 @@ export function HelpAndOnboardingSuite() {
   const activeX = tourOpen ? freddyPos.x : restingPos.x;
   const activeY = tourOpen ? freddyPos.y : restingPos.y;
   const freddyRenderSize = tourOpen ? (isMobileView ? 76 : 96) : 64;
+  const activeBubbleWidth = isMobileView ? 216 : 242;
+  const avatarCenterX =
+    tourOpen && bubbleSide === "left"
+      ? activeX + activeBubbleWidth + 8 + freddyRenderSize * 0.5
+      : activeX + freddyRenderSize * 0.5;
+  const avatarCenterY = activeY + freddyRenderSize * 0.5;
+
   const activeSequenceId = tourOpen
     ? isWaitingForSectionClick
       ? "curious"
@@ -1021,56 +1035,148 @@ export function HelpAndOnboardingSuite() {
         )}
       </AnimatePresence>
 
-      {/* 2. Single Persistent 3D Freddy + Clean Minimalist Speech Bubble */}
+      {/* 2. Single Persistent 3D Freddy + Luminous Swift Tail + Clean Minimalist Speech Bubble */}
       {user && (
-        <motion.div
-          initial={false}
-          animate={{
-            x: activeX,
-            y: activeY,
-          }}
-          transition={{
-            type: "spring",
-            stiffness: 150,
-            damping: 22,
-            mass: 0.8,
-          }}
-          className={cn(
-            "fixed top-0 left-0 z-[70] flex items-center gap-2 pointer-events-none",
-            tourOpen && bubbleSide === "left" && "flex-row-reverse"
-          )}
-        >
-          {/* Hovering 3D Freddy Bot with ShaderGradient Aura, Squash-and-Stretch Flight & Sparkle Particles */}
+        <>
+          {/* Cascading Stardust Ghost Orbs Trailing Behind Freddy While Swifting */}
+          {!prefersReducedMotion &&
+            [0, 1, 2, 3].map((idx) => {
+              const orbSize = Math.round(freddyRenderSize * (0.46 - idx * 0.08));
+              return (
+                <motion.div
+                  key={`freddy-tail-orb-${idx}`}
+                  aria-hidden="true"
+                  initial={false}
+                  animate={{
+                    x: avatarCenterX - orbSize * 0.5,
+                    y: avatarCenterY - orbSize * 0.5,
+                    opacity: isGliding ? 0.52 - idx * 0.11 : 0,
+                    scale: isGliding ? 1 - idx * 0.12 : 0.35,
+                  }}
+                  transition={{
+                    x: {
+                      type: "spring",
+                      stiffness: 52 - idx * 8,
+                      damping: 16,
+                      mass: 1.2 + idx * 0.1,
+                    },
+                    y: {
+                      type: "spring",
+                      stiffness: 52 - idx * 8,
+                      damping: 16,
+                      mass: 1.2 + idx * 0.1,
+                    },
+                    opacity: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+                    scale: { duration: 0.28, ease: [0.22, 1, 0.36, 1] },
+                  }}
+                  style={{ width: orbSize, height: orbSize }}
+                  className="fixed top-0 left-0 z-[69] rounded-full pointer-events-none bg-gradient-to-br from-emerald-400/80 via-cyan-400/55 to-indigo-500/30 blur-[5px]"
+                />
+              );
+            })}
+
           <motion.div
-            animate={
-              prefersReducedMotion
-                ? { y: 0, rotate: 0, scaleX: 1, scaleY: 1 }
-                : {
-                    y: [0, -7, 0],
-                    rotate: isGliding ? glideTiltDeg : 0,
-                    scaleX: isGliding ? 1.07 : 1,
-                    scaleY: isGliding ? 0.94 : 1,
-                  }
-            }
+            initial={false}
+            animate={{
+              x: activeX,
+              y: activeY,
+            }}
             transition={{
-              y: {
-                repeat: prefersReducedMotion ? 0 : Infinity,
-                duration: 2.4,
-                ease: "easeInOut",
-              },
-              rotate: { type: "spring", stiffness: 260, damping: 18 },
-              scaleX: { type: "spring", stiffness: 300, damping: 16 },
-              scaleY: { type: "spring", stiffness: 300, damping: 16 },
+              type: "spring",
+              stiffness: 68,
+              damping: 17,
+              mass: 1.15,
             }}
-            onMouseEnter={() => {
-              if (!tourOpen) setIdleWave(true);
-            }}
-            onMouseLeave={() => {
-              if (!tourOpen) setIdleWave(false);
-            }}
-            className="relative shrink-0 pointer-events-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)] touch-manipulation"
+            className={cn(
+              "fixed top-0 left-0 z-[70] flex items-center gap-2 pointer-events-none",
+              tourOpen && bubbleSide === "left" && "flex-row-reverse"
+            )}
           >
-            {/* ShaderGradient Fluid Mesh Aura Behind Freddy */}
+            {/* Hovering 3D Freddy Bot with ShaderGradient Aura, Swift Comet Tail, Squash-and-Stretch Flight & Sparkle Particles */}
+            <motion.div
+              animate={
+                prefersReducedMotion
+                  ? { y: 0, rotate: 0, scaleX: 1, scaleY: 1 }
+                  : {
+                      y: [0, -7, 0],
+                      rotate: isGliding ? glideTiltDeg : 0,
+                      scaleX: isGliding ? 1.07 : 1,
+                      scaleY: isGliding ? 0.94 : 1,
+                    }
+              }
+              transition={{
+                y: {
+                  repeat: prefersReducedMotion ? 0 : Infinity,
+                  duration: 2.4,
+                  ease: "easeInOut",
+                },
+                rotate: { type: "spring", stiffness: 200, damping: 18 },
+                scaleX: { type: "spring", stiffness: 240, damping: 16 },
+                scaleY: { type: "spring", stiffness: 240, damping: 16 },
+              }}
+              onMouseEnter={() => {
+                if (!tourOpen) setIdleWave(true);
+              }}
+              onMouseLeave={() => {
+                if (!tourOpen) setIdleWave(false);
+              }}
+              className="relative shrink-0 pointer-events-auto drop-shadow-[0_10px_18px_rgba(0,0,0,0.35)] touch-manipulation"
+            >
+              {/* Directional Tapered Comet Tail Streaming Behind Freddy During Swift Flight */}
+              <AnimatePresence>
+                {!prefersReducedMotion && isGliding && (
+                  <motion.div
+                    key="freddy-comet-streak"
+                    aria-hidden="true"
+                    initial={{ opacity: 0, scaleX: 0.2 }}
+                    animate={{ opacity: 0.92, scaleX: 1 }}
+                    exit={{ opacity: 0, scaleX: 0.15 }}
+                    transition={{ duration: 0.26, ease: [0.22, 1, 0.36, 1] }}
+                    style={{
+                      width: tailLength,
+                      height: Math.round(freddyRenderSize * 0.56),
+                      transformOrigin: "0% 50%",
+                      rotate: `${tailAngleDeg}deg`,
+                    }}
+                    className="pointer-events-none absolute top-1/2 left-1/2 -translate-y-1/2 -z-20"
+                  >
+                    <svg
+                      viewBox="0 0 160 56"
+                      preserveAspectRatio="none"
+                      className="w-full h-full overflow-visible drop-shadow-[0_0_12px_rgba(16,185,129,0.55)]"
+                    >
+                      <defs>
+                        <linearGradient id="freddyCometOuterGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+                          <stop offset="0%" stopColor={auraColors.c1} stopOpacity="0.65" />
+                          <stop offset="48%" stopColor={auraColors.c2} stopOpacity="0.32" />
+                          <stop offset="100%" stopColor={auraColors.c3} stopOpacity="0" />
+                        </linearGradient>
+                        <linearGradient id="freddyCometCoreGrad" x1="0%" y1="50%" x2="100%" y2="50%">
+                          <stop offset="0%" stopColor="#ffffff" stopOpacity="0.8" />
+                          <stop offset="35%" stopColor={auraColors.c1} stopOpacity="0.55" />
+                          <stop offset="100%" stopColor={auraColors.c2} stopOpacity="0" />
+                        </linearGradient>
+                      </defs>
+                      {/* Outer tapered aura cone */}
+                      <path
+                        d="M 0,8 Q 62,16 158,28 Q 62,40 0,48 A 20,20 0 0,1 0,8 Z"
+                        fill="url(#freddyCometOuterGrad)"
+                      />
+                      {/* Inner bright core streak */}
+                      <path
+                        d="M 0,18 Q 52,23 132,28 Q 52,33 0,38 Z"
+                        fill="url(#freddyCometCoreGrad)"
+                      />
+                      {/* Trailing stardust motes along the tail */}
+                      <circle cx="48" cy="19" r="2.4" fill="#ffffff" fillOpacity="0.85" />
+                      <circle cx="82" cy="34" r="2.0" fill={auraColors.c1} fillOpacity="0.75" />
+                      <circle cx="116" cy="25" r="1.6" fill={auraColors.c2} fillOpacity="0.6" />
+                    </svg>
+                  </motion.div>
+                )}
+              </AnimatePresence>
+
+              {/* ShaderGradient Fluid Mesh Aura Behind Freddy */}
             {(tourOpen || idleWave) && (
               <ShaderGradientAura
                 variant="orb"
@@ -1312,7 +1418,8 @@ export function HelpAndOnboardingSuite() {
               </motion.div>
             )}
           </AnimatePresence>
-        </motion.div>
+          </motion.div>
+        </>
       )}
 
       {/* 3. Universal Help & Support Modal (?) */}
