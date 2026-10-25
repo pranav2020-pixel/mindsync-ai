@@ -231,11 +231,6 @@ const FAQ_ITEMS: FaqItem[] = [
   },
   {
     category: "AI & Coaching",
-    q: "What AI models power MindSync AI's sentiment analysis and chat?",
-    a: "MindSync AI is powered by Google's state-of-the-art Gemini AI architecture (Gemini 4 Argon with resilient fallback to Gemini 1.5 Flash and Pro). The AI delivers empathetic reflection prompts, cognitive reframing, and mood trend summaries while maintaining emotional warmth and psychological safety.",
-  },
-  {
-    category: "AI & Coaching",
     q: "Is MindSync AI a replacement for professional therapy or medical care?",
     a: "No. MindSync AI is an emotional self-reflection, mindfulness, and cognitive habit companion, not a licensed healthcare provider or diagnostic tool. If you are experiencing acute distress or a crisis, please navigate to the '24/7 Helplines' tab in this Help modal or contact local emergency mental health services immediately.",
   },
