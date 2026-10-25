@@ -43,6 +43,7 @@ export default function ProductivityPage() {
   // Timer State
   const [mode, setMode] = useState<TimerMode>("pomodoro");
   const [timeLeft, setTimeLeft] = useState<number>(25 * 60);
+  const [sessionInitialSeconds, setSessionInitialSeconds] = useState<number>(25 * 60);
   const [isRunning, setIsRunning] = useState<boolean>(false);
   const [deepWorkRating, setDeepWorkRating] = useState<number>(8);
   const [savingLog, setSavingLog] = useState<boolean>(false);
@@ -71,7 +72,7 @@ export default function ProductivityPage() {
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
     };
-  }, [isRunning, mode]);
+  }, [isRunning, mode, sessionInitialSeconds]);
 
   const fetchStats = async () => {
     try {
@@ -94,22 +95,30 @@ export default function ProductivityPage() {
     setIsRunning(false);
     playTimerCompleteGong();
     if (mode === "pomodoro") {
-      toast.success("Focus block completed! 25 minutes logged.");
+      // Calculate actual completed minutes from the timer duration
+      const completedMinutes = Math.max(1, Math.round(sessionInitialSeconds / 60));
+      const unitLabel = completedMinutes === 1 ? "minute" : "minutes";
+      toast.success(`Focus block completed! ${completedMinutes} ${unitLabel} logged.`);
+
       try {
         await api.post("/productivity", {
           pomodoroSessions: 1,
-          focusTimeMinutes: 25,
+          focusTimeMinutes: completedMinutes,
         });
         fetchStats();
       } catch (err) {
         console.error("Failed to log pomodoro completion:", err);
       }
       setMode("shortBreak");
-      setTimeLeft(5 * 60);
+      const breakSecs = 5 * 60;
+      setTimeLeft(breakSecs);
+      setSessionInitialSeconds(breakSecs);
     } else {
       toast("Break finished! Ready to resume focus?", { icon: "⚡" });
       setMode("pomodoro");
-      setTimeLeft(25 * 60);
+      const pomodoroSecs = 25 * 60;
+      setTimeLeft(pomodoroSecs);
+      setSessionInitialSeconds(pomodoroSecs);
     }
   };
 
@@ -117,19 +126,27 @@ export default function ProductivityPage() {
     playNavTap();
     setIsRunning(false);
     setMode(newMode);
-    setTimeLeft(TIMER_CONFIGS[newMode].defaultMinutes * 60);
+    const secs = TIMER_CONFIGS[newMode].defaultMinutes * 60;
+    setTimeLeft(secs);
+    setSessionInitialSeconds(secs);
   };
 
   const resetTimer = () => {
     playTimerPauseTick();
     setIsRunning(false);
-    setTimeLeft(TIMER_CONFIGS[mode].defaultMinutes * 60);
+    const secs = TIMER_CONFIGS[mode].defaultMinutes * 60;
+    setTimeLeft(secs);
+    setSessionInitialSeconds(secs);
   };
 
   const adjustMinutes = (delta: number) => {
     if (isRunning) return;
     playNavTap();
-    setTimeLeft((prev) => Math.max(60, prev + delta * 60));
+    setTimeLeft((prev) => {
+      const next = Math.max(60, prev + delta * 60);
+      setSessionInitialSeconds(next);
+      return next;
+    });
   };
 
   const formatTime = (seconds: number) => {
@@ -209,8 +226,20 @@ export default function ProductivityPage() {
             <Clock size={20} />
           </div>
           <div>
-            <div className="text-xl sm:text-2xl font-bold">{totalHours} hrs</div>
-            <div className="text-[11px] sm:text-xs text-muted-foreground">30-Day Focus</div>
+            <div className="text-xl sm:text-2xl font-bold">
+              {stats ? (
+                stats.totalFocusTime >= 60 ? (
+                  `${(stats.totalFocusTime / 60).toFixed(1)} hrs`
+                ) : (
+                  `${stats.totalFocusTime} min`
+                )
+              ) : (
+                "0 min"
+              )}
+            </div>
+            <div className="text-[11px] sm:text-xs text-muted-foreground">
+              30-Day Focus {stats && stats.totalFocusTime >= 60 ? `(${stats.totalFocusTime} min)` : ""}
+            </div>
           </div>
         </div>
 
@@ -300,18 +329,18 @@ export default function ProductivityPage() {
                 {formatTime(timeLeft)}
               </motion.div>
               <p className={cn("text-xs sm:text-sm font-medium mt-1.5 sm:mt-2", TIMER_CONFIGS[mode].color)}>
-                {TIMER_CONFIGS[mode].label}
+                {TIMER_CONFIGS[mode].label} &bull; {Math.round(sessionInitialSeconds / 60)} min target
               </p>
             </div>
 
             {/* Controls */}
             <div className="flex items-center justify-center gap-4">
               <button
-                onClick={() => adjustMinutes(-5)}
+                onClick={() => adjustMinutes(-1)}
                 disabled={isRunning}
                 className="p-2.5 rounded-xl glass-card hover:bg-slate-100 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                title="Subtract 5 minutes"
-                aria-label="Subtract 5 minutes"
+                title="Subtract 1 minute"
+                aria-label="Subtract 1 minute"
               >
                 <Minus size={18} />
               </button>
@@ -353,15 +382,44 @@ export default function ProductivityPage() {
               </button>
 
               <button
-                onClick={() => adjustMinutes(5)}
+                onClick={() => adjustMinutes(1)}
                 disabled={isRunning}
                 className="p-2.5 rounded-xl glass-card hover:bg-slate-100 dark:hover:bg-white/10 text-muted-foreground hover:text-foreground disabled:opacity-30 transition-colors"
-                title="Add 5 minutes"
-                aria-label="Add 5 minutes"
+                title="Add 1 minute"
+                aria-label="Add 1 minute"
               >
                 <Plus size={18} />
               </button>
             </div>
+
+            {/* Quick Duration Presets */}
+            {!isRunning && (
+              <div className="flex items-center justify-center gap-1.5 pt-2 flex-wrap">
+                <span className="text-[11px] text-muted-foreground mr-1">Presets:</span>
+                {[1, 5, 10, 15, 25, 45, 60].map((mins) => {
+                  const targetSecs = mins * 60;
+                  const isCurrent = Math.round(sessionInitialSeconds / 60) === mins;
+                  return (
+                    <button
+                      key={mins}
+                      onClick={() => {
+                        playNavTap();
+                        setTimeLeft(targetSecs);
+                        setSessionInitialSeconds(targetSecs);
+                      }}
+                      className={cn(
+                        "px-2.5 py-1 rounded-lg text-xs font-semibold transition-all border",
+                        isCurrent
+                          ? "bg-primary-500/20 text-primary-500 border-primary-500/40 shadow-xs scale-105"
+                          : "bg-muted/40 hover:bg-muted text-muted-foreground hover:text-foreground border-border"
+                      )}
+                    >
+                      {mins}m
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
 
           {/* Ambient Focus Soundscapes Card (TASK-615 / Level 10 Unlock) */}
