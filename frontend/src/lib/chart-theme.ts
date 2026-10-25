@@ -2,12 +2,65 @@
 
 import { useTheme } from "@/components/layout/theme-provider";
 
+export interface ChartSeriesToken {
+  name: string;
+  stroke: string;
+  fill: string;
+  glow: string;
+}
+
+export const SAAS_CHART_SERIES = {
+  emerald: {
+    name: "Calm / Wellness",
+    stroke: "#10b981",
+    fill: "rgba(16, 185, 129, 0.18)",
+    glow: "rgba(16, 185, 129, 0.4)",
+  },
+  sky: {
+    name: "Focus / Activity",
+    stroke: "#0ea5e9",
+    fill: "rgba(14, 165, 233, 0.18)",
+    glow: "rgba(14, 165, 233, 0.4)",
+  },
+  amber: {
+    name: "Energy / Streaks",
+    stroke: "#f59e0b",
+    fill: "rgba(245, 158, 11, 0.18)",
+    glow: "rgba(245, 158, 11, 0.4)",
+  },
+  violet: {
+    name: "Cognition / AI Insights",
+    stroke: "#8b5cf6",
+    fill: "rgba(139, 92, 246, 0.18)",
+    glow: "rgba(139, 92, 246, 0.4)",
+  },
+  rose: {
+    name: "Stress / Alert",
+    stroke: "#ef4444",
+    fill: "rgba(239, 68, 68, 0.18)",
+    glow: "rgba(239, 68, 68, 0.4)",
+  },
+  indigo: {
+    name: "Sleep / Rest",
+    stroke: "#6366f1",
+    fill: "rgba(99, 102, 241, 0.18)",
+    glow: "rgba(99, 102, 241, 0.4)",
+  },
+  slate: {
+    name: "Benchmark / Target",
+    stroke: "#64748b",
+    fill: "rgba(100, 116, 139, 0.12)",
+    glow: "rgba(100, 116, 139, 0.25)",
+  },
+} as const;
+
 export function useChartTheme() {
   const { theme } = useTheme();
   const isDark = theme === "dark" || theme === "green";
 
   return {
     isDark,
+    theme,
     gridStroke: isDark
       ? theme === "green" ? "rgba(34, 197, 94, 0.12)" : "rgba(255, 255, 255, 0.08)"
       : "rgba(0, 0, 0, 0.08)",
@@ -49,5 +102,6 @@ export function useChartTheme() {
         ? "#f8fafc"
         : "#0f172a",
     },
+    series: SAAS_CHART_SERIES,
   };
 }
