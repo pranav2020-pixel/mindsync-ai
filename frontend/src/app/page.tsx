@@ -13,12 +13,18 @@ import {
   Sparkles, Calendar, Activity, ArrowRight, Loader2, Check,
   CheckCircle2, Circle, Flame, Droplets, Dumbbell, Compass,
   Moon, Play, Pause, RotateCcw, MessageSquare, Pin, ShieldCheck,
-  Sun, Sunrise, Sunset, Wind, Award, Clock, ChevronRight
+  Sun, Sunrise, Sunset, Wind, Award, Clock, ChevronRight, MapPin
 } from "lucide-react";
 import api from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import { cn } from "@/lib/utils";
 import { useChartTheme } from "@/lib/chart-theme";
+import {
+  getCircadianInfo,
+  detectLocation,
+  LocationInfo,
+  CircadianInfo,
+} from "@/lib/location-service";
 import {
   playNavTap, playCelebrationChord, playOptionSelectPop,
   playTimerStartChime, playTimerPauseTick, playTimerCompleteGong,
@@ -91,13 +97,59 @@ export default function Dashboard() {
   // 4. Habits Toggling State
   const [togglingHabit, setTogglingHabit] = useState<string | null>(null);
 
-  // Greeting & Circadian Info
-  const { greeting, greetingIcon: GreetingIcon } = useMemo(() => {
-    const hour = new Date().getHours();
-    if (hour < 12) return { greeting: "Good morning", greetingIcon: Sunrise };
-    if (hour < 18) return { greeting: "Good afternoon", greetingIcon: Sun };
-    return { greeting: "Good evening", greetingIcon: Moon };
+  // Dynamic Circadian & Location-Aware Timing
+  const [circadian, setCircadian] = useState<CircadianInfo>(() => getCircadianInfo());
+  const [locationInfo, setLocationInfo] = useState<LocationInfo | null>(null);
+  const [detectingLocation, setDetectingLocation] = useState(false);
+
+  // Keep circadian clock and greeting up-to-date
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setCircadian(getCircadianInfo());
+    }, 30000); // Check every 30 seconds
+    return () => clearInterval(timer);
   }, []);
+
+  // Detect location on mount
+  useEffect(() => {
+    let isMounted = true;
+    detectLocation().then((loc) => {
+      if (isMounted) {
+        setLocationInfo(loc);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, []);
+
+  const handleRefreshLocation = async () => {
+    playNavTap();
+    setDetectingLocation(true);
+    try {
+      const loc = await detectLocation(true);
+      setLocationInfo(loc);
+      toast.success(`Location synced: ${loc.displayName}`);
+    } catch {
+      toast.error("Could not sync location");
+    } finally {
+      setDetectingLocation(false);
+    }
+  };
+
+  const GreetingIcon = useMemo(() => {
+    switch (circadian.iconType) {
+      case "Sunrise":
+        return Sunrise;
+      case "Sun":
+        return Sun;
+      case "Sunset":
+        return Sunset;
+      case "Moon":
+      default:
+        return Moon;
+    }
+  }, [circadian.iconType]);
 
   const todayFormatted = useMemo(() => {
     return new Date().toLocaleDateString("en-US", {
@@ -338,15 +390,41 @@ export default function Dashboard() {
       {/* 1. Header Banner & Welcome */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary-500 mb-1">
-            <GreetingIcon size={14} className="text-amber-500" />
-            <span>{todayFormatted} &bull; MindSync AI</span>
+          <div className="flex items-center gap-2 text-xs font-semibold tracking-wider text-primary-500 mb-1.5 flex-wrap">
+            <span className="inline-flex items-center gap-1.5 bg-primary-500/10 dark:bg-primary-500/15 text-primary-600 dark:text-primary-300 px-2.5 py-0.5 rounded-full border border-primary-500/20 shadow-xs">
+              <GreetingIcon size={13} className={cn("shrink-0", circadian.accentColor)} />
+              <span>{todayFormatted}</span>
+              <span className="opacity-50">&bull;</span>
+              <span className="font-mono text-[11px] font-bold">{circadian.currentTimeStr}</span>
+            </span>
+
+            {locationInfo?.displayName && (
+              <button
+                type="button"
+                onClick={handleRefreshLocation}
+                disabled={detectingLocation}
+                title="Click to refresh your detected location"
+                className="inline-flex items-center gap-1 bg-muted/60 hover:bg-muted text-muted-foreground hover:text-foreground px-2.5 py-0.5 rounded-full text-[11px] font-medium border border-border transition-all cursor-pointer shadow-xs active:scale-95"
+              >
+                <MapPin size={11} className={cn("text-emerald-500 shrink-0", detectingLocation && "animate-spin")} />
+                <span>{locationInfo.displayName}</span>
+              </button>
+            )}
+
+            <span className="inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-bold tracking-normal bg-card border border-border text-muted-foreground">
+              {circadian.badgeText}
+            </span>
           </div>
+
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
-            {greeting}, {firstName}
+            <span>{circadian.greeting},</span>
+            <span className="bg-gradient-to-r from-primary-500 via-primary-400 to-amber-500 bg-clip-text text-transparent">
+              {firstName}
+            </span>
           </h1>
+
           <p className="text-xs sm:text-sm text-muted-foreground mt-0.5 max-w-xl">
-            Here is your daily overview. Check off your rituals, see your trends, and take a mindful pause.
+            {circadian.subGreeting}
           </p>
         </div>
 
