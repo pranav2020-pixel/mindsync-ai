@@ -826,3 +826,367 @@ export function playNavTap(): void {
   }
 }
 
+/**
+ * =======================================================================
+ * PROCEDURAL AMBIENT SOUNDSCAPE ENGINE (TASK-615 / Level 10 Unlock)
+ * Zero-dependency Web Audio synthesizers for endless, seamless ambient audio:
+ * - Rain (Soothing rooftop & window rainfall)
+ * - Ocean Waves (Rhythmic coastal surf with 11s swell LFO)
+ * - Forest Wind & Birds (Mountain breeze with stochastic bird warbles)
+ * - Binaural Alpha Waves (10Hz differential stereo brainwave entrainment)
+ * =======================================================================
+ */
+
+export type SoundscapeType = "rain" | "waves" | "forest" | "binaural";
+
+export const SOUNDSCAPE_CHANGE_EVENT = "mindsync:soundscape-changed";
+
+interface SoundscapeNodes {
+  stop: () => void;
+  setVolume: (v: number) => void;
+}
+
+let activeSoundscapeType: SoundscapeType | null = null;
+let activeSoundscapeNodes: SoundscapeNodes | null = null;
+let currentSoundscapeVolume = 0.55;
+
+function getSoundscapeLoopBuffer(ctx: AudioContext, durationSeconds = 6): AudioBuffer {
+  const sampleRate = ctx.sampleRate;
+  const frameCount = Math.floor(sampleRate * durationSeconds);
+  const buffer = ctx.createBuffer(2, frameCount, sampleRate);
+  for (let ch = 0; ch < 2; ch++) {
+    const data = buffer.getChannelData(ch);
+    let b0 = 0, b1 = 0, b2 = 0;
+    for (let i = 0; i < frameCount; i++) {
+      const white = Math.random() * 2 - 1;
+      b0 = 0.99765 * b0 + white * 0.099046;
+      b1 = 0.963 * b1 + white * 0.2965164;
+      b2 = 0.57 * b2 + white * 1.0526913;
+      data[i] = (b0 + b1 + b2 + white * 0.1848) * 0.09;
+    }
+  }
+  return buffer;
+}
+
+export function isSoundscapeActive(): boolean {
+  return activeSoundscapeType !== null;
+}
+
+export function getActiveSoundscape(): SoundscapeType | null {
+  return activeSoundscapeType;
+}
+
+export function getSoundscapeVolume(): number {
+  return currentSoundscapeVolume;
+}
+
+export function setSoundscapeVolume(vol: number): void {
+  const clamped = Math.max(0, Math.min(1, vol));
+  currentSoundscapeVolume = clamped;
+  if (activeSoundscapeNodes) {
+    activeSoundscapeNodes.setVolume(clamped);
+  }
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(SOUNDSCAPE_CHANGE_EVENT, {
+        detail: {
+          type: activeSoundscapeType,
+          isPlaying: activeSoundscapeType !== null,
+          volume: clamped,
+        },
+      })
+    );
+  }
+}
+
+export function stopSoundscape(): void {
+  if (activeSoundscapeNodes) {
+    try {
+      activeSoundscapeNodes.stop();
+    } catch {
+      // Ignore
+    }
+    activeSoundscapeNodes = null;
+  }
+  activeSoundscapeType = null;
+  if (typeof window !== "undefined") {
+    window.dispatchEvent(
+      new CustomEvent(SOUNDSCAPE_CHANGE_EVENT, {
+        detail: { type: null, isPlaying: false, volume: currentSoundscapeVolume },
+      })
+    );
+  }
+}
+
+export function startSoundscape(type: SoundscapeType, volume?: number): void {
+  if (isSoundMuted()) {
+    // If sound is globally muted, unmute so user can hear the ambient soundscape they requested
+    setSoundMuted(false);
+  }
+
+  // If already playing this type, no-op
+  if (activeSoundscapeType === type && activeSoundscapeNodes) {
+    return;
+  }
+
+  // Stop any currently running soundscape
+  stopSoundscape();
+
+  const ctx = getAudioContext();
+  if (!ctx) return;
+
+  if (typeof volume === "number") {
+    currentSoundscapeVolume = Math.max(0, Math.min(1, volume));
+  }
+
+  try {
+    const now = ctx.currentTime;
+    const masterGain = ctx.createGain();
+    masterGain.gain.setValueAtTime(0.001, now);
+    masterGain.gain.linearRampToValueAtTime(currentSoundscapeVolume * 0.35, now + 1.2);
+    masterGain.connect(ctx.destination);
+
+    let cleanupList: Array<() => void> = [];
+
+    if (type === "rain") {
+      // 1. Rain Synthesis
+      const loopBuffer = getSoundscapeLoopBuffer(ctx, 5);
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = loopBuffer;
+      noiseSource.loop = true;
+
+      const bandpass = ctx.createBiquadFilter();
+      bandpass.type = "bandpass";
+      bandpass.frequency.setValueAtTime(820, now);
+      bandpass.Q.setValueAtTime(0.7, now);
+
+      const highpass = ctx.createBiquadFilter();
+      highpass.type = "highpass";
+      highpass.frequency.setValueAtTime(1400, now);
+
+      const sizzleGain = ctx.createGain();
+      sizzleGain.gain.setValueAtTime(0.25, now);
+
+      noiseSource.connect(bandpass);
+      bandpass.connect(masterGain);
+
+      noiseSource.connect(highpass);
+      highpass.connect(sizzleGain);
+      sizzleGain.connect(masterGain);
+
+      noiseSource.start(now);
+      cleanupList.push(() => {
+        try {
+          noiseSource.stop();
+          noiseSource.disconnect();
+          bandpass.disconnect();
+          highpass.disconnect();
+          sizzleGain.disconnect();
+        } catch {}
+      });
+
+    } else if (type === "waves") {
+      // 2. Zen Ocean Waves Synthesis (11-second LFO surf cycle)
+      const loopBuffer = getSoundscapeLoopBuffer(ctx, 6);
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = loopBuffer;
+      noiseSource.loop = true;
+
+      const lowpass = ctx.createBiquadFilter();
+      lowpass.type = "lowpass";
+      lowpass.frequency.setValueAtTime(260, now);
+      lowpass.Q.setValueAtTime(2.2, now);
+
+      // Low Frequency Oscillator for wave swell
+      const lfo = ctx.createOscillator();
+      lfo.type = "sine";
+      lfo.frequency.setValueAtTime(0.09, now); // ~11 sec wave swell period
+
+      const lfoFilterGain = ctx.createGain();
+      lfoFilterGain.gain.setValueAtTime(450, now);
+
+      const waveVolumeGain = ctx.createGain();
+      waveVolumeGain.gain.setValueAtTime(0.4, now);
+
+      lfo.connect(lfoFilterGain);
+      lfoFilterGain.connect(lowpass.frequency);
+
+      noiseSource.connect(lowpass);
+      lowpass.connect(waveVolumeGain);
+      waveVolumeGain.connect(masterGain);
+
+      lfo.start(now);
+      noiseSource.start(now);
+
+      cleanupList.push(() => {
+        try {
+          lfo.stop();
+          noiseSource.stop();
+          lfo.disconnect();
+          lfoFilterGain.disconnect();
+          noiseSource.disconnect();
+          lowpass.disconnect();
+          waveVolumeGain.disconnect();
+        } catch {}
+      });
+
+    } else if (type === "forest") {
+      // 3. Mountain Breeze & Distant Birds
+      const loopBuffer = getSoundscapeLoopBuffer(ctx, 6);
+      const noiseSource = ctx.createBufferSource();
+      noiseSource.buffer = loopBuffer;
+      noiseSource.loop = true;
+
+      const bandpass = ctx.createBiquadFilter();
+      bandpass.type = "bandpass";
+      bandpass.frequency.setValueAtTime(540, now);
+      bandpass.Q.setValueAtTime(1.1, now);
+
+      noiseSource.connect(bandpass);
+      bandpass.connect(masterGain);
+      noiseSource.start(now);
+
+      // Stochastic bird chirper interval
+      let chirperActive = true;
+      const playChirp = () => {
+        if (!chirperActive || !ctx || ctx.state === "suspended") return;
+        try {
+          const tChirp = ctx.currentTime;
+          const osc1 = ctx.createOscillator();
+          const osc2 = ctx.createOscillator();
+          const chirpGain = ctx.createGain();
+
+          osc1.type = "sine";
+          osc1.frequency.setValueAtTime(2700, tChirp);
+          osc1.frequency.exponentialRampToValueAtTime(3200, tChirp + 0.05);
+
+          osc2.type = "sine";
+          osc2.frequency.setValueAtTime(3100, tChirp + 0.06);
+          osc2.frequency.exponentialRampToValueAtTime(3600, tChirp + 0.12);
+
+          chirpGain.gain.setValueAtTime(0.001, tChirp);
+          chirpGain.gain.linearRampToValueAtTime(0.035, tChirp + 0.02);
+          chirpGain.gain.exponentialRampToValueAtTime(0.001, tChirp + 0.16);
+
+          osc1.connect(chirpGain);
+          osc2.connect(chirpGain);
+          chirpGain.connect(masterGain);
+
+          osc1.start(tChirp);
+          osc1.stop(tChirp + 0.06);
+          osc2.start(tChirp + 0.06);
+          osc2.stop(tChirp + 0.16);
+        } catch {}
+
+        if (chirperActive) {
+          const nextInterval = 4000 + Math.random() * 5000;
+          chirpTimer = setTimeout(playChirp, nextInterval);
+        }
+      };
+
+      let chirpTimer = setTimeout(playChirp, 2500);
+
+      cleanupList.push(() => {
+        chirperActive = false;
+        clearTimeout(chirpTimer);
+        try {
+          noiseSource.stop();
+          noiseSource.disconnect();
+          bandpass.disconnect();
+        } catch {}
+      });
+
+    } else if (type === "binaural") {
+      // 4. Binaural Alpha Beats (10Hz differential: 210Hz Left, 220Hz Right)
+      const oscL = ctx.createOscillator();
+      const oscR = ctx.createOscillator();
+
+      oscL.type = "sine";
+      oscL.frequency.setValueAtTime(210, now);
+
+      oscR.type = "sine";
+      oscR.frequency.setValueAtTime(220, now); // 10Hz Alpha differential
+
+      const merger = ctx.createChannelMerger(2);
+      oscL.connect(merger, 0, 0); // Left channel
+      oscR.connect(merger, 0, 1); // Right channel
+
+      // Soft warm analog room pink noise cushion
+      const loopBuffer = getSoundscapeLoopBuffer(ctx, 4);
+      const cushionNoise = ctx.createBufferSource();
+      cushionNoise.buffer = loopBuffer;
+      cushionNoise.loop = true;
+
+      const lowpass = ctx.createBiquadFilter();
+      lowpass.type = "lowpass";
+      lowpass.frequency.setValueAtTime(320, now);
+
+      const cushionGain = ctx.createGain();
+      cushionGain.gain.setValueAtTime(0.18, now);
+
+      cushionNoise.connect(lowpass);
+      lowpass.connect(cushionGain);
+      cushionGain.connect(masterGain);
+
+      merger.connect(masterGain);
+
+      oscL.start(now);
+      oscR.start(now);
+      cushionNoise.start(now);
+
+      cleanupList.push(() => {
+        try {
+          oscL.stop();
+          oscR.stop();
+          cushionNoise.stop();
+          oscL.disconnect();
+          oscR.disconnect();
+          merger.disconnect();
+          cushionNoise.disconnect();
+          lowpass.disconnect();
+          cushionGain.disconnect();
+        } catch {}
+      });
+    }
+
+    activeSoundscapeType = type;
+    activeSoundscapeNodes = {
+      stop: () => {
+        const stopTime = ctx.currentTime;
+        masterGain.gain.linearRampToValueAtTime(0.001, stopTime + 0.6);
+        setTimeout(() => {
+          cleanupList.forEach((fn) => fn());
+          try {
+            masterGain.disconnect();
+          } catch {}
+        }, 650);
+      },
+      setVolume: (v: number) => {
+        const t = ctx.currentTime;
+        masterGain.gain.linearRampToValueAtTime(v * 0.35, t + 0.1);
+      },
+    };
+
+    if (typeof window !== "undefined") {
+      window.dispatchEvent(
+        new CustomEvent(SOUNDSCAPE_CHANGE_EVENT, {
+          detail: { type, isPlaying: true, volume: currentSoundscapeVolume },
+        })
+      );
+    }
+  } catch (err) {
+    console.warn("[Soundscape Engine] Failed to initialize:", err);
+    stopSoundscape();
+  }
+}
+
+export function toggleSoundscape(type: SoundscapeType): boolean {
+  if (activeSoundscapeType === type) {
+    stopSoundscape();
+    return false;
+  } else {
+    startSoundscape(type);
+    return true;
+  }
+}
+

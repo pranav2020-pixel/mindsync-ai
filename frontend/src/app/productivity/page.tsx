@@ -22,6 +22,8 @@ import {
   playJournalSaveShimmer,
   playNavTap,
 } from "@/lib/sound-effects";
+import { FocusSoundscapesCard } from "@/components/productivity/focus-soundscapes-card";
+import { LevelProgressionModal } from "@/components/rewards/level-progression-modal";
 
 type TimerMode = "pomodoro" | "shortBreak" | "longBreak";
 
@@ -34,6 +36,8 @@ const TIMER_CONFIGS: Record<TimerMode, { label: string; defaultMinutes: number; 
 export default function ProductivityPage() {
   const chartTheme = useChartTheme();
   const [stats, setStats] = useState<any>(null);
+  const [habitStats, setHabitStats] = useState<any>(null);
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
   const [loading, setLoading] = useState(true);
 
   // Timer State
@@ -71,8 +75,14 @@ export default function ProductivityPage() {
 
   const fetchStats = async () => {
     try {
-      const res = await api.get("/productivity/stats");
-      setStats(res.data.data);
+      const [prodRes, habitRes] = await Promise.all([
+        api.get("/productivity/stats"),
+        api.get("/habits/stats").catch(() => null),
+      ]);
+      setStats(prodRes.data?.data);
+      if (habitRes?.data?.data) {
+        setHabitStats(habitRes.data.data);
+      }
     } catch (err) {
       console.error("Failed to load productivity stats:", err);
     } finally {
@@ -354,6 +364,13 @@ export default function ProductivityPage() {
             </div>
           </div>
 
+          {/* Ambient Focus Soundscapes Card (TASK-615 / Level 10 Unlock) */}
+          <FocusSoundscapesCard
+            userLevel={habitStats?.level ?? (habitStats?.totalXP ? Math.floor(habitStats.totalXP / 100) + 1 : 9)}
+            totalXP={habitStats?.totalXP ?? 810}
+            onOpenRewardsModal={() => setShowRewardsModal(true)}
+          />
+
           {/* Quick Actions / Flow Logger */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="glass-card rounded-2xl p-5 space-y-3">
@@ -495,6 +512,17 @@ export default function ProductivityPage() {
           </div>
         </div>
       </div>
+
+      {/* Level Progression & Rewards Modal */}
+      <LevelProgressionModal
+        isOpen={showRewardsModal}
+        onClose={() => setShowRewardsModal(false)}
+        userLevel={habitStats?.level ?? (habitStats?.totalXP ? Math.floor(habitStats.totalXP / 100) + 1 : 9)}
+        totalXP={habitStats?.totalXP ?? 810}
+        currentLevelXP={
+          habitStats?.levelProgress ?? ((habitStats?.totalXP ?? 810) % 100)
+        }
+      />
     </div>
   );
 }

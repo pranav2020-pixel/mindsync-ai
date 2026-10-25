@@ -10,7 +10,8 @@ import {
 import api from "@/lib/api";
 import { cn } from "@/lib/utils";
 import toast from "react-hot-toast";
-import { playCelebrationChord, playClickHerePulse, playSoftDeleteSweep } from "@/lib/sound-effects";
+import { playCelebrationChord, playClickHerePulse, playSoftDeleteSweep, playNavTap } from "@/lib/sound-effects";
+import { LevelProgressionModal, LEVEL_TIERS } from "@/components/rewards/level-progression-modal";
 
 interface HabitItem {
   key: string;
@@ -80,6 +81,7 @@ export default function HabitsPage() {
   const [loading, setLoading] = useState(true);
   const [togglingHabit, setTogglingHabit] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [showRewardsModal, setShowRewardsModal] = useState(false);
   const [habitFilter, setHabitFilter] = useState<"ALL" | "COMPLETED" | "PENDING" | "CORE" | "CUSTOM">("ALL");
   const [badgeFilter, setBadgeFilter] = useState<"ALL" | "UNLOCKED" | "LOCKED">("ALL");
   const [customForm, setCustomForm] = useState({
@@ -400,9 +402,29 @@ export default function HabitsPage() {
               <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
               Milestones: <strong className="text-foreground">{stats.achievementXP ?? 0} XP</strong>
             </span>
-            <span className="ml-auto text-[11px] font-semibold text-emerald-600 dark:text-emerald-400">
-              Next Reward: Soundscape Unlocks
-            </span>
+            {(() => {
+              const nextReward = LEVEL_TIERS.find((t) => t.level > userLevel);
+              const labelText =
+                userLevel >= 10
+                  ? "Soundscapes Active • View All Rewards"
+                  : `Next Reward: ${nextReward?.perk || "Soundscape Unlocks"}`;
+
+              return (
+                <button
+                  type="button"
+                  onClick={() => {
+                    playNavTap();
+                    setShowRewardsModal(true);
+                  }}
+                  className="ml-auto text-[11px] font-semibold text-emerald-600 dark:text-emerald-400 hover:text-emerald-500 dark:hover:text-emerald-300 flex items-center gap-1.5 transition-all hover:scale-[1.02] active:scale-95 group cursor-pointer bg-emerald-500/10 hover:bg-emerald-500/15 border border-emerald-500/20 px-2.5 py-1 rounded-xl shadow-xs"
+                  title="Click to view all Level 1-15 progression rewards & perks"
+                >
+                  <Sparkles size={12} className="text-emerald-500 group-hover:rotate-12 transition-transform" />
+                  <span>{labelText}</span>
+                  <span className="text-[10px] text-muted-foreground group-hover:text-foreground">&rarr;</span>
+                </button>
+              );
+            })()}
           </div>
         </div>
 
@@ -925,6 +947,15 @@ export default function HabitsPage() {
           </div>
         )}
       </AnimatePresence>
+
+      {/* Level Progression & Rewards Modal */}
+      <LevelProgressionModal
+        isOpen={showRewardsModal}
+        onClose={() => setShowRewardsModal(false)}
+        userLevel={userLevel}
+        totalXP={stats.totalXP || 0}
+        currentLevelXP={currentLevelXP}
+      />
     </div>
   );
 }
