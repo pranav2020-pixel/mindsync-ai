@@ -251,7 +251,7 @@ export function Navbar() {
     <>
     <header
       className={cn(
-        "sticky top-0 z-30 w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl border-b border-slate-100 dark:border-neutral-900 pt-[env(safe-area-inset-top,0px)]",
+        "sticky top-0 z-30 w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl pt-[env(safe-area-inset-top,0px)]",
         "transition-transform duration-300 ease-in-out will-change-transform",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}

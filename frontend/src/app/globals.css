@@ -128,24 +128,26 @@
 }
 
 @layer utilities {
-  /* Smooth, Un-Boxed Modern Header & Nav Surfaces */
+  /* Smooth, Borderless Modern Header & Nav Surfaces */
   .glass {
-    @apply rounded-2xl bg-white/80 dark:bg-black/75 backdrop-blur-2xl;
-    border: 1px solid rgba(0, 0, 0, 0.05);
+    @apply rounded-3xl bg-white/80 dark:bg-black/75 backdrop-blur-2xl;
+    border: none !important;
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
   }
   .dark .glass {
-    border: 1px solid rgba(255, 255, 255, 0.07);
+    border: none !important;
+    box-shadow: 0 4px 24px -2px rgba(0, 0, 0, 0.4);
   }
 
-  /* Smooth, Un-Boxed Modern Cards: Organic 24px Curves & Diffuse Ambient Shadows */
+  /* Completely Borderless Sections & Cards: Smooth 28px Organic Curves */
   .glass-card {
-    @apply rounded-2xl bg-white dark:bg-[#121212] transition-all duration-300;
-    border: 1px solid rgba(0, 0, 0, 0.05);
-    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
+    @apply rounded-3xl bg-white dark:bg-[#121212] transition-all duration-300;
+    border: none !important;
+    box-shadow: 0 4px 24px -4px rgba(0, 0, 0, 0.04), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   }
   .dark .glass-card {
-    border: 1px solid rgba(255, 255, 255, 0.06);
-    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+    border: none !important;
+    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
   }
   .glass-card:hover {
     box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
@@ -154,14 +156,14 @@
     box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.7);
   }
   
-  /* Green Theme Glass Elevation & Navigation Bars */
+  /* Green Theme Glass Elevation & Navigation Bars (Borderless) */
   .green .glass {
     background-color: rgba(9, 26, 16, 0.75) !important;
-    border-color: rgba(34, 197, 94, 0.15) !important;
+    border: none !important;
   }
   .green .glass-card {
     background-color: rgba(11, 31, 20, 0.85) !important;
-    border-color: rgba(34, 197, 94, 0.2) !important;
+    border: none !important;
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 0 20px 0 rgba(16, 185, 129, 0.05) !important;
   }
   .green .text-gradient {

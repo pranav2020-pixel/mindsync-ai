@@ -46,18 +46,18 @@ const stitchPlugin = plugin(function ({ addUtilities, addComponents }) {
     },
   });
 
-  // Stitch Component Presets (Notion Card Recipe: 12px rounded.md + 4-layer whisper shadow)
+  // Stitch Component Presets (Smooth Borderless Surface)
   addComponents({
     ".stitch-card": {
       position: "relative",
-      borderRadius: "12px",
-      backdropFilter: "blur(12px)",
-      WebkitBackdropFilter: "blur(12px)",
-      transition: "background-color 0.2s cubic-bezier(0.42, 0, 1, 1), border-color 0.2s cubic-bezier(0.42, 0, 1, 1), box-shadow 0.2s cubic-bezier(0.42, 0, 1, 1)",
+      borderRadius: "24px",
+      border: "none",
+      backdropFilter: "blur(16px)",
+      WebkitBackdropFilter: "blur(16px)",
+      transition: "box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1), transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
     },
     ".stitch-card:hover": {
-      boxShadow:
-        "rgba(0, 0, 0, 0.04) 0px 4px 18px 0px, rgba(0, 0, 0, 0.027) 0px 2.025px 7.84688px 0px, rgba(0, 0, 0, 0.02) 0px 0.8px 2.925px 0px, rgba(0, 0, 0, 0.01) 0px 0.175px 1.04062px 0px",
+      boxShadow: "0 12px 32px -4px rgba(0, 0, 0, 0.08)",
     },
   });
 });

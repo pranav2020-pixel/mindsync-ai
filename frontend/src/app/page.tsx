@@ -455,98 +455,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Instagram-Style Daily Rituals / Stories Bar */}
-      <motion.div variants={item} className="w-full overflow-x-auto pb-1 scrollbar-none">
-        <div className="flex items-center gap-5 sm:gap-6 min-w-max px-1">
-          {/* Story 1: Daily Mood Check-In */}
-          <Link
-            href="/mood"
-            onClick={() => playNavTap()}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
-          >
-            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-rose-500">
-                <Heart size={22} className="group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-foreground tracking-tight">Log Mood</span>
-          </Link>
-
-          {/* Story 2: Breathwork Reset */}
-          <button
-            type="button"
-            onClick={() => {
-              playNavTap();
-              setIsBreathingActive(true);
-            }}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
-          >
-            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-600 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-cyan-500">
-                <Wind size={22} className="group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-foreground tracking-tight">Breathe</span>
-          </button>
-
-          {/* Story 3: Write Journal */}
-          <Link
-            href="/journal"
-            onClick={() => playNavTap()}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
-          >
-            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-blue-500 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-teal-500">
-                <BookOpen size={22} className="group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-foreground tracking-tight">Journal</span>
-          </Link>
-
-          {/* Story 4: Deep Focus */}
-          <Link
-            href="/productivity"
-            onClick={() => playNavTap()}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
-          >
-            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-amber-500">
-                <Zap size={22} className="group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-foreground tracking-tight">Deep Work</span>
-          </Link>
-
-          {/* Story 5: Habits */}
-          <Link
-            href="/habits"
-            onClick={() => playNavTap()}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
-          >
-            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-rose-500 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-pink-500">
-                <CheckCircle2 size={22} className="group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-foreground tracking-tight">Habits</span>
-          </Link>
-
-          {/* Story 6: AI Companion */}
-          <Link
-            href="/chat"
-            onClick={() => playNavTap()}
-            className="flex flex-col items-center gap-1.5 group cursor-pointer"
-          >
-            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-600 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
-              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-indigo-500">
-                <Sparkles size={22} className="group-hover:scale-110 transition-transform" />
-              </div>
-            </div>
-            <span className="text-[11px] font-medium text-foreground tracking-tight">AI Guide</span>
-          </Link>
-        </div>
-      </motion.div>
-
       {/* 2. Wellness Rank & XP Level Banner */}
       <motion.div
         variants={item}
@@ -838,7 +746,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Right 1 Col: Interactive 1-Minute Zen Box Breathing */}
-        <motion.div variants={item} className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-white/10 hover-lift flex flex-col justify-between">
+        <motion.div variants={item} className="glass-card rounded-3xl p-6 sm:p-7 hover-lift flex flex-col justify-between border-0">
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 text-foreground">
@@ -923,7 +831,7 @@ export default function Dashboard() {
       {/* 5. Interactive Today's Habits & Quick Mood Check-In */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Interactive Today's Rituals Checklist */}
-        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-5 sm:p-6 space-y-4 border border-slate-200 dark:border-white/10 hover-lift">
+        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-3xl p-6 sm:p-7 space-y-4 hover-lift border-0">
           <div className="flex items-center justify-between">
             <div>
               <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 text-foreground">
@@ -1023,7 +931,7 @@ export default function Dashboard() {
         </motion.div>
 
         {/* Right 1 Col: Quick 1-Tap Mood Check-In Widget */}
-        <motion.div variants={item} className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-white/10 hover-lift flex flex-col justify-between">
+        <motion.div variants={item} className="glass-card rounded-3xl p-6 sm:p-7 hover-lift flex flex-col justify-between border-0">
           <div>
             <div className="flex items-center justify-between mb-2">
               <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 text-foreground">
@@ -1110,7 +1018,7 @@ export default function Dashboard() {
       {/* 6. AI Insights & Wellness Radar Section */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: AI Insights Feed with Direct Chat Link */}
-        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-5 sm:p-6 space-y-4 border border-slate-200 dark:border-white/10 hover-lift">
+        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-3xl p-6 sm:p-7 space-y-4 hover-lift border-0">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Brain size={18} className="text-primary-500" />
@@ -1181,7 +1089,7 @@ export default function Dashboard() {
         {/* Right 1 Col: Wellness Balance Radar & Quick Nav */}
         <div className="space-y-6">
           {/* Radar Chart */}
-          <motion.div variants={item} className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-white/10 hover-lift space-y-3">
+          <motion.div variants={item} className="glass-card rounded-3xl p-6 sm:p-7 hover-lift space-y-3 border-0">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base sm:text-lg text-foreground">Holistic Balance</h3>
               <span className="text-[11px] font-semibold text-muted-foreground">6 Dimensions</span>
@@ -1206,7 +1114,7 @@ export default function Dashboard() {
           </motion.div>
 
           {/* Quick Action Hub */}
-          <motion.div variants={item} className="glass-card rounded-2xl p-5 sm:p-6 border border-slate-200 dark:border-white/10 hover-lift space-y-3">
+          <motion.div variants={item} className="glass-card rounded-3xl p-6 sm:p-7 hover-lift space-y-3 border-0">
             <h3 className="font-bold text-sm uppercase tracking-wider text-muted-foreground">
               Quick Navigation
             </h3>

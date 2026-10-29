@@ -143,7 +143,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen bg-white/95 dark:bg-black/95 backdrop-blur-2xl border-r border-slate-100 dark:border-neutral-900 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-hidden",
+          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen bg-white/95 dark:bg-black/95 backdrop-blur-2xl flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-hidden",
           mobileOpen
             ? "translate-x-0 w-72 shadow-2xl pointer-events-auto visible"
             : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto invisible lg:visible",
