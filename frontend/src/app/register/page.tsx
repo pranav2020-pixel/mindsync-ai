@@ -204,8 +204,8 @@ export default function RegisterPage() {
               <div className="absolute inset-0 flex items-center">
                 <div className="w-full border-t border-white/10" />
               </div>
-              <span className="relative px-3 bg-slate-900/90 text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-                Or with verified email
+              <span className="relative px-3 bg-slate-900/90 text-xs text-muted-foreground font-medium">
+                Or register with email
               </span>
             </div>
 

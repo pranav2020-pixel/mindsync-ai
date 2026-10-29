@@ -705,7 +705,7 @@ export default function SettingsPage() {
                     className="w-full h-full object-cover"
                   />
                 ) : (
-                  <span className="text-2xl sm:text-3xl font-extrabold text-transparent bg-clip-text bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 select-none">
+                  <span className="text-2xl sm:text-3xl font-extrabold text-primary-600 dark:text-primary-400 select-none">
                     {user?.name?.[0] || "U"}
                   </span>
                 )}
@@ -1178,13 +1178,13 @@ export default function SettingsPage() {
       >
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-xl bg-wellness-focus/15 text-wellness-focus flex items-center justify-center">
+            <div className="w-10 h-10 rounded-xl bg-primary-500/15 text-primary-600 dark:text-primary-400 flex items-center justify-center">
               <Volume2 size={20} />
             </div>
             <div>
               <div className="flex items-center gap-2">
                 <h2 className="text-lg font-semibold text-foreground">Sound Effects &amp; Audio</h2>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-wellness-focus/15 text-wellness-focus border border-wellness-focus/25 uppercase tracking-wider">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-primary-500/15 text-primary-600 dark:text-primary-400 border border-primary-500/25">
                   Web Audio Synthesizer
                 </span>
               </div>

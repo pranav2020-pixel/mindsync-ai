@@ -534,9 +534,6 @@ export default function JournalPage() {
 
                 {/* Full written content inside the sidebar */}
                 <div className="space-y-1.5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                    Your Reflection
-                  </span>
                   <h4 className="font-semibold text-sm text-slate-900 dark:text-white">
                     {selectedEntry.title || "Untitled Reflection"}
                   </h4>
@@ -549,9 +546,9 @@ export default function JournalPage() {
 
                 {/* AI Metrics breakdown */}
                 <div className="space-y-3 pt-2 border-t border-slate-100 dark:border-white/5">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground block">
-                    AI Emotional Metrics
-                  </span>
+                  <h5 className="text-xs font-semibold text-muted-foreground">
+                    Emotional Breakdown
+                  </h5>
                   <AnalysisRow
                     label="Sentiment"
                     value={selectedEntry.aiAnalysis?.sentiment || "Positive"}
@@ -692,8 +689,8 @@ export default function JournalPage() {
 
               {/* Full Reflection Content */}
               <div className="space-y-2">
-                <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                  Full Written Reflection
+                <h4 className="text-xs font-semibold text-muted-foreground">
+                  Written Reflection
                 </h4>
                 <div className="p-5 rounded-2xl bg-slate-50/80 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800/80">
                   <p className="text-base text-slate-900 dark:text-slate-100 whitespace-pre-wrap leading-relaxed font-normal">

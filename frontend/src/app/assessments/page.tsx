@@ -730,10 +730,12 @@ export default function AssessmentsPage() {
           {/* Header & Score Callout */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-border pb-5">
             <div>
-              <span className="text-xs uppercase tracking-wider text-emerald-600 dark:text-emerald-400 font-bold flex items-center gap-1.5 mb-1">
-                <CheckCircle2 size={16} className="text-emerald-500" /> Check-In Complete • Insights Ready
-              </span>
-              <h2 className="text-2xl font-bold text-foreground">{activeAssessment.name}</h2>
+              <div className="flex items-center gap-2 mb-1">
+                <h2 className="text-2xl font-bold text-foreground">{activeAssessment.name}</h2>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-semibold bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20">
+                  <CheckCircle2 size={13} className="text-emerald-500" /> Complete
+                </span>
+              </div>
               {activeAssessment.target && (
                 <p className="text-xs text-muted-foreground mt-0.5">Focus: {activeAssessment.target}</p>
               )}
@@ -1024,9 +1026,6 @@ export default function AssessmentsPage() {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold text-primary-500 uppercase tracking-wider mb-1">
-            <ShieldAlert size={14} /> Science-Backed Wellness Assessments
-          </div>
           <h1 className="text-3xl font-bold flex items-center gap-3 text-foreground">
             <Brain className="text-primary-500" />
             Psychological Assessments
@@ -1086,7 +1085,7 @@ export default function AssessmentsPage() {
                 >
                   <div className="space-y-2.5">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] px-2.5 py-0.5 rounded-md bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold uppercase tracking-wider border border-primary-500/20">
+                      <span className="text-[11px] px-2.5 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 font-semibold border border-primary-500/20">
                         {categoryBadge}
                       </span>
                       <span className="text-xs text-muted-foreground flex items-center gap-1">

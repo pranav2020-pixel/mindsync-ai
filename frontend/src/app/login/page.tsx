@@ -162,8 +162,8 @@ export default function LoginPage() {
           <div className="absolute inset-0 flex items-center">
             <div className="w-full border-t border-white/10" />
           </div>
-          <span className="relative px-3 bg-slate-900/90 text-xs uppercase tracking-wider text-muted-foreground font-semibold">
-            Or with email
+          <span className="relative px-3 bg-slate-900/90 text-xs text-muted-foreground font-medium">
+            Or continue with email
           </span>
         </div>
 

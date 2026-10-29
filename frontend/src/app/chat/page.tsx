@@ -82,21 +82,21 @@ export default function ChatPage() {
           )}
           {messages.map((msg, idx) => (
             <motion.div key={msg.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-2 sm:gap-3 ${msg.role === "USER" ? "justify-end" : "justify-start"}`}>
-              {msg.role === "ASSISTANT" && <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center shrink-0"><Brain size={14} className="text-white" /></div>}
+              {msg.role === "ASSISTANT" && <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-600 flex items-center justify-center shrink-0"><Brain size={14} className="text-white" /></div>}
               <div className={`max-w-[85%] sm:max-w-[80%] p-3 sm:p-4 rounded-2xl text-xs sm:text-sm ${msg.role === "USER" ? "bg-primary-500/15 border border-primary-500/20 text-foreground rounded-br-sm" : "bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-foreground rounded-bl-sm"}`}>
                 {msg.role === "ASSISTANT" ? <div className="prose dark:prose-invert prose-sm max-w-none leading-relaxed text-foreground"><ReactMarkdown>{msg.content}</ReactMarkdown></div> : <p className="leading-relaxed">{msg.content}</p>}
               </div>
-              {msg.role === "USER" && <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-wellness-focus/20 flex items-center justify-center shrink-0"><User size={14} className="text-wellness-focus" /></div>}
+              {msg.role === "USER" && <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-500/15 flex items-center justify-center shrink-0"><User size={14} className="text-primary-500" /></div>}
             </motion.div>
           ))}
           {loading && (
             <div className="flex gap-2 sm:gap-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center"><Loader2 size={14} className="text-white animate-spin" /></div>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-600 flex items-center justify-center"><Loader2 size={14} className="text-white animate-spin" /></div>
               <div className="p-3 sm:p-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-bl-sm">
-                <div className="flex gap-1">
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "0ms" }} />
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "150ms" }} />
-                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-bounce" style={{ animationDelay: "300ms" }} />
+                <div className="flex gap-1.5 items-center py-1">
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-pulse" style={{ animationDuration: "1.2s" }} />
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-pulse" style={{ animationDuration: "1.2s", animationDelay: "200ms" }} />
+                  <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-pulse" style={{ animationDuration: "1.2s", animationDelay: "400ms" }} />
                 </div>
               </div>
             </div>

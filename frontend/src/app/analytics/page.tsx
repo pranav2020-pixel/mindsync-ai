@@ -218,10 +218,6 @@ export default function AnalyticsPage() {
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-primary-500 mb-1">
-            <Layers size={14} />
-            <span>Wellness Insights & Trends</span>
-          </div>
           <h1 className="text-3xl font-extrabold tracking-tight flex items-center gap-3">
             <BarChart2 className="text-primary-500" />
             Personal Insights & Trends
@@ -588,7 +584,7 @@ export default function AnalyticsPage() {
               <h3 className="font-semibold text-base text-foreground">Wellness Reports Center</h3>
             </div>
             <p className="text-xs text-muted-foreground leading-relaxed">
-              Export comprehensive monthly summaries combining psychological wellness, habit streaks, and cognitive flow.
+              Download monthly summaries of your mood trends, sleep quality, and habit consistency.
             </p>
 
             {/* Format Picker */}

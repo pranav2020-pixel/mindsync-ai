@@ -293,7 +293,7 @@ export function Navbar() {
             <div className="w-8 h-8 rounded-lg overflow-hidden flex items-center justify-center shadow-sm">
               <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
             </div>
-            <span className="font-bold text-base text-gradient tracking-tight">MindSync</span>
+            <span className="font-bold text-base text-foreground tracking-tight">MindSync</span>
           </Link>
         </div>
 

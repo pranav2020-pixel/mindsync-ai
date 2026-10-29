@@ -283,12 +283,12 @@ export default function AdminDashboardPage() {
               className="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-primary-500/40 transition-all"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Total Registered</span>
+                <span className="text-xs font-medium text-muted-foreground">Total Registered</span>
                 <div className="w-10 h-10 rounded-xl bg-primary-500/15 text-primary-400 flex items-center justify-center">
                   <Users size={20} />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold tracking-tight">{metrics?.totalUsers ?? 0}</div>
+              <div className="text-3xl font-extrabold tracking-tight text-foreground">{metrics?.totalUsers ?? 0}</div>
               <div className="mt-2 flex items-center gap-1.5 text-xs text-muted-foreground">
                 <span className="text-emerald-400 font-semibold">{metrics?.verifiedUsers ?? 0} verified</span>
                 <span>({verifiedPercent}%)</span>
@@ -303,12 +303,12 @@ export default function AdminDashboardPage() {
               className="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-emerald-500/40 transition-all"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Daily Active (DAU)</span>
+                <span className="text-xs font-medium text-muted-foreground">Daily Active (DAU)</span>
                 <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-400 flex items-center justify-center">
                   <Flame size={20} />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold tracking-tight text-emerald-400">{metrics?.dailyActiveUsers ?? 0}</div>
+              <div className="text-3xl font-extrabold tracking-tight text-emerald-500">{metrics?.dailyActiveUsers ?? 0}</div>
               <p className="mt-2 text-xs text-muted-foreground">
                 Active in the past 24 hours
               </p>
@@ -319,15 +319,15 @@ export default function AdminDashboardPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
-              className="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-cyan-500/40 transition-all"
+              className="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-emerald-500/40 transition-all"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Weekly Active (WAU)</span>
-                <div className="w-10 h-10 rounded-xl bg-cyan-500/15 text-cyan-400 flex items-center justify-center">
+                <span className="text-xs font-medium text-muted-foreground">Weekly Active (WAU)</span>
+                <div className="w-10 h-10 rounded-xl bg-primary-500/15 text-primary-500 flex items-center justify-center">
                   <Activity size={20} />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold tracking-tight text-cyan-300">{metrics?.weeklyActiveUsers ?? 0}</div>
+              <div className="text-3xl font-extrabold tracking-tight text-foreground">{metrics?.weeklyActiveUsers ?? 0}</div>
               <p className="mt-2 text-xs text-muted-foreground">
                 Active within the last 7 days
               </p>
@@ -338,15 +338,15 @@ export default function AdminDashboardPage() {
               initial={{ opacity: 0, y: 15 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
-              className="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-violet-500/40 transition-all"
+              className="glass-card rounded-2xl p-5 relative overflow-hidden group hover:border-emerald-500/40 transition-all"
             >
               <div className="flex items-center justify-between mb-3">
-                <span className="text-xs font-medium text-muted-foreground uppercase tracking-wider">Monthly Active (MAU)</span>
-                <div className="w-10 h-10 rounded-xl bg-violet-500/15 text-violet-400 flex items-center justify-center">
+                <span className="text-xs font-medium text-muted-foreground">Monthly Active (MAU)</span>
+                <div className="w-10 h-10 rounded-xl bg-emerald-500/15 text-emerald-500 flex items-center justify-center">
                   <TrendingUp size={20} />
                 </div>
               </div>
-              <div className="text-3xl font-extrabold tracking-tight text-violet-300">{metrics?.monthlyActiveUsers ?? 0}</div>
+              <div className="text-3xl font-extrabold tracking-tight text-foreground">{metrics?.monthlyActiveUsers ?? 0}</div>
               <p className="mt-2 text-xs text-muted-foreground">
                 Active within the last 30 days
               </p>

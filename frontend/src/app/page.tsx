@@ -418,7 +418,7 @@ export default function Dashboard() {
 
           <h1 className="text-2xl sm:text-3xl font-extrabold tracking-tight text-foreground flex items-center gap-2">
             <span>{circadian.greeting},</span>
-            <span className="bg-gradient-to-r from-primary-500 via-primary-400 to-amber-500 bg-clip-text text-transparent">
+            <span className="text-primary-600 dark:text-primary-400 font-extrabold">
               {firstName}
             </span>
           </h1>

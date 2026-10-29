@@ -361,17 +361,14 @@ export default function HabitsPage() {
                   <Trophy size={20} />
                 </div>
                 <div>
-                  <div className="flex items-center gap-1.5">
-                    <span className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">
-                      Wellness Rank
-                    </span>
-                    <span className="px-1.5 py-0.2 rounded text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/20">
+                  <div className="flex items-center gap-2">
+                    <h3 className="text-xl font-bold text-foreground">
+                      Level {userLevel} <span className="text-sm font-medium text-muted-foreground">• {getLevelTitle(userLevel)}</span>
+                    </h3>
+                    <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-500/15 text-amber-600 dark:text-amber-300 border border-amber-500/20">
                       Tier {userLevel}
                     </span>
                   </div>
-                  <h3 className="text-xl font-bold text-foreground">
-                    Level {userLevel} <span className="text-sm font-medium text-muted-foreground">• {getLevelTitle(userLevel)}</span>
-                  </h3>
                 </div>
               </div>
 

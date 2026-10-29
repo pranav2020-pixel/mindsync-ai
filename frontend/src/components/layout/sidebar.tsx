@@ -160,7 +160,7 @@ export function Sidebar() {
                 <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
               </div>
               <div className="min-w-0">
-                <h1 className="font-bold text-xl text-gradient leading-tight truncate">MindSync</h1>
+                <h1 className="font-bold text-xl text-foreground tracking-tight leading-tight truncate">MindSync</h1>
                 <p className="text-xs text-muted-foreground">AI Wellness</p>
               </div>
             </Link>

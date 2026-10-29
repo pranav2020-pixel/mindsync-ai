@@ -51,7 +51,7 @@ export function BottomNav() {
                 <motion.div
                   id="bottomNavIndicator"
                   layoutId="bottomNavIndicator"
-                  className="absolute -top-1.5 w-6 h-1 bg-primary-500 rounded-full shadow-[0_0_8px_rgba(14,165,233,0.5)]"
+                  className="absolute -top-1.5 w-6 h-1 bg-primary-500 rounded-full"
                   transition={{ type: "spring", stiffness: 400, damping: 30 }}
                 />
               )}

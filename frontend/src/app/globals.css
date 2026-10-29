@@ -1,7 +1,6 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Caveat:wght@400;600;700&display=swap');
 
 @layer base {
@@ -25,7 +24,7 @@
     --border: 214.3 31.8% 91.4%;
     --input: 214.3 31.8% 91.4%;
     --ring: 201 96% 32%;
-    --radius: 0.75rem;
+    --radius: 1rem;
   }
   .dark {
     --background: 0 0% 0%;                /* Pure Monolithic True Black #000000 */
@@ -87,6 +86,11 @@
     overscroll-behavior-y: none;
   }
 
+  /* Implicit modern rounded geometry for interactive surfaces and form controls */
+  input, select, textarea {
+    border-radius: var(--radius);
+  }
+
   /* Prevent auto-zooming on iOS Safari when focusing form inputs */
   @media screen and (max-width: 768px) {
     input, select, textarea {
@@ -96,8 +100,8 @@
 }
 
 @layer utilities {
-  .glass { @apply bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xl border border-slate-200/80 dark:border-neutral-800/60 shadow-sm dark:shadow-none; }
-  .glass-card { @apply bg-white/90 dark:bg-neutral-900/80 backdrop-blur-lg border border-slate-200/80 dark:border-neutral-800/70 shadow-sm dark:shadow-2xl; }
+  .glass { @apply rounded-2xl bg-white/80 dark:bg-neutral-950/80 backdrop-blur-xl border border-slate-200/80 dark:border-neutral-800/60 shadow-sm dark:shadow-none; }
+  .glass-card { @apply rounded-2xl bg-white/90 dark:bg-neutral-900/80 backdrop-blur-lg border border-slate-200/80 dark:border-neutral-800/70 shadow-sm dark:shadow-2xl transition-all; }
   
   /* Green Theme Glass Elevation & Navigation Bars */
   .green .glass {
@@ -110,7 +114,8 @@
     box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.6), 0 0 20px 0 rgba(16, 185, 129, 0.05) !important;
   }
   .green .text-gradient {
-    background-image: linear-gradient(to right, #34d399, #a3e635) !important;
+    color: #34d399 !important;
+    background: none !important;
   }
 
   /* Green Theme Sidebar & Bottom Navigation Bars */
@@ -225,10 +230,10 @@
   }
   .green #bottomNavIndicator {
     background-color: #10b981 !important;
-    box-shadow: 0 0 10px rgba(16, 185, 129, 0.7) !important;
+    box-shadow: none !important;
   }
 
-  .text-gradient { @apply bg-clip-text text-transparent bg-gradient-to-r from-primary-600 to-wellness-focus; }
+  .text-gradient { @apply text-foreground font-semibold; }
 
   /* Universal Interactive Hover Lift Dynamics across all 3 themes */
   .hover-lift {
