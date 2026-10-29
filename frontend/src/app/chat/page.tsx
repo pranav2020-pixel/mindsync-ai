@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { Send, Brain, AlertTriangle, User, Loader2 } from "lucide-react";
+import { Send, AlertTriangle, User, Loader2 } from "lucide-react";
+import { FreddyAvatar } from "@/components/ui/freddy-avatar";
 import api from "@/lib/api";
 import { useAuth } from "@/hooks/use-auth";
 import ReactMarkdown from "react-markdown";
@@ -46,8 +47,11 @@ export default function ChatPage() {
   return (
     <div className="max-w-4xl mx-auto h-[calc(100dvh-13.5rem)] lg:h-[calc(100vh-8rem)] flex flex-col">
       <div className="mb-2 sm:mb-4">
-        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 sm:gap-3"><Brain className="text-wellness-focus" /> AI Wellness Coach</h1>
-        <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">Talk through your thoughts. I am here to listen and support.</p>
+        <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2.5 sm:gap-3">
+          <FreddyAvatar size={34} showAura />
+          <span>AI Wellness Coach</span>
+        </h1>
+        <p className="text-muted-foreground text-xs sm:text-sm mt-0.5 sm:mt-1">Talk through your thoughts. Freddy is here to listen and support.</p>
       </div>
 
       <AnimatePresence>
@@ -70,8 +74,10 @@ export default function ChatPage() {
         <div className="flex-1 overflow-y-auto p-3.5 sm:p-6 space-y-3.5 sm:space-y-4">
           {messages.length === 0 && (
             <div className="h-full flex flex-col items-center justify-center text-muted-foreground text-center p-4">
-              <Brain size={40} className="mb-3 opacity-20" />
-              <p className="text-base sm:text-lg font-medium">Start a conversation</p>
+              <div className="mb-3 p-3 rounded-full bg-gradient-to-tr from-orange-500/15 via-amber-500/10 to-purple-500/10">
+                <FreddyAvatar size={56} showAura />
+              </div>
+              <p className="text-base sm:text-lg font-medium text-foreground">Start a conversation with Freddy</p>
               <p className="text-xs sm:text-sm mt-1 max-w-sm">Share how you are feeling, ask for advice, or just vent.</p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 mt-4 sm:mt-6 w-full max-w-md">
                 {["I am feeling anxious today", "Help me plan my week", "I had a great day!", "Tips for better sleep"].map((suggestion) => (
@@ -82,7 +88,11 @@ export default function ChatPage() {
           )}
           {messages.map((msg, idx) => (
             <motion.div key={msg.id || idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`flex gap-2 sm:gap-3 ${msg.role === "USER" ? "justify-end" : "justify-start"}`}>
-              {msg.role === "ASSISTANT" && <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-600 flex items-center justify-center shrink-0"><Brain size={14} className="text-white" /></div>}
+              {msg.role === "ASSISTANT" && (
+                <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-orange-500/20 via-amber-500/15 to-orange-600/15 flex items-center justify-center shrink-0 p-0.5 overflow-hidden shadow-sm">
+                  <FreddyAvatar size={26} />
+                </div>
+              )}
               <div className={`max-w-[85%] sm:max-w-[80%] p-3 sm:p-4 rounded-2xl text-xs sm:text-sm ${msg.role === "USER" ? "bg-primary-500/15 border border-primary-500/20 text-foreground rounded-br-sm" : "bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 text-foreground rounded-bl-sm"}`}>
                 {msg.role === "ASSISTANT" ? <div className="prose dark:prose-invert prose-sm max-w-none leading-relaxed text-foreground"><ReactMarkdown>{msg.content}</ReactMarkdown></div> : <p className="leading-relaxed">{msg.content}</p>}
               </div>
@@ -91,7 +101,9 @@ export default function ChatPage() {
           ))}
           {loading && (
             <div className="flex gap-2 sm:gap-3">
-              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-primary-600 flex items-center justify-center"><Loader2 size={14} className="text-white animate-spin" /></div>
+              <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-gradient-to-br from-orange-500/20 via-amber-500/15 to-orange-600/15 flex items-center justify-center shrink-0 p-0.5 overflow-hidden shadow-sm">
+                <FreddyAvatar size={26} pulse />
+              </div>
               <div className="p-3 sm:p-4 rounded-2xl bg-slate-100 dark:bg-white/5 border border-slate-200/80 dark:border-white/10 rounded-bl-sm">
                 <div className="flex gap-1.5 items-center py-1">
                   <span className="w-1.5 h-1.5 sm:w-2 sm:h-2 bg-muted-foreground rounded-full animate-pulse" style={{ animationDuration: "1.2s" }} />

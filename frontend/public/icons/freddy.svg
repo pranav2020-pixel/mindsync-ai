@@ -1,0 +1,67 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100" fill="none">
+  <defs>
+    <!-- Left & Right Ear 3D Radial Gradients -->
+    <radialGradient id="freddyEarL" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#ffd5c2" />
+      <stop offset="55%" stop-color="#e6855c" />
+      <stop offset="100%" stop-color="#b8532a" />
+    </radialGradient>
+    <radialGradient id="freddyEarR" cx="35%" cy="30%" r="65%">
+      <stop offset="0%" stop-color="#ffd5c2" />
+      <stop offset="55%" stop-color="#e6855c" />
+      <stop offset="100%" stop-color="#b8532a" />
+    </radialGradient>
+
+    <!-- Top Cylinder Crest Gradient -->
+    <radialGradient id="freddyCrest" cx="40%" cy="25%" r="70%">
+      <stop offset="0%" stop-color="#ffe0d2" />
+      <stop offset="58%" stop-color="#e6855c" />
+      <stop offset="100%" stop-color="#b54d24" />
+    </radialGradient>
+
+    <!-- Primary 3D SDF Body Gradient -->
+    <radialGradient id="freddyBody" cx="32%" cy="24%" r="75%">
+      <stop offset="0%" stop-color="#ffd8c7" />
+      <stop offset="28%" stop-color="#f59e7a" />
+      <stop offset="62%" stop-color="#e6855c" />
+      <stop offset="88%" stop-color="#b8532a" />
+      <stop offset="100%" stop-color="#7c2d12" />
+    </radialGradient>
+
+    <!-- Soft 3D Depth Shadow for Body -->
+    <filter id="freddyDepthShadow" x="-20%" y="-15%" width="140%" height="145%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-color="#431407" flood-opacity="0.35" />
+    </filter>
+
+    <!-- Glowing Pill Eyes Filter -->
+    <filter id="freddyEyeGlow" x="-50%" y="-30%" width="200%" height="160%" filterUnits="userSpaceOnUse">
+      <feDropShadow dx="0" dy="0" stdDeviation="2" flood-color="#ffffff" flood-opacity="0.95" />
+      <feDropShadow dx="0" dy="2" stdDeviation="1.5" flood-color="#7c2d12" flood-opacity="0.3" />
+    </filter>
+  </defs>
+
+  <!-- Left Sphere Ear -->
+  <circle cx="23" cy="31" r="13.5" fill="url(#freddyEarL)" />
+
+  <!-- Right Sphere Ear -->
+  <circle cx="77" cy="31" r="13.5" fill="url(#freddyEarR)" />
+
+  <!-- Top Cylinder Crest -->
+  <rect x="41" y="11" width="18" height="23" rx="9" fill="url(#freddyCrest)" />
+
+  <!-- Primary 3D Rounded Cube Body/Head -->
+  <g filter="url(#freddyDepthShadow)">
+    <rect x="14" y="24" width="72" height="64" rx="25" fill="url(#freddyBody)" />
+  </g>
+
+  <!-- Top Specular Highlight Glint -->
+  <ellipse cx="50" cy="28" rx="24" ry="3.5" fill="#ffffff" opacity="0.38" />
+
+  <!-- Expressive Glowing White Pill Eyes -->
+  <rect x="36" y="44" width="9" height="22" rx="4.5" fill="#ffffff" filter="url(#freddyEyeGlow)" />
+  <rect x="55" y="44" width="9" height="22" rx="4.5" fill="#ffffff" filter="url(#freddyEyeGlow)" />
+
+  <!-- Friendly Warm Cheek Glow -->
+  <circle cx="26" cy="62" r="3.5" fill="#ffaa8a" opacity="0.45" />
+  <circle cx="74" cy="62" r="3.5" fill="#ffaa8a" opacity="0.45" />
+</svg>
