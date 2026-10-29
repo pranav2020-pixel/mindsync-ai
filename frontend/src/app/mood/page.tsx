@@ -105,9 +105,9 @@ export default function MoodPage() {
                   <XAxis dataKey="week" stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
                   <YAxis domain={[0, 10]} stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
                   <Tooltip contentStyle={chartTheme.tooltipStyle} />
-                  <Bar dataKey="mood" fill="#10b981" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="energy" fill="#f59e0b" radius={[4, 4, 0, 0]} />
-                  <Bar dataKey="stress" fill="#ef4444" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="mood" fill="#10b981" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="energy" fill="#f59e0b" radius={[0, 0, 0, 0]} />
+                  <Bar dataKey="stress" fill="#ef4444" radius={[0, 0, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </motion.div>

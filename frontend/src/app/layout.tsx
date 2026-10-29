@@ -88,7 +88,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 duration: 3500,
                 className: "mindsync-toast",
                 style: {
-                  borderRadius: "16px",
+                  borderRadius: "0px",
                   fontSize: "13px",
                   fontWeight: 500,
                   maxWidth: "92vw",

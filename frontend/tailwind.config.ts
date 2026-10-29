@@ -24,25 +24,25 @@ const stitchPlugin = plugin(function ({ addUtilities, addComponents }) {
       borderColor: "rgba(128, 128, 128, 0.14)",
     },
     ".hover-lift-subtle": {
-      transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+      transition: "border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
     },
     ".hover-lift-subtle:hover": {
-      transform: "translateY(-2px)",
+      boxShadow: "0 4px 12px -2px rgba(0, 0, 0, 0.08)",
     },
     ".hover-press": {
-      transition: "transform 0.15s cubic-bezier(0.16, 1, 0.3, 1), filter 0.15s ease",
+      transition: "background-color 0.15s ease, border-color 0.15s ease, opacity 0.15s ease",
     },
     ".hover-press:hover": {
-      transform: "translateY(-1.5px)",
+      opacity: "0.94",
     },
     ".hover-press:active": {
-      transform: "translateY(1px) scale(0.98)",
+      opacity: "0.85",
     },
     ".hover-scale": {
-      transition: "transform 0.25s cubic-bezier(0.16, 1, 0.3, 1)",
+      transition: "border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
     },
     ".hover-scale:hover": {
-      transform: "scale(1.025)",
+      opacity: "0.96",
     },
   });
 
@@ -50,13 +50,13 @@ const stitchPlugin = plugin(function ({ addUtilities, addComponents }) {
   addComponents({
     ".stitch-card": {
       position: "relative",
-      borderRadius: "1rem",
+      borderRadius: "0px",
       backdropFilter: "blur(16px)",
       WebkitBackdropFilter: "blur(16px)",
-      transition: "all 0.3s cubic-bezier(0.16, 1, 0.3, 1)",
+      transition: "border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
     },
     ".stitch-card:hover": {
-      transform: "translateY(-4px)",
+      boxShadow: "0 8px 24px -4px rgba(0, 0, 0, 0.12)",
     },
   });
 });
@@ -69,6 +69,17 @@ const config: Config = {
   ],
   darkMode: "class",
   theme: {
+    borderRadius: {
+      none: "0px",
+      sm: "0px",
+      DEFAULT: "0px",
+      md: "0px",
+      lg: "0px",
+      xl: "0px",
+      "2xl": "0px",
+      "3xl": "0px",
+      full: "0px",
+    },
     extend: {
       colors: {
         background: "hsl(var(--background))",
