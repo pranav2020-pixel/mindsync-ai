@@ -5,49 +5,49 @@
 
 @layer base {
   :root {
-    /* Notion Design System (DESIGN.md) — Calm, Editorial & Near-Monochrome + Confident Blue (#0075DE) */
-    --background: 0 0% 100%;              /* surface: #FFFFFF */
-    --foreground: 0 0% 0%;                /* ink: #000000 */
-    --card: 0 0% 100%;                    /* card-2: #FFFFFF */
-    --card-foreground: 0 0% 0%;           /* ink: #000000 */
-    --popover: 0 0% 100%;                 /* #FFFFFF */
-    --popover-foreground: 0 0% 0%;
-    --primary: 208.4 100% 43.5%;          /* primary: #0075DE */
-    --primary-foreground: 0 0% 100%;      /* on-primary: #FFFFFF */
-    --secondary: 30 11.1% 96.5%;          /* surface-warm: #F6F5F4 */
-    --secondary-foreground: 0 0% 0%;      /* ink: #000000 */
-    --muted: 30 11.1% 96.5%;              /* surface-warm: #F6F5F4 */
-    --muted-foreground: 30 4.3% 36.5%;    /* body-secondary: #615D59 */
-    --accent: 207.5 92.3% 94.9%;          /* primary-tint: #E6F3FE */
-    --accent-foreground: 208.1 100% 33.5%;/* primary-pressed: #005BAB */
-    --destructive: 7.2 83.8% 48.4%;       /* accent-red: #E32D14 */
+    /* Clean, Breathable Canvas & Modern Fluid Palette (Instagram-Grade Smooth UI) */
+    --background: 0 0% 100%;              /* Pure pristine canvas #FFFFFF */
+    --foreground: 0 0% 12%;               /* Soft carbon black #1F1F1F */
+    --card: 0 0% 100%;                    /* Seamless card surface */
+    --card-foreground: 0 0% 12%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 0 0% 12%;
+    --primary: 204 100% 48%;              /* Instagram Action Blue #0095F6 */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 210 20% 97%;             /* Ultra-light ambient wash #F5F7FA */
+    --secondary-foreground: 0 0% 12%;
+    --muted: 210 20% 97%;
+    --muted-foreground: 215 14% 46%;      /* Soft grey text #65676B */
+    --accent: 204 100% 96%;               /* Soft blue tint */
+    --accent-foreground: 204 100% 42%;
+    --destructive: 350 89% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 8.6% 86.3%;              /* hairline: #DFDCD9 */
-    --input: 30 8.6% 86.3%;               /* hairline: #DFDCD9 */
-    --ring: 208.4 100% 43.5%;             /* primary-focus: #0075DE */
-    --radius: 0.5rem;                     /* rounded.sm: 8px workhorse radius */
+    --border: 220 13% 94%;                /* Ultra-soft hairline #EFF1F3 */
+    --input: 220 13% 94%;
+    --ring: 204 100% 48%;
+    --radius: 1.25rem;                    /* 20px smooth modern radius */
   }
   .dark {
-    /* Notion Editorial Warm Dark Mode (#191919 canvas, #202020 cards, #A39E98 warm grey, #0075DE blue) */
-    --background: 0 0% 9.8%;              /* Notion dark canvas #191919 */
-    --foreground: 30 11.1% 96.5%;         /* Warm off-white #F6F5F4 */
-    --card: 0 0% 12.5%;                   /* Notion dark card #202020 */
-    --card-foreground: 30 11.1% 96.5%;
-    --popover: 0 0% 14.5%;                /* #252525 */
-    --popover-foreground: 30 11.1% 96.5%;
-    --primary: 208.4 100% 43.5%;          /* Notion primary #0075DE */
+    /* Pure Pitch OLED Dark Canvas (Instagram Web Dark Mode) */
+    --background: 0 0% 0%;                /* Pure pitch black #000000 */
+    --foreground: 0 0% 98%;               /* Crisp pure white #FAFAFA */
+    --card: 0 0% 7%;                      /* Smooth subtle dark surface #121212 */
+    --card-foreground: 0 0% 98%;
+    --popover: 0 0% 8%;                   /* #141414 */
+    --popover-foreground: 0 0% 98%;
+    --primary: 204 100% 48%;              /* #0095F6 */
     --primary-foreground: 0 0% 100%;
-    --secondary: 30 4% 15.5%;             /* Warm dark surface #292826 */
-    --secondary-foreground: 30 11.1% 96.5%;
-    --muted: 30 4% 15.5%;                 /* #292826 */
-    --muted-foreground: 33 5.7% 61.8%;    /* Notion muted #A39E98 */
-    --accent: 208 60% 16%;
-    --accent-foreground: 208 90% 72%;
-    --destructive: 7.2 83.8% 48.4%;       /* #E32D14 */
+    --secondary: 0 0% 12%;                /* #1E1E1E */
+    --secondary-foreground: 0 0% 98%;
+    --muted: 0 0% 12%;
+    --muted-foreground: 0 0% 65%;         /* Soft neutral muted #A8A8A8 */
+    --accent: 204 50% 16%;
+    --accent-foreground: 204 100% 70%;
+    --destructive: 350 89% 60%;
     --destructive-foreground: 0 0% 100%;
-    --border: 30 4% 18.5%;                /* Warm dark hairline #31302E */
-    --input: 30 4% 18.5%;
-    --ring: 208.4 100% 43.5%;             /* #0075DE */
+    --border: 0 0% 14%;                   /* Subtle dark hairline #242424 */
+    --input: 0 0% 14%;
+    --ring: 204 100% 48%;
   }
 
   /* Scientifically Eye & Mood Relaxing Biophilic Forest Green Theme */
@@ -90,28 +90,23 @@
     overscroll-behavior-y: none;
   }
 
-  /* Notion Typography Hierarchy: Negative tracking on display headlines >=20px, normal on body */
+  /* Clean Modern Typography */
   h1 {
-    letter-spacing: -0.03em;
-    line-height: 1.1;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
   }
   h2 {
-    letter-spacing: -0.02em;
-    line-height: 1.2;
+    letter-spacing: -0.015em;
+    line-height: 1.25;
   }
   h3 {
-    letter-spacing: -0.012em;
-    line-height: 1.3;
-  }
-  blockquote {
-    font-family: "Lyon Text", Georgia, YuMincho, "Yu Mincho", "Hiragino Mincho ProN", serif;
-    line-height: 1.55;
-    letter-spacing: normal;
+    letter-spacing: -0.01em;
+    line-height: 1.35;
   }
 
-  /* Notion Workhorse Radius (8px rounded.sm) for form controls */
+  /* Smooth Organic Form Inputs */
   input, select, textarea {
-    border-radius: 8px;
+    border-radius: 16px;
   }
 
   /* Prevent auto-zooming on iOS Safari when focusing form inputs */
@@ -133,33 +128,30 @@
 }
 
 @layer utilities {
-  /* Notion Header & Surface Bar Recipe: #FFFFFF fill + #0000001A 1px under-rule */
+  /* Smooth, Un-Boxed Modern Header & Nav Surfaces */
   .glass {
-    @apply rounded-xl bg-white/95 dark:bg-[#202020]/90 backdrop-blur-md;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 0px 0px;
+    @apply rounded-2xl bg-white/80 dark:bg-black/75 backdrop-blur-2xl;
+    border: 1px solid rgba(0, 0, 0, 0.05);
   }
   .dark .glass {
-    border-color: rgba(255, 255, 255, 0.09);
-    box-shadow: rgba(255, 255, 255, 0.07) 0px 1px 0px 0px;
+    border: 1px solid rgba(255, 255, 255, 0.07);
   }
 
-  /* Notion Card-2 Recipe: 12px rounded.md + 1px solid #0000001A + 4-layer whisper-light shadow */
+  /* Smooth, Un-Boxed Modern Cards: Organic 24px Curves & Diffuse Ambient Shadows */
   .glass-card {
-    @apply rounded-xl bg-white dark:bg-[#202020] backdrop-blur-md transition-all duration-200;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    box-shadow:
-      rgba(0, 0, 0, 0.04) 0px 4px 18px 0px,
-      rgba(0, 0, 0, 0.027) 0px 2.025px 7.84688px 0px,
-      rgba(0, 0, 0, 0.02) 0px 0.8px 2.925px 0px,
-      rgba(0, 0, 0, 0.01) 0px 0.175px 1.04062px 0px;
+    @apply rounded-2xl bg-white dark:bg-[#121212] transition-all duration-300;
+    border: 1px solid rgba(0, 0, 0, 0.05);
+    box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03), 0 2px 6px -1px rgba(0, 0, 0, 0.02);
   }
   .dark .glass-card {
-    border-color: rgba(255, 255, 255, 0.09);
-    box-shadow:
-      rgba(0, 0, 0, 0.35) 0px 4px 18px 0px,
-      rgba(0, 0, 0, 0.22) 0px 2.025px 7.84688px 0px,
-      rgba(255, 255, 255, 0.04) 0px 0px 0px 1px;
+    border: 1px solid rgba(255, 255, 255, 0.06);
+    box-shadow: 0 8px 30px -4px rgba(0, 0, 0, 0.5);
+  }
+  .glass-card:hover {
+    box-shadow: 0 10px 30px -4px rgba(0, 0, 0, 0.06), 0 4px 12px -2px rgba(0, 0, 0, 0.03);
+  }
+  .dark .glass-card:hover {
+    box-shadow: 0 12px 36px -4px rgba(0, 0, 0, 0.7);
   }
   
   /* Green Theme Glass Elevation & Navigation Bars */
@@ -294,24 +286,21 @@
 
   .text-gradient { @apply text-foreground font-semibold; }
 
-  /* Notion Whisper-Light Hover Dynamics across all 3 themes (DESIGN.md) */
+  /* Smooth Ambient Hover Dynamics */
   .hover-lift {
-    transition: box-shadow 0.2s cubic-bezier(0.42, 0, 1, 1), border-color 0.2s cubic-bezier(0.42, 0, 1, 1), background-color 0.2s cubic-bezier(0.42, 0, 1, 1) !important;
+    transition: transform 0.25s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.25s cubic-bezier(0.16, 1, 0.3, 1) !important;
   }
   .hover-lift:hover {
-    border-color: rgba(0, 0, 0, 0.18) !important;
-    box-shadow:
-      rgba(0, 0, 0, 0.05) 0px 10px 30px 0px,
-      rgba(0, 0, 0, 0.035) 0px 4px 12px 0px,
-      rgba(0, 0, 0, 0.025) 0px 1.5px 4px 0px !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 12px 28px -4px rgba(0, 0, 0, 0.08), 0 4px 10px -2px rgba(0, 0, 0, 0.03) !important;
   }
   .dark .hover-lift:hover {
-    box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.14) !important;
-    border-color: rgba(255, 255, 255, 0.22) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.6) !important;
   }
   .green .hover-lift:hover {
-    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(34, 197, 94, 0.25) !important;
-    border-color: rgba(34, 197, 94, 0.45) !important;
+    transform: translateY(-2px) !important;
+    box-shadow: 0 14px 34px -4px rgba(0, 0, 0, 0.7), 0 0 20px 0 rgba(16, 185, 129, 0.2) !important;
   }
 
   /* Notion Selection, Scrollbars & Focus Rings (DESIGN.md: primary-focus #0075DE at 2px offset) */

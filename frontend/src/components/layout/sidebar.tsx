@@ -143,7 +143,7 @@ export function Sidebar() {
 
       <aside
         className={cn(
-          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen bg-white/95 dark:bg-black/95 backdrop-blur-xl border-r border-slate-200/80 dark:border-neutral-800/80 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-hidden",
+          "fixed lg:sticky top-0 left-0 z-50 h-[100dvh] lg:h-screen bg-white/95 dark:bg-black/95 backdrop-blur-2xl border-r border-slate-100 dark:border-neutral-900 flex flex-col transition-all duration-300 ease-in-out pt-[env(safe-area-inset-top,0px)] pb-[env(safe-area-inset-bottom,0px)] overflow-hidden",
           mobileOpen
             ? "translate-x-0 w-72 shadow-2xl pointer-events-auto visible"
             : "-translate-x-full lg:translate-x-0 pointer-events-none lg:pointer-events-auto invisible lg:visible",
@@ -154,14 +154,14 @@ export function Sidebar() {
       >
         <div className="w-64 min-w-[16rem] h-full flex flex-col justify-between">
           {/* Header Branding with Desktop Collapse & Mobile Close */}
-          <div className="p-5 flex items-center justify-between border-b border-slate-200/60 dark:border-white/5 lg:border-none">
+          <div className="p-5 flex items-center justify-between">
             <Link href="/" onClick={() => setMobileOpen(false)} className="flex items-center gap-3 min-w-0">
-              <div className="w-10 h-10 rounded-xl overflow-hidden flex items-center justify-center shadow-md shrink-0">
+              <div className="w-10 h-10 rounded-2xl overflow-hidden flex items-center justify-center shadow-sm shrink-0">
                 <img src="/logo.png" alt="MindSync AI" className="w-full h-full object-cover" />
               </div>
               <div className="min-w-0">
                 <h1 className="font-bold text-xl text-foreground tracking-tight leading-tight truncate">MindSync</h1>
-                <p className="text-xs text-muted-foreground">AI Wellness</p>
+                <p className="text-xs text-muted-foreground font-medium">AI Wellness</p>
               </div>
             </Link>
 
@@ -169,7 +169,7 @@ export function Sidebar() {
             <button
               type="button"
               onClick={toggleDesktopCollapse}
-              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 active:scale-95 text-muted-foreground hover:text-foreground transition-all border border-slate-200/60 dark:border-white/5 shadow-xs cursor-pointer"
+              className="hidden lg:flex items-center justify-center w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/5 dark:hover:bg-white/10 active:scale-95 text-muted-foreground hover:text-foreground transition-all cursor-pointer"
               title="Hide menu"
               aria-label="Hide sidebar menu"
             >
@@ -183,14 +183,14 @@ export function Sidebar() {
                 e.stopPropagation();
                 setMobileOpen(false);
               }}
-              className="lg:hidden p-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 text-slate-600 dark:text-white transition-all border border-slate-200/80 dark:border-white/10 shadow-sm"
+              className="lg:hidden p-2 rounded-full bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/20 active:scale-95 text-slate-600 dark:text-white transition-all"
               aria-label="Close menu"
             >
               <X size={20} />
             </button>
           </div>
 
-        {/* Navigation Items */}
+        {/* Navigation Items - Clean, Un-Boxed Instagram-Style Fluid Navigation */}
         <nav className="flex-1 px-3 py-2 space-y-1 overflow-y-auto">
           {navItems.map((item) => {
             const Icon = icons[item.icon];
@@ -201,31 +201,31 @@ export function Sidebar() {
                 href={item.href}
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-medium transition-all",
+                  "flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-medium transition-all duration-200",
                   isActive
-                    ? "bg-primary-500/10 text-primary-600 dark:bg-primary-500/15 dark:text-primary-400 border border-primary-500/20 dark:border-primary-500/30 shadow-sm"
-                    : "text-muted-foreground hover:bg-muted/80 hover:text-foreground"
+                    ? "bg-slate-100 dark:bg-white/10 text-foreground font-semibold"
+                    : "text-muted-foreground hover:bg-slate-100/60 dark:hover:bg-white/5 hover:text-foreground"
                 )}
               >
-                <Icon size={18} className={isActive ? "text-primary-600 dark:text-primary-400" : "text-muted-foreground"} />
-                {item.name}
+                <Icon size={19} className={isActive ? "text-primary-500" : "text-muted-foreground"} />
+                <span>{item.name}</span>
               </Link>
             );
           })}
 
           {user?.role === "ADMIN" && (
-            <div className="pt-2 mt-2 border-t border-slate-200/60 dark:border-white/10">
+            <div className="pt-2 mt-2 border-t border-slate-100 dark:border-white/5">
               <Link
                 href="/admin"
                 onClick={() => setMobileOpen(false)}
                 className={cn(
-                  "flex items-center gap-3 px-3.5 py-3 rounded-xl text-sm font-semibold transition-all",
+                  "flex items-center gap-3.5 px-4 py-3 rounded-2xl text-sm font-semibold transition-all duration-200",
                   pathname === "/admin"
-                    ? "bg-amber-500/15 text-amber-700 dark:text-amber-300 border border-amber-500/30 dark:border-amber-500/40 shadow-sm"
-                    : "text-amber-600 dark:text-amber-400/90 hover:bg-amber-500/10 hover:text-amber-700 dark:hover:text-amber-300"
+                    ? "bg-amber-500/10 text-amber-700 dark:text-amber-300 font-bold"
+                    : "text-amber-600 dark:text-amber-400 hover:bg-amber-500/10"
                 )}
               >
-                <ShieldCheck size={18} className="text-amber-500 dark:text-amber-400" />
+                <ShieldCheck size={19} className="text-amber-500 dark:text-amber-400" />
                 <span>Creator Admin</span>
               </Link>
             </div>
@@ -233,7 +233,7 @@ export function Sidebar() {
         </nav>
 
         {/* Install App Button & Streak Widget Card */}
-        <div className="p-4 pb-safe border-t border-slate-200/60 dark:border-white/5 lg:border-none space-y-3">
+        <div className="p-4 pb-safe space-y-3">
           <button
             onClick={() => {
               setMobileOpen(false);
@@ -241,13 +241,13 @@ export function Sidebar() {
                 window.dispatchEvent(new CustomEvent("trigger-pwa-install"));
               }
             }}
-            className="w-full flex items-center justify-center gap-2.5 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-primary-600 dark:text-primary-400 bg-primary-500/10 hover:bg-primary-500/15 border border-primary-500/20 dark:border-primary-500/25 transition-all shadow-sm active:scale-95"
+            className="w-full flex items-center justify-center gap-2.5 px-4 py-2.5 rounded-full text-xs font-semibold text-primary-600 dark:text-primary-400 bg-primary-500/10 hover:bg-primary-500/15 transition-all active:scale-95"
           >
             <Download size={15} />
             <span>Install MindSync App</span>
           </button>
 
-          <div className="rounded-2xl p-3.5 bg-slate-100/80 dark:bg-neutral-900/60 border border-slate-200/70 dark:border-neutral-800/80 transition-all">
+          <div className="rounded-2xl p-3.5 bg-slate-50 dark:bg-neutral-900/60 transition-all">
             <div className="flex items-center justify-between mb-2">
               <p className="text-xs text-slate-600 dark:text-muted-foreground font-semibold flex items-center gap-1.5">
                 <Flame size={14} className={streak > 0 ? "text-amber-500 fill-amber-500/20" : "text-slate-400 dark:text-muted-foreground"} />

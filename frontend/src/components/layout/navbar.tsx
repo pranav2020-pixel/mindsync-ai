@@ -251,7 +251,7 @@ export function Navbar() {
     <>
     <header
       className={cn(
-        "sticky top-0 z-30 w-full glass border-b border-slate-200/80 dark:border-white/10 pt-[env(safe-area-inset-top,0px)]",
+        "sticky top-0 z-30 w-full bg-white/80 dark:bg-black/80 backdrop-blur-2xl border-b border-slate-100 dark:border-neutral-900 pt-[env(safe-area-inset-top,0px)]",
         "transition-transform duration-300 ease-in-out will-change-transform",
         isVisible ? "translate-y-0" : "-translate-y-full"
       )}
@@ -308,7 +308,7 @@ export function Navbar() {
               window.dispatchEvent(new CustomEvent("mindsync:start-tour"));
             }
           }}
-          className="px-2.5 py-1.5 rounded-xl bg-primary-500/10 hover:bg-primary-500/20 text-primary-600 dark:text-primary-400 border border-primary-500/20 text-xs font-bold flex items-center gap-1.5 transition-all active:scale-95"
+          className="px-3 py-1.5 rounded-full bg-primary-500/10 hover:bg-primary-500/15 text-primary-600 dark:text-primary-400 text-xs font-semibold flex items-center gap-1.5 transition-all active:scale-95"
           title="Launch Interactive 3D Avatar Tour"
           aria-label="Launch Interactive 3D Avatar Tour"
         >
@@ -514,14 +514,16 @@ export function Navbar() {
               setShowProfile(!showProfile);
               setShowNotifications(false);
             }}
-            className="flex items-center gap-3 pl-3 pr-1 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
+            className="flex items-center gap-2.5 pl-2 pr-1 py-1 rounded-full hover:bg-slate-100 dark:hover:bg-white/5 transition-colors"
           >
-            <div className="avatar-circle w-8 h-8 rounded-full bg-gradient-to-br from-primary-500 to-wellness-focus flex items-center justify-center text-sm font-bold text-white shadow-md overflow-hidden ring-2 ring-primary-500/20">
-              {user?.avatar ? (
-                <img src={user.avatar} alt={user?.name || "User"} className="w-full h-full object-cover" />
-              ) : (
-                user?.name?.[0] || "U"
-              )}
+            <div className="avatar-circle p-[2px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shrink-0">
+              <div className="avatar-circle w-8 h-8 rounded-full bg-slate-900 flex items-center justify-center text-sm font-bold text-white overflow-hidden">
+                {user?.avatar ? (
+                  <img src={user.avatar} alt={user?.name || "User"} className="w-full h-full object-cover" />
+                ) : (
+                  user?.name?.[0] || "U"
+                )}
+              </div>
             </div>
             <span className="text-sm font-medium text-foreground hidden sm:block">{user?.name}</span>
           </button>
@@ -540,8 +542,8 @@ export function Navbar() {
                 <motion.div
                   initial={{ opacity: 0, y: 8, scale: 0.96 }}
                   animate={{ opacity: 1, y: 0, scale: 1 }}
-                  exit={{ opacity: 0, y: 8, scale: 0.96 }}
-                  className="fixed sm:absolute top-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:top-12 right-3.5 sm:right-0 w-60 sm:w-56 bg-card/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-2 shadow-2xl z-50 border border-border/80"
+                  exit={{ opacity: 0, y: 8, scale: 1 }}
+                  className="fixed sm:absolute top-[calc(4.25rem+env(safe-area-inset-top,0px))] sm:top-12 right-3.5 sm:right-0 w-60 sm:w-56 bg-white/95 dark:bg-neutral-900/95 text-card-foreground backdrop-blur-2xl rounded-2xl p-2 shadow-xl z-50 border border-slate-100 dark:border-neutral-800"
                 >
                   <div className="px-3 py-2.5 border-b border-border/70 mb-1">
                     <p className="font-semibold text-sm text-foreground truncate">{user?.name}</p>

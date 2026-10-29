@@ -432,7 +432,7 @@ export default function Dashboard() {
           <Link
             href="/journal"
             onClick={() => playNavTap()}
-            className="glass-card px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-border/80"
+            className="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-foreground transition-all active:scale-95 shadow-xs"
           >
             <BookOpen size={15} className="text-primary-500" />
             <span>Write Journal</span>
@@ -443,7 +443,7 @@ export default function Dashboard() {
             onClick={handleGenerateInsights}
             disabled={generatingInsights}
             aria-label="Refresh AI Wellness Insights"
-            className="glass-card px-3.5 py-2 rounded-xl text-xs sm:text-sm font-semibold flex items-center gap-2 hover:bg-slate-100 dark:hover:bg-white/10 transition-colors border border-border/80 disabled:opacity-50"
+            className="px-4 py-2 rounded-full text-xs sm:text-sm font-semibold flex items-center gap-2 bg-slate-100 hover:bg-slate-200 dark:bg-white/10 dark:hover:bg-white/15 text-foreground transition-all active:scale-95 shadow-xs disabled:opacity-50"
           >
             {generatingInsights ? (
               <Loader2 size={15} className="text-amber-500 animate-spin" />
@@ -455,10 +455,102 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* 2. Wellness Rank & XP Level Banner (Taste & UI/UX Pro Max) */}
+      {/* Instagram-Style Daily Rituals / Stories Bar */}
+      <motion.div variants={item} className="w-full overflow-x-auto pb-1 scrollbar-none">
+        <div className="flex items-center gap-5 sm:gap-6 min-w-max px-1">
+          {/* Story 1: Daily Mood Check-In */}
+          <Link
+            href="/mood"
+            onClick={() => playNavTap()}
+            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+          >
+            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-rose-500">
+                <Heart size={22} className="group-hover:scale-110 transition-transform" />
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-foreground tracking-tight">Log Mood</span>
+          </Link>
+
+          {/* Story 2: Breathwork Reset */}
+          <button
+            type="button"
+            onClick={() => {
+              playNavTap();
+              setIsBreathingActive(true);
+            }}
+            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+          >
+            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-cyan-500 via-blue-500 to-indigo-600 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-cyan-500">
+                <Wind size={22} className="group-hover:scale-110 transition-transform" />
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-foreground tracking-tight">Breathe</span>
+          </button>
+
+          {/* Story 3: Write Journal */}
+          <Link
+            href="/journal"
+            onClick={() => playNavTap()}
+            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+          >
+            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-emerald-500 via-teal-500 to-blue-500 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-teal-500">
+                <BookOpen size={22} className="group-hover:scale-110 transition-transform" />
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-foreground tracking-tight">Journal</span>
+          </Link>
+
+          {/* Story 4: Deep Focus */}
+          <Link
+            href="/productivity"
+            onClick={() => playNavTap()}
+            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+          >
+            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-amber-400 via-orange-500 to-red-500 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-amber-500">
+                <Zap size={22} className="group-hover:scale-110 transition-transform" />
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-foreground tracking-tight">Deep Work</span>
+          </Link>
+
+          {/* Story 5: Habits */}
+          <Link
+            href="/habits"
+            onClick={() => playNavTap()}
+            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+          >
+            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-purple-500 via-pink-500 to-rose-500 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-pink-500">
+                <CheckCircle2 size={22} className="group-hover:scale-110 transition-transform" />
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-foreground tracking-tight">Habits</span>
+          </Link>
+
+          {/* Story 6: AI Companion */}
+          <Link
+            href="/chat"
+            onClick={() => playNavTap()}
+            className="flex flex-col items-center gap-1.5 group cursor-pointer"
+          >
+            <div className="p-[2.5px] rounded-full bg-gradient-to-tr from-blue-500 via-indigo-500 to-purple-600 transition-transform group-hover:scale-105 active:scale-95 shadow-sm">
+              <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-full bg-white dark:bg-neutral-900 border-2 border-white dark:border-black flex items-center justify-center text-indigo-500">
+                <Sparkles size={22} className="group-hover:scale-110 transition-transform" />
+              </div>
+            </div>
+            <span className="text-[11px] font-medium text-foreground tracking-tight">AI Guide</span>
+          </Link>
+        </div>
+      </motion.div>
+
+      {/* 2. Wellness Rank & XP Level Banner */}
       <motion.div
         variants={item}
-        className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-white/10 bg-gradient-to-r from-primary-500/5 via-emerald-500/5 to-transparent relative overflow-hidden"
+        className="glass-card rounded-3xl p-5 sm:p-6 bg-gradient-to-r from-primary-500/5 via-emerald-500/5 to-transparent relative overflow-hidden"
       >
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -505,13 +597,13 @@ export default function Dashboard() {
           variants={item}
           role="region"
           aria-label={`Average Mood: ${stats?.mood?.avgMood || "7.6"} of 10`}
-          className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between hover-lift min-h-[128px]"
+          className="glass-card rounded-3xl p-5 flex flex-col justify-between hover-lift min-h-[136px]"
         >
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-500 shrink-0">
-              <Heart size={20} />
+            <div className="w-11 h-11 rounded-2xl bg-emerald-500/10 flex items-center justify-center text-emerald-500 shrink-0">
+              <Heart size={22} />
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 tabular-nums">
+            <div className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 tabular-nums">
               <TrendingUp size={12} />
               <span>+0.3 vs last wk</span>
             </div>
@@ -529,13 +621,13 @@ export default function Dashboard() {
           variants={item}
           role="region"
           aria-label={`Stress Level: ${stats?.mood?.avgStress || "3.8"} of 10`}
-          className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between hover-lift min-h-[128px]"
+          className="glass-card rounded-3xl p-5 flex flex-col justify-between hover-lift min-h-[136px]"
         >
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-rose-500/10 border border-rose-500/20 flex items-center justify-center text-rose-500 shrink-0">
-              <Activity size={20} />
+            <div className="w-11 h-11 rounded-2xl bg-rose-500/10 flex items-center justify-center text-rose-500 shrink-0">
+              <Activity size={22} />
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border border-emerald-500/20 tabular-nums">
+            <div className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 tabular-nums">
               <TrendingDown size={12} />
               <span>-0.5 less stress</span>
             </div>
@@ -553,13 +645,13 @@ export default function Dashboard() {
           variants={item}
           role="region"
           aria-label={`Daily Energy: ${stats?.mood?.avgEnergy || "7.2"} of 10`}
-          className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between hover-lift min-h-[128px]"
+          className="glass-card rounded-3xl p-5 flex flex-col justify-between hover-lift min-h-[136px]"
         >
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 shrink-0">
-              <Zap size={20} />
+            <div className="w-11 h-11 rounded-2xl bg-amber-500/10 flex items-center justify-center text-amber-500 shrink-0">
+              <Zap size={22} />
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 border border-amber-500/20 tabular-nums">
+            <div className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-amber-500/10 text-amber-600 dark:text-amber-400 tabular-nums">
               <TrendingUp size={12} />
               <span>+1.2 vitality</span>
             </div>
@@ -577,13 +669,13 @@ export default function Dashboard() {
           variants={item}
           role="region"
           aria-label={`Journal Streak: ${stats?.journal?.currentStreak || "5"} days`}
-          className="glass-card rounded-2xl p-4 sm:p-5 border border-slate-200 dark:border-white/10 flex flex-col justify-between hover-lift min-h-[128px]"
+          className="glass-card rounded-3xl p-5 flex flex-col justify-between hover-lift min-h-[136px]"
         >
           <div className="flex items-center justify-between">
-            <div className="w-10 h-10 rounded-xl bg-primary-500/10 border border-primary-500/20 flex items-center justify-center text-primary-500 shrink-0">
-              <Flame size={20} className="text-orange-500 fill-orange-500" />
+            <div className="w-11 h-11 rounded-2xl bg-primary-500/10 flex items-center justify-center text-primary-500 shrink-0">
+              <Flame size={22} className="text-orange-500 fill-orange-500" />
             </div>
-            <div className="flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 border border-primary-500/20 tabular-nums">
+            <div className="flex items-center gap-1 text-[11px] font-semibold px-2.5 py-1 rounded-full bg-primary-500/10 text-primary-600 dark:text-primary-400 tabular-nums">
               <span>Active Streak</span>
             </div>
           </div>
@@ -599,7 +691,7 @@ export default function Dashboard() {
       {/* 4. Main Interactive Section (Timeline Chart & Quick Habits) */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Left 2 Cols: Interactive Weekly Timeline Chart */}
-        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-2xl p-5 sm:p-6 space-y-4 border border-slate-200 dark:border-white/10 hover-lift">
+        <motion.div variants={item} className="lg:col-span-2 glass-card rounded-3xl p-6 sm:p-7 space-y-5 hover-lift">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <div>
               <h3 className="font-bold text-base sm:text-lg flex items-center gap-2 text-foreground">
@@ -614,7 +706,7 @@ export default function Dashboard() {
             {/* Interactive Filters: Time Horizon & Metric Toggles */}
             <div className="flex items-center gap-2 flex-wrap">
               {/* Range Toggle */}
-              <div className="inline-flex items-center p-0.5 rounded-lg bg-slate-100 dark:bg-white/5 border border-slate-200 dark:border-white/10 text-xs">
+              <div className="inline-flex items-center p-1 rounded-full bg-slate-100 dark:bg-white/5 text-xs">
                 <button
                   type="button"
                   onClick={() => {
@@ -622,7 +714,7 @@ export default function Dashboard() {
                     playNavTap();
                   }}
                   className={cn(
-                    "px-2.5 py-1 rounded-md font-semibold transition-all",
+                    "px-3 py-1 rounded-full font-semibold transition-all",
                     timeHorizon === "7D" ? "bg-primary-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
@@ -635,7 +727,7 @@ export default function Dashboard() {
                     playNavTap();
                   }}
                   className={cn(
-                    "px-2.5 py-1 rounded-md font-semibold transition-all",
+                    "px-3 py-1 rounded-full font-semibold transition-all",
                     timeHorizon === "14D" ? "bg-primary-600 text-white shadow-xs" : "text-muted-foreground hover:text-foreground"
                   )}
                 >
