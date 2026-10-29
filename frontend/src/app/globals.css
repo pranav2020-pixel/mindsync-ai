@@ -5,47 +5,49 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
-    --primary: 201 96% 32%;
-    --primary-foreground: 210 40% 98%;
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 201 96% 32%;
-    --radius: 0rem;
+    /* Notion Design System (DESIGN.md) — Calm, Editorial & Near-Monochrome + Confident Blue (#0075DE) */
+    --background: 0 0% 100%;              /* surface: #FFFFFF */
+    --foreground: 0 0% 0%;                /* ink: #000000 */
+    --card: 0 0% 100%;                    /* card-2: #FFFFFF */
+    --card-foreground: 0 0% 0%;           /* ink: #000000 */
+    --popover: 0 0% 100%;                 /* #FFFFFF */
+    --popover-foreground: 0 0% 0%;
+    --primary: 208.4 100% 43.5%;          /* primary: #0075DE */
+    --primary-foreground: 0 0% 100%;      /* on-primary: #FFFFFF */
+    --secondary: 30 11.1% 96.5%;          /* surface-warm: #F6F5F4 */
+    --secondary-foreground: 0 0% 0%;      /* ink: #000000 */
+    --muted: 30 11.1% 96.5%;              /* surface-warm: #F6F5F4 */
+    --muted-foreground: 30 4.3% 36.5%;    /* body-secondary: #615D59 */
+    --accent: 207.5 92.3% 94.9%;          /* primary-tint: #E6F3FE */
+    --accent-foreground: 208.1 100% 33.5%;/* primary-pressed: #005BAB */
+    --destructive: 7.2 83.8% 48.4%;       /* accent-red: #E32D14 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 8.6% 86.3%;              /* hairline: #DFDCD9 */
+    --input: 30 8.6% 86.3%;               /* hairline: #DFDCD9 */
+    --ring: 208.4 100% 43.5%;             /* primary-focus: #0075DE */
+    --radius: 0.5rem;                     /* rounded.sm: 8px workhorse radius */
   }
   .dark {
-    --background: 0 0% 0%;                /* Pure Monolithic True Black #000000 */
-    --foreground: 0 0% 98%;               /* Pure crisp white #fafafa */
-    --card: 0 0% 4%;                      /* Monolithic neutral obsidian card #0a0a0a */
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 4%;                   /* #0a0a0a */
-    --popover-foreground: 0 0% 98%;
-    --primary: 201 96% 32%;
-    --primary-foreground: 0 0% 98%;
-    --secondary: 0 0% 9%;                 /* Deep neutral surface #171717 */
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 9%;                     /* #171717 */
-    --muted-foreground: 0 0% 63.9%;       /* Neutral monochrome muted #a3a3a3 */
-    --accent: 0 0% 12%;                   /* #1f1f1f */
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 12%;                   /* Clean neutral border #1f1f1f */
-    --input: 0 0% 12%;
-    --ring: 0 0% 40%;
+    /* Notion Editorial Warm Dark Mode (#191919 canvas, #202020 cards, #A39E98 warm grey, #0075DE blue) */
+    --background: 0 0% 9.8%;              /* Notion dark canvas #191919 */
+    --foreground: 30 11.1% 96.5%;         /* Warm off-white #F6F5F4 */
+    --card: 0 0% 12.5%;                   /* Notion dark card #202020 */
+    --card-foreground: 30 11.1% 96.5%;
+    --popover: 0 0% 14.5%;                /* #252525 */
+    --popover-foreground: 30 11.1% 96.5%;
+    --primary: 208.4 100% 43.5%;          /* Notion primary #0075DE */
+    --primary-foreground: 0 0% 100%;
+    --secondary: 30 4% 15.5%;             /* Warm dark surface #292826 */
+    --secondary-foreground: 30 11.1% 96.5%;
+    --muted: 30 4% 15.5%;                 /* #292826 */
+    --muted-foreground: 33 5.7% 61.8%;    /* Notion muted #A39E98 */
+    --accent: 208 60% 16%;
+    --accent-foreground: 208 90% 72%;
+    --destructive: 7.2 83.8% 48.4%;       /* #E32D14 */
+    --destructive-foreground: 0 0% 100%;
+    --border: 30 4% 18.5%;                /* Warm dark hairline #31302E */
+    --input: 30 4% 18.5%;
+    --ring: 208.4 100% 43.5%;             /* #0075DE */
   }
 
   /* Scientifically Eye & Mood Relaxing Biophilic Forest Green Theme */
@@ -75,7 +77,6 @@
 @layer base {
   *, *::before, *::after {
     @apply border-border;
-    border-radius: 0px !important;
     -webkit-tap-highlight-color: transparent;
   }
   html {
@@ -84,12 +85,33 @@
   }
   body {
     @apply bg-background text-foreground font-sans antialiased min-h-screen;
+    letter-spacing: normal;
+    line-height: 1.5;
     overscroll-behavior-y: none;
   }
 
-  /* Crisp 90-degree Swiss architectural geometry across all interactive surfaces and form controls */
-  input, select, textarea, button {
-    border-radius: 0px !important;
+  /* Notion Typography Hierarchy: Negative tracking on display headlines >=20px, normal on body */
+  h1 {
+    letter-spacing: -0.03em;
+    line-height: 1.1;
+  }
+  h2 {
+    letter-spacing: -0.02em;
+    line-height: 1.2;
+  }
+  h3 {
+    letter-spacing: -0.012em;
+    line-height: 1.3;
+  }
+  blockquote {
+    font-family: "Lyon Text", Georgia, YuMincho, "Yu Mincho", "Hiragino Mincho ProN", serif;
+    line-height: 1.55;
+    letter-spacing: normal;
+  }
+
+  /* Notion Workhorse Radius (8px rounded.sm) for form controls */
+  input, select, textarea {
+    border-radius: 8px;
   }
 
   /* Prevent auto-zooming on iOS Safari when focusing form inputs */
@@ -99,7 +121,7 @@
     }
   }
 
-  /* Respect user accessibility preference for reduced motion (ui-ux-pro-max) */
+  /* Respect user accessibility preference for reduced motion */
   @media (prefers-reduced-motion: reduce) {
     *, *::before, *::after {
       animation-duration: 0.01ms !important;
@@ -111,8 +133,34 @@
 }
 
 @layer utilities {
-  .glass { @apply rounded-none bg-white/95 dark:bg-neutral-950/90 backdrop-blur-xl border border-slate-200 dark:border-neutral-800 shadow-sm dark:shadow-none; }
-  .glass-card { @apply rounded-none bg-white dark:bg-neutral-900/90 backdrop-blur-lg border border-slate-200 dark:border-neutral-800 shadow-sm dark:shadow-xl transition-colors duration-200; }
+  /* Notion Header & Surface Bar Recipe: #FFFFFF fill + #0000001A 1px under-rule */
+  .glass {
+    @apply rounded-xl bg-white/95 dark:bg-[#202020]/90 backdrop-blur-md;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: rgba(0, 0, 0, 0.1) 0px 1px 0px 0px;
+  }
+  .dark .glass {
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow: rgba(255, 255, 255, 0.07) 0px 1px 0px 0px;
+  }
+
+  /* Notion Card-2 Recipe: 12px rounded.md + 1px solid #0000001A + 4-layer whisper-light shadow */
+  .glass-card {
+    @apply rounded-xl bg-white dark:bg-[#202020] backdrop-blur-md transition-all duration-200;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow:
+      rgba(0, 0, 0, 0.04) 0px 4px 18px 0px,
+      rgba(0, 0, 0, 0.027) 0px 2.025px 7.84688px 0px,
+      rgba(0, 0, 0, 0.02) 0px 0.8px 2.925px 0px,
+      rgba(0, 0, 0, 0.01) 0px 0.175px 1.04062px 0px;
+  }
+  .dark .glass-card {
+    border-color: rgba(255, 255, 255, 0.09);
+    box-shadow:
+      rgba(0, 0, 0, 0.35) 0px 4px 18px 0px,
+      rgba(0, 0, 0, 0.22) 0px 2.025px 7.84688px 0px,
+      rgba(255, 255, 255, 0.04) 0px 0px 0px 1px;
+  }
   
   /* Green Theme Glass Elevation & Navigation Bars */
   .green .glass {
@@ -246,30 +294,33 @@
 
   .text-gradient { @apply text-foreground font-semibold; }
 
-  /* Stable Architectural Hover Dynamics across all 3 themes (ui-ux-pro-max) */
+  /* Notion Whisper-Light Hover Dynamics across all 3 themes (DESIGN.md) */
   .hover-lift {
-    transition: box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.2s ease !important;
+    transition: box-shadow 0.2s cubic-bezier(0.42, 0, 1, 1), border-color 0.2s cubic-bezier(0.42, 0, 1, 1), background-color 0.2s cubic-bezier(0.42, 0, 1, 1) !important;
   }
   .hover-lift:hover {
-    border-color: rgba(15, 23, 42, 0.25) !important;
-    box-shadow: 0 8px 20px -6px rgba(0, 0, 0, 0.08) !important;
+    border-color: rgba(0, 0, 0, 0.18) !important;
+    box-shadow:
+      rgba(0, 0, 0, 0.05) 0px 10px 30px 0px,
+      rgba(0, 0, 0, 0.035) 0px 4px 12px 0px,
+      rgba(0, 0, 0, 0.025) 0px 1.5px 4px 0px !important;
   }
   .dark .hover-lift:hover {
-    box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.9), 0 0 0 1px rgba(255, 255, 255, 0.14) !important;
-    border-color: rgba(255, 255, 255, 0.28) !important;
+    box-shadow: 0 10px 24px -6px rgba(0, 0, 0, 0.7), 0 0 0 1px rgba(255, 255, 255, 0.14) !important;
+    border-color: rgba(255, 255, 255, 0.22) !important;
   }
   .green .hover-lift:hover {
     box-shadow: 0 12px 24px -8px rgba(0, 0, 0, 0.8), 0 0 0 1px rgba(34, 197, 94, 0.25) !important;
     border-color: rgba(34, 197, 94, 0.45) !important;
   }
 
-  /* Browser Surfaces Craft Polish: Thematic Selection, Scrollbars & Focus Rings */
+  /* Notion Selection, Scrollbars & Focus Rings (DESIGN.md: primary-focus #0075DE at 2px offset) */
   ::selection {
-    background-color: rgba(16, 185, 129, 0.25);
-    color: #0f172a;
+    background-color: #E6F3FE;
+    color: #000000;
   }
   .dark ::selection {
-    background-color: rgba(255, 255, 255, 0.22);
+    background-color: rgba(0, 117, 222, 0.35);
     color: #ffffff;
   }
   .green ::selection {
@@ -277,7 +328,7 @@
     color: #edfcf2;
   }
 
-  /* Custom Sharp Scrollbar across all 3 themes */
+  /* Custom Scrollbar across all 3 themes */
   ::-webkit-scrollbar {
     width: 6px;
     height: 6px;
@@ -286,11 +337,11 @@
     background: transparent;
   }
   ::-webkit-scrollbar-thumb {
-    background: rgba(148, 163, 184, 0.3);
-    border-radius: 0px;
+    background: rgba(97, 93, 89, 0.25);
+    border-radius: 9999px;
   }
   ::-webkit-scrollbar-thumb:hover {
-    background: rgba(148, 163, 184, 0.5);
+    background: rgba(97, 93, 89, 0.45);
   }
   .dark ::-webkit-scrollbar-thumb {
     background: rgba(255, 255, 255, 0.15);
@@ -305,19 +356,19 @@
     background: rgba(34, 197, 94, 0.4);
   }
 
-  /* High-Contrast Accessible Keyboard Focus Rings */
+  /* Notion Accessible Keyboard Focus Rings: 2px solid #0075DE at 2px offset (DESIGN.md Rule #7) */
   :focus-visible {
-    outline: 2px solid transparent;
+    outline: 2px solid #0075DE;
     outline-offset: 2px;
   }
   .dark :focus-visible {
-    outline-color: rgba(255, 255, 255, 0.4);
+    outline-color: #0075DE;
   }
   .green :focus-visible {
     outline-color: #10b981;
   }
   :root:not(.dark):not(.green) :focus-visible {
-    outline-color: #0284c7;
+    outline-color: #0075DE;
   }
 
   /* Tabular Numerals Utility */

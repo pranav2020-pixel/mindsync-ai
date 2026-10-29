@@ -46,17 +46,18 @@ const stitchPlugin = plugin(function ({ addUtilities, addComponents }) {
     },
   });
 
-  // Stitch Component Presets
+  // Stitch Component Presets (Notion Card Recipe: 12px rounded.md + 4-layer whisper shadow)
   addComponents({
     ".stitch-card": {
       position: "relative",
-      borderRadius: "0px",
-      backdropFilter: "blur(16px)",
-      WebkitBackdropFilter: "blur(16px)",
-      transition: "border-color 0.2s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1)",
+      borderRadius: "12px",
+      backdropFilter: "blur(12px)",
+      WebkitBackdropFilter: "blur(12px)",
+      transition: "background-color 0.2s cubic-bezier(0.42, 0, 1, 1), border-color 0.2s cubic-bezier(0.42, 0, 1, 1), box-shadow 0.2s cubic-bezier(0.42, 0, 1, 1)",
     },
     ".stitch-card:hover": {
-      boxShadow: "0 8px 24px -4px rgba(0, 0, 0, 0.12)",
+      boxShadow:
+        "rgba(0, 0, 0, 0.04) 0px 4px 18px 0px, rgba(0, 0, 0, 0.027) 0px 2.025px 7.84688px 0px, rgba(0, 0, 0, 0.02) 0px 0.8px 2.925px 0px, rgba(0, 0, 0, 0.01) 0px 0.175px 1.04062px 0px",
     },
   });
 });
@@ -71,14 +72,15 @@ const config: Config = {
   theme: {
     borderRadius: {
       none: "0px",
-      sm: "0px",
-      DEFAULT: "0px",
-      md: "0px",
-      lg: "0px",
-      xl: "0px",
-      "2xl": "0px",
-      "3xl": "0px",
-      full: "0px",
+      xs: "4px",
+      sm: "8px",
+      DEFAULT: "8px",
+      md: "8px",
+      lg: "8px",
+      xl: "12px",
+      "2xl": "12px",
+      "3xl": "12px",
+      full: "9999px",
     },
     extend: {
       colors: {
@@ -93,10 +95,64 @@ const config: Config = {
         secondary: { DEFAULT: "hsl(var(--secondary))", foreground: "hsl(var(--secondary-foreground))" },
         accent: { DEFAULT: "hsl(var(--accent))", foreground: "hsl(var(--accent-foreground))" },
         destructive: { DEFAULT: "hsl(var(--destructive))", foreground: "hsl(var(--destructive-foreground))" },
-        primary: { 50: "#f0f9ff", 100: "#e0f2fe", 200: "#bae6fd", 300: "#7dd3fc", 400: "#38bdf8", 500: "#0ea5e9", 600: "#0284c7", 700: "#0369a1", 800: "#075985", 900: "#0c4a6e" },
-        wellness: { calm: "#10b981", energy: "#f59e0b", stress: "#ef4444", focus: "#8b5cf6", sleep: "#6366f1" },
+        primary: {
+          50: "#F2F9FF",
+          100: "#E6F3FE",
+          200: "#BAE0FD",
+          300: "#7CC4FA",
+          400: "#36A2F4",
+          500: "#097FE8",
+          600: "#0075DE",
+          700: "#005BAB",
+          800: "#004787",
+          900: "#003566",
+        },
+        wellness: {
+          calm: "#1AAE39",
+          energy: "#FFB110",
+          stress: "#E32D14",
+          focus: "#0075DE",
+          sleep: "#1313BA",
+        },
+        notion: {
+          ink: "#000000",
+          secondary: "#615D59",
+          muted: "#A39E98",
+          surface: "#FFFFFF",
+          warm: "#F6F5F4",
+          hairline: "#DFDCD9",
+          tint: "#E6F3FE",
+          lavender: "#EADBFA",
+          successTint: "#D0F4D8",
+          amber: "#FFB110",
+          amberDeep: "#E89D01",
+          coral: "#F64932",
+          red: "#E32D14",
+          success: "#1AAE39",
+          indigo: "#1313BA",
+        },
       },
-      fontFamily: { sans: ["Inter", "system-ui", "sans-serif"] },
+      fontFamily: {
+        sans: [
+          "NotionInter",
+          "Inter",
+          "-apple-system",
+          "system-ui",
+          "Segoe UI",
+          "Helvetica",
+          "Apple Color Emoji",
+          "Arial",
+          "sans-serif",
+        ],
+        serif: [
+          "Lyon Text",
+          "Georgia",
+          "YuMincho",
+          "Yu Mincho",
+          "Hiragino Mincho ProN",
+          "serif",
+        ],
+      },
       animation: { "fade-in": "fadeIn 0.5s ease-out", "slide-up": "slideUp 0.5s ease-out", "pulse-slow": "pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite" },
       keyframes: { fadeIn: { "0%": { opacity: "0" }, "100%": { opacity: "1" } }, slideUp: { "0%": { opacity: "0", transform: "translateY(20px)" }, "100%": { opacity: "1", transform: "translateY(0)" } } },
     },

@@ -444,7 +444,7 @@ export default function AdminDashboardPage() {
                     contentStyle={{
                       backgroundColor: "#0f172a",
                       borderColor: "#334155",
-                      borderRadius: "0px",
+                      borderRadius: "8px",
                       fontSize: "12px",
                       color: "#f8fafc",
                     }}

@@ -530,9 +530,9 @@ export default function ProductivityPage() {
                     <XAxis dataKey="week" stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
                     <YAxis stroke={chartTheme.axisStroke} tick={chartTheme.axisTick} />
                     <Tooltip contentStyle={chartTheme.tooltipStyle} />
-                    <Bar dataKey="focusTime" name="Focus Time (min)" fill="#0ea5e9" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="tasks" name="Tasks Done" fill="#10b981" radius={[0, 0, 0, 0]} />
-                    <Bar dataKey="pomodoro" name="Focus Blocks" fill="#f59e0b" radius={[0, 0, 0, 0]} />
+                    <Bar dataKey="focusTime" name="Focus Time (min)" fill="#0ea5e9" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="tasks" name="Tasks Done" fill="#10b981" radius={[4, 4, 0, 0]} />
+                    <Bar dataKey="pomodoro" name="Focus Blocks" fill="#f59e0b" radius={[4, 4, 0, 0]} />
                   </BarChart>
                 </ResponsiveContainer>
               </div>

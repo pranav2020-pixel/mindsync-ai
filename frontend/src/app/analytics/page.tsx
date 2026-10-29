@@ -493,13 +493,13 @@ export default function AnalyticsPage() {
                     dataKey="energy"
                     name="Energy (1–10)"
                     fill={chartTheme.series.amber.stroke}
-                    radius={[0, 0, 0, 0]}
+                    radius={[4, 4, 0, 0]}
                   />
                   <Bar
                     dataKey="stress"
                     name="Stress (1–10)"
                     fill={chartTheme.series.rose.stroke}
-                    radius={[0, 0, 0, 0]}
+                    radius={[4, 4, 0, 0]}
                   />
                 </BarChart>
               </ResponsiveContainer>
