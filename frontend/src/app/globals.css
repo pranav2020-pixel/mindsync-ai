@@ -325,6 +325,13 @@
     font-variant-numeric: tabular-nums;
   }
 
+  /* Circular Profile Picture Override (Preserves rounded avatars while keeping UI sharp) */
+  .avatar-circle,
+  .avatar-circle img,
+  .avatar-circle > * {
+    border-radius: 9999px !important;
+  }
+
   /* Universal Tactile Button & Link Hover/Active Feedback (Stable Layout Bounds) */
   button:not(:disabled),
   a:not([class*="pointer-events-none"]) {

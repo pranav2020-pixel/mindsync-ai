@@ -686,7 +686,7 @@ export default function SettingsPage() {
         <div className="flex flex-col sm:flex-row items-center gap-5 p-4 rounded-2xl bg-slate-50/80 dark:bg-white/[0.03] border border-slate-200/80 dark:border-white/5">
           {/* Avatar with Instagram Gradient Ring */}
           <div className="relative group shrink-0">
-            <div className="p-[3px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-md">
+            <div className="avatar-circle p-[3px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-md">
               <div
                 onClick={() => {
                   if (user?.avatar) {
@@ -695,7 +695,7 @@ export default function SettingsPage() {
                     fileInputRef.current?.click();
                   }
                 }}
-                className="w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-900 relative cursor-pointer flex items-center justify-center transition-all group-hover:brightness-95"
+                className="avatar-circle w-20 h-20 sm:w-24 sm:h-24 rounded-full overflow-hidden bg-white dark:bg-slate-900 border-2 border-white dark:border-slate-900 relative cursor-pointer flex items-center justify-center transition-all group-hover:brightness-95"
                 title={user?.avatar ? "Click to view full photo" : "Click to upload profile picture"}
               >
                 {user?.avatar ? (
@@ -709,7 +709,7 @@ export default function SettingsPage() {
                     {user?.name?.[0] || "U"}
                   </span>
                 )}
-                <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-semibold gap-1">
+                <div className="avatar-circle absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 transition-opacity flex flex-col items-center justify-center text-white text-[10px] font-semibold gap-1">
                   {user?.avatar ? (
                     <>
                       <Eye size={18} />
@@ -732,7 +732,7 @@ export default function SettingsPage() {
                 e.stopPropagation();
                 fileInputRef.current?.click();
               }}
-              className="absolute bottom-0 right-0 p-2 rounded-full bg-primary-600 hover:bg-primary-500 text-white shadow-md border-2 border-white dark:border-slate-900 transition-transform active:scale-95 hover:scale-105"
+              className="avatar-circle absolute bottom-0 right-0 p-2 rounded-full bg-primary-600 hover:bg-primary-500 text-white shadow-md border-2 border-white dark:border-slate-900 transition-transform active:scale-95 hover:scale-105"
               title="Change profile photo"
             >
               <Camera size={13} />
@@ -1872,8 +1872,8 @@ export default function SettingsPage() {
               </div>
 
               {/* Large Circular Avatar Display with Glow */}
-              <div className="relative group p-[3.5px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-2xl ring-4 ring-primary-500/15">
-                <div className="w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden bg-slate-950 border-4 border-background shadow-inner">
+              <div className="avatar-circle relative group p-[3.5px] rounded-full bg-gradient-to-tr from-amber-500 via-rose-500 to-purple-600 shadow-2xl ring-4 ring-primary-500/15">
+                <div className="avatar-circle w-56 h-56 sm:w-64 sm:h-64 rounded-full overflow-hidden bg-slate-950 border-4 border-background shadow-inner">
                   <img
                     src={user.avatar}
                     alt={user.name || "Profile Photo"}

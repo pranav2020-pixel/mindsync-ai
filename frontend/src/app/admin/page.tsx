@@ -517,7 +517,7 @@ export default function AdminDashboardPage() {
                         <tr key={u.id} className="hover:bg-slate-100/60 dark:hover:bg-white/[0.02] transition-colors">
                           <td className="py-3 pr-3 font-medium text-foreground">
                             <div className="flex items-center gap-2">
-                              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white font-bold text-[11px] shadow-sm uppercase">
+                              <div className="avatar-circle w-7 h-7 rounded-full bg-gradient-to-br from-primary-500 to-indigo-600 flex items-center justify-center text-white font-bold text-[11px] shadow-sm uppercase">
                                 {u.name?.charAt(0) || "U"}
                               </div>
                               <span className="truncate max-w-[130px] sm:max-w-none">{u.name}</span>
